@@ -2,6 +2,7 @@ rules_version = '2';
 
 // Regras do Firestore do site Cavernosos.
 // Para aplicar: Firebase Console → Firestore Database → Regras → colar este arquivo → Publicar.
+// O site é fechado: sem login, nada pode ser lido nem gravado (exceto o necessário para entrar).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -10,29 +11,22 @@ service cloud.firestore {
       return request.auth != null && exists(userDoc()) && get(userDoc()).data.active == true;
     }
     function isAdmin() { return isUser() && get(userDoc()).data.role == 'admin'; }
-    function visitorCan(p) {
-      let v = /databases/$(database)/documents/settings/visitor;
-      return request.auth == null && exists(v) && p in get(v).data.perms;
-    }
-    // Mesma lógica do site: admin pode tudo, usuário segue as próprias permissões,
-    // visitante (sem login) segue o "Acesso de visitantes".
-    function can(p) {
-      return isAdmin() || (isUser() && p in get(userDoc()).data.perms) || visitorCan(p);
-    }
+    // Mesma lógica do site: admin pode tudo, usuário segue as próprias permissões.
+    function can(p) { return isAdmin() || (isUser() && p in get(userDoc()).data.perms); }
     function appInitialized() { return exists(/databases/$(database)/documents/settings/app); }
     function onlyChanged(keys) {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys);
     }
 
     match /players/{id} {
-      allow read: if true;
+      allow read: if isUser();
       allow create: if can('players.create');
       allow update: if can('players.edit');
       allow delete: if can('players.delete');
     }
 
     match /matches/{id} {
-      allow read: if true;
+      allow read: if isUser();
       allow create: if can('matches.create');
       allow update: if (can('matches.score') && onlyChanged(['presence', 'goals', '_order']))
                     || (can('matches.finalize') && onlyChanged(['finalized', '_order']))
@@ -41,13 +35,13 @@ service cloud.firestore {
     }
 
     match /videos/{id} {
-      allow read: if true;
+      allow read: if isUser();
       allow create: if can('videos.create');
       allow update, delete: if can('videos.delete');
     }
 
     match /mural/{id} {
-      allow read: if true;
+      allow read: if isUser();
       allow create: if can('photos.create');
       allow update, delete: if can('photos.delete');
     }
@@ -63,23 +57,21 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // Mapa usuário → login (precisa ser público para a tela de login funcionar).
+    // Usuário → login. A tela de login precisa consultar um nome por vez,
+    // mas ninguém de fora consegue listar todos os usuários.
     match /logins/{username} {
-      allow read: if true;
+      allow get: if true;
+      allow list: if isAdmin();
       allow create: if isAdmin()
                     || (!appInitialized() && request.auth != null && request.resource.data.uid == request.auth.uid);
       allow update, delete: if isAdmin();
     }
 
+    // Só diz se o site já tem administrador (para mostrar a tela de primeiro acesso).
     match /settings/app {
       allow read: if true;
       allow create: if !appInitialized() && request.auth != null;
       allow update, delete: if isAdmin();
-    }
-
-    match /settings/visitor {
-      allow read: if true;
-      allow write: if isAdmin();
     }
   }
 }

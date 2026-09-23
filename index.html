@@ -220,6 +220,28 @@ button .lucide{vertical-align:-4px;}
 .notice .lucide{color:var(--accent); width:16px; height:16px; margin-top:1px;}
 .modal-actions .spacer{flex:1;}
 
+.login-screen{
+  min-height:100vh; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:32px 16px; gap:20px;
+  background:
+    radial-gradient(ellipse 700px 420px at 50% 0%, rgba(242,183,5,0.10), transparent),
+    var(--bg);
+}
+.login-card{
+  width:100%; max-width:380px; background:var(--bg-elev); border:1px solid var(--border);
+  padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.login-brand{text-align:center; margin-bottom:26px;}
+.login-logo{
+  width:128px; height:128px; margin:0 auto 16px auto; border-radius:50%; overflow:hidden;
+  border:2px solid var(--accent-dim); box-shadow:0 0 0 6px rgba(242,183,5,0.07), 0 10px 30px rgba(0,0,0,.5);
+}
+.login-logo img{width:100%; height:100%; object-fit:cover; display:block;}
+.login-brand .kicker{color:var(--accent); font-size:11px; letter-spacing:.18em; font-family:'Oswald'; text-transform:uppercase;}
+.login-brand h1{font-size:30px; letter-spacing:.04em; margin-top:2px;}
+.login-submit{width:100%; justify-content:center; padding:12px 16px; font-size:15px;}
+.login-foot{font-size:12px; color:var(--text-faint); text-align:center;}
+.login-card .form-error{margin:0 0 12px 0; min-height:0;}
 .toast-wrap{position:fixed; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; max-width:calc(100vw - 40px);}
 .toast{background:var(--bg-elev); border:1px solid var(--border); border-left:3px solid var(--grass); padding:11px 14px; font-size:13.5px; box-shadow:0 8px 24px rgba(0,0,0,.35); animation:toastIn .18s ease;}
 .toast.error{border-left-color:var(--danger);}
@@ -536,20 +558,18 @@ const PERM_TREE = [
       {key:'photos.delete', label:'Excluir fotos'},
     ]},
   ]},
-  {label:'Usuários', icon:'user-cog', visitor:false, children:[
+  {label:'Usuários', icon:'user-cog', children:[
     {key:'users.view', label:'Ver lista de usuários', note:'criar e editar usuários é exclusivo de Admin'},
   ]},
 ];
 function permLeaves(nodes){ return nodes.flatMap(n=> n.children ? permLeaves(n.children) : [n.key]); }
 const ALL_PERMS = permLeaves(PERM_TREE);
 const DEFAULT_USER_PERMS = ['dashboard.view','players.view','matches.view','matches.score','moments.view','videos.create','photos.create'];
-const DEFAULT_VISITOR_PERMS = ['dashboard.view','players.view','matches.view','moments.view'];
 
+// O site é fechado: sem login, ninguém pode nada.
 function can(perm){
   const u = state.currentUser;
-  if(u) return u.role === 'admin' || (u.perms||[]).includes(perm);
-  if(perm === 'users.view') return false; // a lista de usuários nunca é pública
-  return (state.visitorPerms || DEFAULT_VISITOR_PERMS).includes(perm);
+  return !!u && (u.role === 'admin' || (u.perms||[]).includes(perm));
 }
 const isAdmin = ()=> !!state.currentUser && state.currentUser.role === 'admin';
 const normUsername = s => (s||'').trim().toLowerCase();
@@ -584,17 +604,22 @@ function authErrorMsg(e){
 
 async function loadSettings(){
   try{
-    const [app, visitor] = await Promise.all([
-      db.collection('settings').doc('app').get(),
-      db.collection('settings').doc('visitor').get(),
-    ]);
+    const app = await db.collection('settings').doc('app').get();
     state.appInitialized = app.exists;
-    state.visitorPerms = visitor.exists ? (visitor.data().perms || []) : DEFAULT_VISITOR_PERMS;
   }catch(e){
     console.error('settings load failed', e);
     state.appInitialized = true;
-    state.visitorPerms = DEFAULT_VISITOR_PERMS;
   }
+}
+// Carrega os dados do site; só é chamado depois do login.
+async function enterApp(){
+  loadFailed = false;
+  await Promise.all([loadAll(), loadUsers()]);
+  if(!loadFailed && can('players.edit')) await migratePlayers();
+}
+function clearData(){
+  Object.assign(state, {players:[], matches:[], mural:[], videos:[], users:[], modal:null, openMatchId:null});
+  Object.keys(synced).forEach(k=> delete synced[k]);
 }
 async function loadUsers(){
   if(!can('users.view')){ state.users = []; return; }
@@ -646,11 +671,9 @@ let state = {
   videos: [],
   users: [],
   currentUser: null,
-  visitorPerms: null,
   appInitialized: true,
   view: 'dashboard',
   momentosTab: 'videos',
-  usersTab: 'list',
   usersFilter: 'all',
   usersSearch: '',
   sidebarCollapsed: lsGet('cavernosos:sidebar') === 'collapsed',
@@ -742,29 +765,29 @@ function render(){
   const search = document.getElementById('usersSearch');
   const keepFocus = search && document.activeElement === search;
   const caret = keepFocus ? search.selectionStart : null;
-  app.innerHTML = renderShell();
-  bindShell();
+  if(!state.currentUser){
+    app.innerHTML = renderLoginScreen();
+    bindAuthModals();
+  } else if(loadFailed){
+    app.innerHTML = `<div class="login-screen"><div class="login-card"><p class="empty">Não foi possível carregar os dados. Verifique a conexão.</p><button class="primary" onclick="location.reload()">Tentar de novo</button></div></div>`;
+  } else {
+    app.innerHTML = renderShell();
+    bindShell();
+  }
   if(window.lucide) lucide.createIcons();
   const newSearch = keepFocus && document.getElementById('usersSearch');
   if(newSearch){ newSearch.focus(); newSearch.setSelectionRange(caret, caret); }
 }
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadAll(), loadSettings()]);
-  if(loadFailed){
-    document.getElementById('app').innerHTML = '<p class="empty" style="padding:40px">Não foi possível carregar os dados. Verifique a conexão e recarregue a página.</p>';
-    return;
-  }
-  let first = true;
-  // se o login do Firebase não responder (rede lenta, navegador bloqueando), abre como visitante
+  await loadSettings();
+  // se o Firebase não responder (rede lenta, navegador bloqueando), mostra a tela de login mesmo assim
   setTimeout(()=>{ if(!booted){ booted = true; render(); } }, 4000);
   auth.onAuthStateChanged(async fbUser=>{
+    if(state.settingUp) return; // o formulário do primeiro admin cuida do resto
     await resolveCurrentUser(fbUser);
-    await loadUsers();
-    if(first){
-      first = false;
-      booted = true;
-      if(can('players.edit')) await migratePlayers();
-    }
+    if(state.currentUser) await enterApp();
+    else clearData();
+    booted = true;
     render();
   });
 });
@@ -808,7 +831,6 @@ function renderShell(){
         <div class="when">Quinta-feira, 21h às 22h30</div>
         <div class="where">Sargento Wolf, Afogados</div>
       </div>
-      ${u ? `
       <div class="account">
         <div class="avatar" title="${esc(u.username)}">${esc(u.username.charAt(0))}</div>
         <div class="account-info">
@@ -817,22 +839,20 @@ function renderShell(){
         </div>
         <button class="icon-btn" id="myAccountBtn" title="Minha conta" aria-label="Minha conta">${icon('key-round')}</button>
         <button class="icon-btn danger-hover" id="logoutBtn" title="Sair" aria-label="Sair">${icon('log-out')}</button>
-      </div>` : `
-      <button class="login-btn" id="loginBtn" title="Entrar">${icon('log-in')}<span class="nav-label">Entrar</span></button>`}
+      </div>
     </div>
   </div>
   <div class="main">
-    ${nav.length ? renderView() : renderGate()}
+    ${nav.length ? renderView() : renderNoAccess()}
   </div>
   ${state.modal ? renderModal() : ''}
   `;
 }
-function renderGate(){
+function renderNoAccess(){
   return `
     <div class="gate">
       ${icon('lock')}
-      <p>Entre com seu usuário para acessar o site.</p>
-      <button class="primary" style="margin-top:16px;" id="gateLoginBtn">Entrar</button>
+      <p>Seu usuário ainda não tem acesso a nenhuma área do site. Fale com um administrador.</p>
     </div>`;
 }
 function bindShell(){
@@ -845,10 +865,6 @@ function bindShell(){
     lsSet('cavernosos:sidebar', state.sidebarCollapsed ? 'collapsed' : 'open');
     render();
   };
-  ['loginBtn','gateLoginBtn'].forEach(id=>{
-    const b = document.getElementById(id);
-    if(b) b.onclick = ()=>{ state.modal = {type: state.appInitialized ? 'login' : 'setup', data:null}; render(); };
-  });
   const logoutBtn = document.getElementById('logoutBtn');
   if(logoutBtn) logoutBtn.onclick = async ()=>{ await auth.signOut(); toast('Você saiu.'); };
   const myAccountBtn = document.getElementById('myAccountBtn');
@@ -1266,8 +1282,6 @@ function renderModal(){
   if(m.type === 'match') return renderMatchModal();
   if(m.type === 'photo') return renderPhotoModal();
   if(m.type === 'video') return renderVideoModal();
-  if(m.type === 'login') return renderLoginModal();
-  if(m.type === 'setup') return renderSetupModal();
   if(m.type === 'account') return renderAccountModal();
   if(m.type === 'user') return renderUserModal(m.data);
   return '';
@@ -1512,7 +1526,6 @@ function fmtDay(iso){ return iso ? new Date(iso).toLocaleDateString('pt-BR') : '
 
 function renderUsers(){
   const admin = isAdmin();
-  const tab = admin ? state.usersTab : 'list';
   return `
     <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
       <div>
@@ -1520,14 +1533,9 @@ function renderUsers(){
         <h2>Usuários</h2>
         <p>${admin ? 'Crie contas, defina o poder de cada pessoa e o que ela pode acessar.' : 'Pessoas com acesso ao site.'}</p>
       </div>
-      ${admin && tab === 'list' ? `<button class="primary btn-icon" id="newUserBtn">${icon('user-plus')}Novo usuário</button>` : ''}
+      ${admin ? `<button class="primary btn-icon" id="newUserBtn">${icon('user-plus')}Novo usuário</button>` : ''}
     </div>
-    ${admin ? `
-    <div class="momentos-tabs">
-      <button data-users-tab="list" class="${tab==='list'?'active':''}">Usuários</button>
-      <button data-users-tab="visitor" class="${tab==='visitor'?'active':''}">Acesso de visitantes</button>
-    </div>` : ''}
-    ${tab === 'visitor' ? renderVisitorAccess() : renderUsersList()}
+    ${renderUsersList()}
   `;
 }
 function filteredUsers(){
@@ -1567,22 +1575,12 @@ function renderUsersList(){
     <div class="hint" style="margin-top:10px;">Mostrando ${list.length} de ${state.users.length} usuário${state.users.length===1?'':'s'}.</div>`}
   `;
 }
-function renderVisitorAccess(){
-  return `
-    <div class="notice">${icon('info')}<div>Defina o que qualquer pessoa pode fazer <b>sem entrar</b> no site. Quem entra com usuário segue as permissões do próprio cadastro.</div></div>
-    <div id="visitorTreeWrap">${renderPermTree(state.visitorPerms || DEFAULT_VISITOR_PERMS, {id:'visitorTree', visitor:true})}</div>
-    <div class="modal-actions">
-      <button class="ghost" id="visitorReset">Restaurar padrão</button>
-      <button class="primary" id="visitorSave">Salvar acesso de visitantes</button>
-    </div>
-  `;
-}
 
 /* ---------- árvore de permissões com checkboxes ---------- */
 function renderPermTree(selected, opts){
   const sel = new Set(selected);
   const locked = !!opts.locked;
-  const nodes = opts.visitor ? PERM_TREE.filter(n=> n.visitor !== false) : PERM_TREE;
+  const nodes = PERM_TREE;
   const renderNodes = list => `<ul>${list.map(n=> n.children ? `
     <li class="group">
       <label><input type="checkbox" data-perm-group ${locked?'disabled':''}>${n.icon ? icon(n.icon) : ''}${esc(n.label)}</label>
@@ -1635,42 +1633,37 @@ function newPwInput(name, attrs){
   return `${pwInput(name, `maxlength="30" autocomplete="new-password" data-pw-rules ${attrs||''}`)}
     <ul class="pw-rules">${PASSWORD_RULES.map((r,i)=>`<li data-rule="${i}">${icon('circle')}${icon('circle-check')}${r.label}</li>`).join('')}</ul>`;
 }
-function renderLoginModal(){
+// Tela de entrada: o site inteiro fica atrás dela até a pessoa fazer login.
+function renderLoginScreen(){
+  const setup = !state.appInitialized;
   return `
-  <div class="overlay" id="modalOverlay">
-    <div class="modal">
-      <h3>Entrar</h3>
-      <form id="loginForm">
-        <div class="field"><label>Usuário</label><input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" autofocus></div>
-        <div class="field"><label>Senha</label>${pwInput('password', 'required autocomplete="current-password"')}</div>
-        <div class="form-error" id="formError"></div>
-        <div class="modal-actions">
-          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary" id="formSubmit">Entrar</button>
-        </div>
-        <div class="hint" style="margin-top:14px;">Esqueceu a senha? Peça para um administrador definir uma nova.</div>
-      </form>
-    </div>
-  </div>`;
-}
-function renderSetupModal(){
-  return `
-  <div class="overlay" id="modalOverlay">
-    <div class="modal">
-      <h3>Criar primeiro administrador</h3>
-      <div class="notice">${icon('shield-check')}<div>Ainda não existe nenhum usuário. Esta conta será o <b>Admin</b> principal e poderá criar os demais usuários.</div></div>
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo"><img src="${LOGO_DATA_URI}" alt="Cavernosos"></div>
+        <div class="kicker">Toda quinta</div>
+        <h1>Cavernosos</h1>
+      </div>
+      ${setup ? `
+      <div class="notice">${icon('shield-check')}<div>Primeiro acesso: crie a conta do <b>Admin</b> principal. Ela poderá criar os demais usuários.</div></div>
       <form id="setupForm" autocomplete="off">
         <div class="field"><label>Usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: victor" autofocus><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
         <div class="field"><label>E-mail</label><input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></div>
         <div class="field"><label>Senha</label>${newPwInput('password', 'required')}</div>
         <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
         <div class="form-error" id="formError"></div>
-        <div class="modal-actions">
-          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary" id="formSubmit">Criar administrador</button>
-        </div>
-      </form>
+        <button type="submit" class="primary login-submit" id="formSubmit">Criar administrador</button>
+      </form>` : `
+      <form id="loginForm">
+        <div class="field"><label>Usuário</label><input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" autofocus></div>
+        <div class="field"><label>Senha</label>${pwInput('password', 'required maxlength="30" autocomplete="current-password"')}</div>
+        <label class="switch-row" style="margin-bottom:16px; font-size:13px; color:var(--text-dim);"><input type="checkbox" name="keep" ${lsGet('cavernosos:keep') === '0' ? '' : 'checked'}> Manter conectado neste aparelho</label>
+        <div class="form-error" id="formError"></div>
+        <button type="submit" class="primary login-submit btn-icon" id="formSubmit">${icon('log-in')}Entrar</button>
+        <div class="hint" style="margin-top:16px; text-align:center;">Esqueceu a senha? Peça para um administrador definir uma nova.</div>
+      </form>`}
     </div>
+    <div class="login-foot">Quinta-feira, 21h às 22h30 · Sargento Wolf, Afogados</div>
   </div>`;
 }
 function renderAccountModal(){
@@ -1785,30 +1778,11 @@ function bindUsersEvents(){
   document.querySelectorAll('[data-edit-user]').forEach(b=>{
     b.onclick = ()=>{ state.modal = {type:'user', data: state.users.find(u=> u.id === b.dataset.editUser)}; render(); };
   });
-  document.querySelectorAll('[data-users-tab]').forEach(b=>{
-    b.onclick = ()=>{ state.usersTab = b.dataset.usersTab; render(); };
-  });
   document.querySelectorAll('[data-users-filter]').forEach(b=>{
     b.onclick = ()=>{ state.usersFilter = b.dataset.usersFilter; render(); };
   });
   const search = document.getElementById('usersSearch');
   if(search) search.oninput = ()=>{ state.usersSearch = search.value; render(); };
-
-  const visitorTree = document.getElementById('visitorTree');
-  bindPermTree(visitorTree);
-  const visitorReset = document.getElementById('visitorReset');
-  if(visitorReset) visitorReset.onclick = ()=> setPermTree(visitorTree, DEFAULT_VISITOR_PERMS);
-  const visitorSave = document.getElementById('visitorSave');
-  if(visitorSave) visitorSave.onclick = async ()=>{
-    const perms = readPermTree(visitorTree);
-    visitorSave.disabled = true;
-    try{
-      await db.collection('settings').doc('visitor').set({perms, updatedAt: new Date().toISOString(), updatedBy: state.currentUser.username});
-      state.visitorPerms = perms;
-      toast('Acesso de visitantes salvo.');
-    }catch(e){ console.error(e); toast(authErrorMsg(e), 'error'); }
-    visitorSave.disabled = false;
-  };
 }
 
 function bindAuthModals(){
@@ -1839,10 +1813,12 @@ function bindAuthModals(){
       if(!validUsername(username)) throw {code:'auth/invalid-credential'};
       const login = await db.collection('logins').doc(username).get();
       if(!login.exists) throw {code:'auth/invalid-credential'};
+      const keep = !!fd.get('keep');
+      lsSet('cavernosos:keep', keep ? '1' : '0');
+      await auth.setPersistence(keep ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
       state.justLoggedIn = true;
       await auth.signInWithEmailAndPassword(login.data().email, fd.get('password'));
-      state.modal = null;
-      render();
+      // a tela troca sozinha quando o Firebase confirma o login (onAuthStateChanged)
     }catch(err){
       state.justLoggedIn = false;
       formBusy(false); formError(authErrorMsg(err));
@@ -1875,7 +1851,7 @@ function bindAuthModals(){
       state.settingUp = false;
       state.appInitialized = true;
       await resolveCurrentUser(auth.currentUser);
-      await loadUsers();
+      await enterApp();
       state.modal = null;
       state.view = 'users';
       render();

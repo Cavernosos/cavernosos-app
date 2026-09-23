@@ -40,6 +40,12 @@ service cloud.firestore {
       allow update, delete: if can('videos.delete');
     }
 
+    match /games_videos/{id} {
+      allow read: if isUser();
+      allow create: if can('games.videos.create');
+      allow update, delete: if can('games.videos.delete');
+    }
+
     match /mural/{id} {
       allow read: if isUser();
       allow create: if can('photos.create');

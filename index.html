@@ -169,6 +169,59 @@ label{font-size:12.5px; color:var(--text-dim); display:block; margin-bottom:6px;
 .nav-global button{width:100%;}
 .nav-title{font-family:'Oswald'; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); padding:0 12px 6px 12px;}
 .sidebar.collapsed .nav-title{display:none;}
+/* ---------- BoardGame ---------- */
+.trophy{display:inline-flex; align-items:center;}
+.trophy .lucide{width:17px; height:17px; stroke-width:2.2;}
+.trophy.gold{color:#D4A017;}
+.trophy.silver{color:#9AA3AE;}
+.trophy.bronze{color:#B87333;}
+.pos-num{display:inline-flex; align-items:center; justify-content:center; min-width:17px; font-family:'Oswald'; font-size:13px; color:var(--text-faint);}
+.bg-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px;}
+.bg-card{background:var(--bg-card); border:1px solid var(--border-soft); display:flex; flex-direction:column;}
+.bg-cover{width:100%; aspect-ratio:4/3; object-fit:cover; display:block; background:var(--bg); border-bottom:1px solid var(--border-soft);}
+.bg-cover.ph, .bg-thumb.ph{display:flex; align-items:center; justify-content:center; color:var(--text-faint);}
+.bg-cover.ph .lucide{width:40px; height:40px;}
+.bg-body{padding:14px; display:flex; flex-direction:column; gap:6px; flex:1;}
+.bg-body h3{font-size:15px; text-transform:none; letter-spacing:0;}
+.bg-meta{font-size:12.5px; color:var(--text-dim);}
+.bg-tags{display:flex; gap:5px; flex-wrap:wrap; margin-top:4px;}
+.bg-tags .chip{display:inline-flex; align-items:center; gap:5px;}
+.bg-tags .chip .lucide{width:12px; height:12px;}
+.bg-card .actions{display:flex; gap:6px; margin-top:auto; padding-top:8px;}
+.bg-card .actions button{flex:1; padding:6px; font-size:12px;}
+.bg-photo-pick{aspect-ratio:4/3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;}
+.bg-photo-pick img{width:100%; height:100%; max-height:none; border-radius:0; object-fit:cover; margin:0;}
+.bg-photo-pick .lucide{width:28px; height:28px; color:var(--text-faint);}
+.count-pills{display:flex; gap:6px; flex-wrap:wrap;}
+.count-pill{margin:0; cursor:pointer;}
+.count-pill input{position:absolute; opacity:0; width:0; height:0;}
+.count-pill span{display:flex; align-items:center; justify-content:center; min-width:40px; height:40px; padding:0 8px; border:1px solid var(--border); font-family:'Oswald'; font-size:15px; color:var(--text-dim); background:var(--bg);}
+.count-pill input:checked + span{background:var(--accent); border-color:var(--accent); color:var(--on-accent);}
+.count-pill input:focus-visible + span{outline:2px solid var(--accent-dim); outline-offset:2px;}
+.bg-match-list{display:flex; flex-direction:column; gap:12px;}
+.bg-match{background:var(--bg-card); border:1px solid var(--border-soft); padding:14px 16px;}
+.bg-match-head{display:flex; align-items:center; gap:12px;}
+.bg-thumb{width:46px; height:46px; object-fit:cover; flex-shrink:0; border:1px solid var(--border-soft); background:var(--bg);}
+.bg-match-game{font-weight:600; font-size:15px;}
+.bg-results{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+.bg-result{display:flex; align-items:center; gap:7px; padding:6px 10px; border:1px solid var(--border-soft); background:var(--bg); font-size:13.5px;}
+.bg-result.p1{border-color:#D4A01766; background:rgba(212,160,23,0.08);}
+.bg-result .score{color:var(--text-faint); font-size:12px;}
+.bg-notes{margin-top:10px; font-size:12.5px; color:var(--text-dim);}
+.result-rows{border:1px solid var(--border-soft);}
+.result-row{display:grid; grid-template-columns:1fr 130px 110px; gap:10px; align-items:center; padding:8px 12px; border-bottom:1px solid var(--border-soft);}
+.result-row:last-child{border-bottom:none;}
+.result-row.head{font-family:'Oswald'; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); background:var(--bg-elev);}
+.result-row .name{display:flex; align-items:center; gap:8px; font-size:13.5px;}
+.result-row select, .result-row input{padding:7px 9px; font-size:13px;}
+.table-wrap{overflow-x:auto;}
+.rank-table{width:100%; border-collapse:collapse; border:1px solid var(--border-soft);}
+.rank-table th{text-align:left; font-family:'Oswald'; font-weight:500; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg-elev);}
+.rank-table td{padding:11px 14px; border-bottom:1px solid var(--border-soft); font-size:13.5px; vertical-align:middle; background:var(--bg-card);}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table th, .rank-table td{white-space:nowrap;}
+.rank-table td.medal{font-family:'Oswald'; font-size:15px;}
+.rank-table .rank-pos-cell{width:44px;}
 .coming-soon{border:1px dashed var(--border); background:var(--bg-card); padding:40px 24px; text-align:center; max-width:560px;}
 .coming-soon .lucide{width:34px; height:34px; color:var(--accent); margin-bottom:12px;}
 .coming-soon h3{font-size:16px; margin-bottom:8px;}
@@ -500,6 +553,9 @@ button .lucide{vertical-align:-4px;}
   .nav button, .sidebar.collapsed .nav button{white-space:nowrap; padding:8px 10px; font-size:11.5px; gap:6px; justify-content:flex-start;}
   .nav button .lucide{width:19px; height:19px;}
   .nav .nav-label{display:none;}
+  .result-row{grid-template-columns:1fr 1fr;}
+  .result-row .name{grid-column:1 / -1;}
+  .result-row.head{display:none;}
   .sidebar, .sidebar.collapsed{flex-wrap:wrap;}
   .env-switch, .sidebar.collapsed .env-switch{order:10; width:100%; grid-template-columns:repeat(4,1fr); padding:0; margin:4px 0 0 0;}
   .sidebar.collapsed .env-switch .env-label{display:inline;}
@@ -652,7 +708,27 @@ const PERM_TREE = [
     ]},
   ]},
   {label:'BoardGame', icon:'dices', children:[
-    {key:'boardgame.view', label:'Ver ambiente BoardGame'},
+    {key:'boardgame.view', label:'Ver ambiente BoardGame', note:'inclui Rankings e aparecer como jogador nas partidas'},
+    {label:'Partidas', icon:'swords', children:[
+      {key:'bg.matches.create', label:'Registrar partidas'},
+      {key:'bg.matches.edit', label:'Editar partidas'},
+      {key:'bg.matches.delete', label:'Excluir partidas'},
+    ]},
+    {label:'Biblioteca', icon:'library', children:[
+      {key:'bg.games.create', label:'Cadastrar jogos'},
+      {key:'bg.games.edit', label:'Editar jogos'},
+      {key:'bg.games.delete', label:'Excluir jogos'},
+    ]},
+    {label:'Mídia', icon:'image', children:[
+      {label:'Vídeos', children:[
+        {key:'bg.videos.create', label:'Adicionar vídeos'},
+        {key:'bg.videos.delete', label:'Excluir vídeos'},
+      ]},
+      {label:'Fotos', children:[
+        {key:'bg.photos.create', label:'Enviar fotos'},
+        {key:'bg.photos.delete', label:'Excluir fotos'},
+      ]},
+    ]},
   ]},
   {label:'Games', icon:'gamepad-2', children:[
     {key:'games.view', label:'Ver ambiente Games'},
@@ -663,6 +739,10 @@ const PERM_TREE = [
   ]},
   {label:'Outros', icon:'sparkles', children:[
     {key:'outros.view', label:'Ver ambiente Outros'},
+    {label:'Vídeos', children:[
+      {key:'outros.videos.create', label:'Adicionar vídeos'},
+      {key:'outros.videos.delete', label:'Excluir vídeos'},
+    ]},
   ]},
   {label:'Usuários', icon:'user-cog', children:[
     {key:'users.view', label:'Ver lista de usuários', note:'criar e editar usuários é exclusivo de Admin'},
@@ -671,7 +751,8 @@ const PERM_TREE = [
 function permLeaves(nodes){ return nodes.flatMap(n=> n.children ? permLeaves(n.children) : [n.key]); }
 const ALL_PERMS = permLeaves(PERM_TREE);
 const DEFAULT_USER_PERMS = ['dashboard.view','players.view','matches.view','matches.score','moments.view','videos.create','photos.create',
-  'boardgame.view','games.view','games.videos.create','outros.view'];
+  'boardgame.view','bg.matches.create','bg.games.create','bg.videos.create','bg.photos.create',
+  'games.view','games.videos.create','outros.view','outros.videos.create'];
 
 // O site é fechado: sem login, ninguém pode nada.
 function can(perm){
@@ -725,7 +806,8 @@ async function enterApp(){
   if(!loadFailed && can('players.edit')) await migratePlayers();
 }
 function clearData(){
-  Object.assign(state, {players:[], matches:[], mural:[], videos:[], games_videos:[], users:[], modal:null, openMatchId:null});
+  Object.assign(state, {players:[], matches:[], mural:[], videos:[], users:[], modal:null, openMatchId:null});
+  EXTRA_COLLECTIONS.forEach(k=> state[k] = []);
   Object.keys(synced).forEach(k=> delete synced[k]);
 }
 async function loadUsers(){
@@ -734,7 +816,38 @@ async function loadUsers(){
     const snap = await db.collection('users').get();
     state.users = snap.docs.map(d=> d.data()).sort((a,b)=> a.username.localeCompare(b.username));
   }catch(e){ console.error('users load failed', e); state.users = []; }
+  if(isAdmin()) await syncDirectory();
 }
+
+// Diretório: versão pública (só para quem está logado) da lista de usuários, com
+// nome e ambientes que cada um acessa. Serve, por exemplo, para escolher os
+// jogadores de uma partida sem expor e-mails e permissões. Quem mantém é o Admin.
+function userEnvs(u){
+  if(userStatus(u) !== 'active') return [];
+  if(u.role === 'admin') return ENVS.map(e=> e.id);
+  const p = u.perms || [];
+  return ENVS.filter(e=> (!e.perm || p.includes(e.perm)) && e.nav.some(n=> !n.perm || p.includes(n.perm))).map(e=> e.id);
+}
+async function syncDirectory(){
+  try{
+    const col = db.collection('directory');
+    const current = new Map((await col.get()).docs.map(d=> [d.id, d.data()]));
+    const batch = db.batch();
+    let ops = 0;
+    state.users.forEach(u=>{
+      const entry = {id: u.id, username: u.username, active: userStatus(u) === 'active', envs: userEnvs(u)};
+      const old = current.get(u.id);
+      const same = old && old.username === entry.username && old.active === entry.active && (old.envs||[]).join() === entry.envs.join();
+      if(!same){ batch.set(col.doc(u.id), entry); ops++; }
+      current.delete(u.id);
+    });
+    current.forEach((_, id)=>{ batch.delete(col.doc(id)); ops++; });
+    if(ops) await batch.commit();
+    state.directory = state.users.map(u=> ({id: u.id, username: u.username, active: userStatus(u) === 'active', envs: userEnvs(u)}));
+  }catch(e){ console.error('directory sync failed', e); }
+}
+const bgPlayers = ()=> state.directory.filter(d=> d.active && (d.envs||[]).includes('boardgame'))
+  .sort((a,b)=> a.username.localeCompare(b.username));
 // Resolve o perfil do usuário logado (documento users/{uid}).
 async function resolveCurrentUser(fbUser){
   if(state.settingUp) return; // o cadastro do primeiro admin ainda está sendo gravado
@@ -831,7 +944,11 @@ let state = {
   sidebarCollapsed: lsGet('cavernosos:sidebar') === 'collapsed',
   env: lsGet('cavernosos:env') || 'pelada',
   envViews: {},
-  games_videos: [],
+  games_videos: [], outros_videos: [], bg_games: [], bg_matches: [], bg_videos: [], bg_photos: [], directory: [],
+  bgMediaTab: 'videos',
+  bgRankGame: 'all',
+  bgMatchGame: 'all',
+  bgLibSearch: '',
   openMatchId: null,
   modal: null // {type, data}
 };
@@ -876,11 +993,14 @@ async function loadAll(){
   state.matches = matches || [];
   state.mural = mural || [];
   state.videos = videos || [];
-  // coleção nova: se as regras do banco ainda não a liberam, o resto do site segue funcionando
+  // coleções dos outros ambientes: se as regras do banco ainda não as liberam,
+  // o resto do site segue funcionando
   const failedBefore = loadFailed;
-  state.games_videos = (await sGet('games_videos')) || [];
+  const lists = await Promise.all(EXTRA_COLLECTIONS.map(k=> sGet(k)));
+  EXTRA_COLLECTIONS.forEach((k,i)=> state[k] = lists[i] || []);
   loadFailed = failedBefore;
 }
+const EXTRA_COLLECTIONS = ['games_videos','outros_videos','bg_games','bg_matches','bg_videos','bg_photos','directory'];
 
 function savePlayers(){ return sSet('players', state.players); }
 function saveMatches(){ return sSet('matches', state.matches); }
@@ -974,7 +1094,7 @@ const ENVS = [
     {id:'games-videos', label:'Vídeos', icon:'clapperboard'},
   ]},
   {id:'outros', label:'Outros', icon:'sparkles', perm:'outros.view', nav:[
-    {id:'outros-home', label:'Início', icon:'house'},
+    {id:'outros-videos', label:'Vídeos', icon:'clapperboard'},
   ]},
 ];
 const GLOBAL_NAV = [
@@ -1099,16 +1219,11 @@ function renderView(){
   if(state.view === 'mural') return renderMural();
   if(state.view === 'users') return renderUsers();
   if(state.view === 'games-videos') return renderGamesVideos();
-  if(state.view === 'bg-matches') return renderComingSoon('BoardGame', 'Partidas', 'swords',
-    'Aqui vão ficar as partidas de jogos de tabuleiro: qual jogo, quem jogou, pontuação e quem venceu.');
-  if(state.view === 'bg-rankings') return renderComingSoon('BoardGame', 'Rankings', 'trophy',
-    'Ranking geral e por jogo, calculado a partir das partidas registradas.');
-  if(state.view === 'bg-library') return renderComingSoon('BoardGame', 'Biblioteca', 'library',
-    'A coleção de jogos do grupo: número de jogadores, duração e quem é o dono de cada caixa.');
-  if(state.view === 'bg-media') return renderComingSoon('BoardGame', 'Mídia', 'image',
-    'Fotos e vídeos das jogatinas.');
-  if(state.view === 'outros-home') return renderComingSoon('Outros', 'Outros', 'sparkles',
-    'Um espaço para tudo que não é pelada, tabuleiro nem videogame. Conte o que você quer ver aqui.');
+  if(state.view === 'bg-matches') return renderBgMatches();
+  if(state.view === 'bg-rankings') return renderBgRankings();
+  if(state.view === 'bg-library') return renderBgLibrary();
+  if(state.view === 'bg-media') return renderBgMedia();
+  if(state.view === 'outros-videos') return renderOutrosVideos();
   return '';
 }
 
@@ -1405,30 +1520,32 @@ function renderFotosTab(){
 }
 
 /* ============ OUTROS AMBIENTES ============ */
-function renderComingSoon(kicker, title, iconName, desc){
+function pageHead(kicker, title, desc, actionHtml){
   return `
-    <div class="page-head">
-      <div class="kicker">${esc(kicker)}</div>
-      <h2>${esc(title)}</h2>
-    </div>
+    <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+      <div>
+        <div class="kicker">${esc(kicker)}</div>
+        <h2>${esc(title)}</h2>
+        ${desc ? `<p>${esc(desc)}</p>` : ''}
+      </div>
+      ${actionHtml || ''}
+    </div>`;
+}
+function renderComingSoon(kicker, title, iconName, desc){
+  return `${pageHead(kicker, title)}
     <div class="coming-soon">
       ${icon(iconName)}
       <h3>Em construção</h3>
       <p>${esc(desc)}</p>
     </div>`;
 }
-function renderGamesVideos(){
-  const list = state.games_videos;
+
+/* ---------- vídeos e fotos (genéricos, usados por vários ambientes) ---------- */
+// cfg: {collection, createPerm, deletePerm}
+function renderVideoGrid(cfg){
+  const list = state[cfg.collection];
+  if(!list.length) return `<div class="empty">Nenhum vídeo publicado ainda.</div>`;
   return `
-    <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
-      <div>
-        <div class="kicker">Games</div>
-        <h2>Vídeos</h2>
-        <p>Jogatinas, lances e resenhas dos games.</p>
-      </div>
-      ${can('games.videos.create') ? `<button class="primary btn-icon" id="addGamesVideoBtn">${icon('plus')}Adicionar vídeo</button>` : ''}
-    </div>
-    ${list.length === 0 ? `<div class="empty">Nenhum vídeo publicado ainda.</div>` : `
     <div class="video-grid">
       ${list.map(v=>{
         const ytid = extractYoutubeId(v.url);
@@ -1443,23 +1560,518 @@ function renderGamesVideos(){
               <div class="txt">${esc(v.title)}</div>
               ${v.addedBy ? `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">por ${esc(v.addedBy)}</div>` : ''}
             </div>
-            ${can('games.videos.delete') ? `<button class="icon-btn danger-hover" data-del-games-video="${v.id}" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
+            ${can(cfg.deletePerm) ? `<button class="icon-btn danger-hover" data-del-item="${cfg.collection}:${v.id}" data-del-label="vídeo" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+function renderPhotoGrid(cfg){
+  const list = [...state[cfg.collection]].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  if(!list.length) return `<div class="empty">Nenhuma foto publicada ainda.</div>`;
+  return `
+    <div class="mural-grid">
+      ${list.map(ph=>`
+        <div class="mural-card">
+          ${can(cfg.deletePerm) ? `<button class="icon-btn danger-hover card-del" data-del-item="${cfg.collection}:${ph.id}" data-del-label="foto" title="Excluir foto" aria-label="Excluir foto">${icon('trash-2')}</button>` : ''}
+          <img src="${ph.photo}" loading="lazy" alt="${esc(ph.caption)}">
+          <div class="cap">
+            ${ph.caption ? `<div class="txt">${esc(ph.caption)}</div>` : ''}
+            <div class="meta">${esc(ph.author)} · ${formatDate(ph.date)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+const videoAddButton = (collection, perm)=> can(perm) ? `<button class="primary btn-icon" data-add-video="${collection}">${icon('plus')}Adicionar vídeo</button>` : '';
+const photoAddButton = (collection, perm)=> can(perm) ? `<button class="primary btn-icon" data-add-photo="${collection}">${icon('plus')}Enviar foto</button>` : '';
+
+function renderGamesVideos(){
+  return pageHead('Games', 'Vídeos', 'Jogatinas, lances e resenhas dos games.', videoAddButton('games_videos', 'games.videos.create'))
+    + renderVideoGrid({collection:'games_videos', deletePerm:'games.videos.delete'});
+}
+function renderOutrosVideos(){
+  return pageHead('Outros', 'Vídeos', 'Tudo que não é pelada, tabuleiro nem videogame.', videoAddButton('outros_videos', 'outros.videos.create'))
+    + renderVideoGrid({collection:'outros_videos', deletePerm:'outros.videos.delete'});
+}
+
+/* ============ BOARDGAME ============ */
+const MAX_BG_PLAYERS = 12;
+const bgGame = id => state.bg_games.find(g=> g.id === id);
+const bgGameName = m => (bgGame(m.gameId) || {}).name || m.gameName || 'Jogo removido';
+const bgMatchesOf = gameId => state.bg_matches.filter(m=> m.gameId === gameId);
+
+// [2,3,4] → "2 a 4 jogadores"; [2,4,6] → "2, 4 ou 6 jogadores"
+function fmtPlayerCounts(counts){
+  const c = [...(counts||[])].map(Number).sort((a,b)=> a-b);
+  if(!c.length) return '';
+  const plural = c[c.length-1] > 1 ? 'jogadores' : 'jogador';
+  if(c.length === 1) return `${c[0]} ${plural}`;
+  const contiguous = c.every((n,i)=> i === 0 || n === c[i-1] + 1);
+  if(contiguous) return `${c[0]} a ${c[c.length-1]} ${plural}`;
+  return `${c.slice(0,-1).join(', ')} ou ${c[c.length-1]} ${plural}`;
+}
+function trophy(pos){
+  if(pos === 1) return `<span class="trophy gold" title="1º lugar">${icon('trophy')}</span>`;
+  if(pos === 2) return `<span class="trophy silver" title="2º lugar">${icon('trophy')}</span>`;
+  if(pos === 3) return `<span class="trophy bronze" title="3º lugar">${icon('trophy')}</span>`;
+  return `<span class="pos-num">${pos}º</span>`;
+}
+function gameThumb(g, cls){
+  return g && g.photo ? `<img class="${cls}" src="${g.photo}" alt="">` : `<div class="${cls} ph">${icon('dices')}</div>`;
+}
+
+/* ---------- Biblioteca ---------- */
+function renderBgLibrary(){
+  const q = state.bgLibSearch.trim().toLowerCase();
+  const list = state.bg_games
+    .filter(g=> !q || g.name.toLowerCase().includes(q) || (g.publisher||'').toLowerCase().includes(q))
+    .sort((a,b)=> a.name.localeCompare(b.name));
+  return `
+    ${pageHead('BoardGame', 'Biblioteca', `${state.bg_games.length} jogo${state.bg_games.length===1?'':'s'} na coleção do grupo.`,
+      can('bg.games.create') ? `<button class="primary btn-icon" id="addBgGameBtn">${icon('plus')}Cadastrar jogo</button>` : '')}
+    ${state.bg_games.length ? `
+    <div class="toolbar">
+      <div class="search-box">${icon('search')}<input id="bgLibSearch" placeholder="Buscar jogo ou editora" value="${esc(state.bgLibSearch)}" autocomplete="off"></div>
+    </div>` : ''}
+    ${!state.bg_games.length ? `<div class="empty">Nenhum jogo cadastrado ainda. ${can('bg.games.create') ? 'Cadastre o primeiro para começar a registrar partidas.' : ''}</div>` :
+      !list.length ? `<div class="empty">Nenhum jogo encontrado.</div>` : `
+    <div class="bg-grid">
+      ${list.map(g=>{
+        const played = bgMatchesOf(g.id).length;
+        return `
+        <div class="bg-card">
+          ${gameThumb(g, 'bg-cover')}
+          <div class="bg-body">
+            <h3>${esc(g.name)}</h3>
+            ${g.publisher ? `<div class="bg-meta">${esc(g.publisher)}</div>` : ''}
+            <div class="bg-tags">
+              ${(g.players||[]).length ? `<span class="chip">${icon('users')}${fmtPlayerCounts(g.players)}</span>` : ''}
+              <span class="chip">${icon('swords')}${played} partida${played===1?'':'s'}</span>
+            </div>
+            ${can('bg.games.edit') || can('bg.games.delete') ? `
+            <div class="actions">
+              ${can('bg.games.edit') ? `<button data-edit-bg-game="${g.id}">Editar</button>` : ''}
+              ${can('bg.games.delete') ? `<button class="danger" data-del-bg-game="${g.id}">Excluir</button>` : ''}
+            </div>` : ''}
           </div>
         </div>`;
       }).join('')}
     </div>`}
   `;
 }
+function renderBgGameModal(game){
+  const isEdit = !!game;
+  const counts = new Set((game && game.players || []).map(Number));
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>${isEdit ? 'Editar jogo' : 'Cadastrar jogo'}</h3>
+      <form id="bgGameForm" autocomplete="off">
+        <div class="field">
+          <div class="photo-pick bg-photo-pick" id="bgGamePhotoPick">
+            ${game && game.photo ? `<img src="${game.photo}" id="bgGamePhotoPreview">` : `<div id="bgGamePhotoPreview">${icon('image-plus')}<div>Toque para escolher a foto da caixa</div></div>`}
+          </div>
+          <input type="file" accept="image/*" id="bgGamePhotoInput" style="display:none;">
+          ${game && game.photo ? `<button type="button" class="ghost" id="bgGamePhotoRemove" style="padding:4px 0; font-size:12px;">Remover foto</button>` : ''}
+        </div>
+        <div class="field"><label>Nome do jogo</label><input name="name" required maxlength="80" value="${game ? esc(game.name) : ''}" placeholder="ex: Catan"></div>
+        <div class="field"><label>Editora</label><input name="publisher" maxlength="80" value="${game ? esc(game.publisher||'') : ''}" placeholder="ex: Devir"></div>
+        <div class="field">
+          <label>Quantas pessoas suporta</label>
+          <div class="count-pills">
+            ${Array.from({length: MAX_BG_PLAYERS}, (_, i)=> i+1).map(n=>`
+              <label class="count-pill"><input type="checkbox" name="players" value="${n}" ${counts.has(n)?'checked':''}><span>${n}${n===MAX_BG_PLAYERS?'+':''}</span></label>`).join('')}
+          </div>
+          <div class="hint">Marque todas as quantidades de jogadores aceitas.</div>
+        </div>
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Cadastrar'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* ---------- Partidas ---------- */
+function renderBgMatches(){
+  const filter = state.bgMatchGame;
+  const list = state.bg_matches
+    .filter(m=> filter === 'all' || m.gameId === filter)
+    .sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||'').localeCompare(a.createdAt||''));
+  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort((a,b)=> a.name.localeCompare(b.name));
+  return `
+    ${pageHead('BoardGame', 'Partidas', 'Registre quem jogou, a posição e a pontuação de cada jogatina.',
+      can('bg.matches.create') ? `<button class="primary btn-icon" id="addBgMatchBtn">${icon('plus')}Nova partida</button>` : '')}
+    ${gamesPlayed.length ? `
+    <div class="toolbar">
+      <div class="chip-filter">
+        <button data-bg-match-game="all" class="${filter==='all'?'active':''}">Todos os jogos</button>
+        ${gamesPlayed.map(g=>`<button data-bg-match-game="${g.id}" class="${filter===g.id?'active':''}">${esc(g.name)}</button>`).join('')}
+      </div>
+    </div>` : ''}
+    ${!list.length ? `<div class="empty">${state.bg_games.length ? 'Nenhuma partida registrada ainda.' : 'Cadastre um jogo na Biblioteca para registrar a primeira partida.'}</div>` : `
+    <div class="bg-match-list">
+      ${list.map(m=>{
+        const g = bgGame(m.gameId);
+        const results = [...(m.results||[])].sort((a,b)=> a.position - b.position);
+        return `
+        <div class="bg-match">
+          <div class="bg-match-head">
+            ${gameThumb(g, 'bg-thumb')}
+            <div style="flex:1; min-width:0;">
+              <div class="bg-match-game">${esc(bgGameName(m))}</div>
+              <div class="bg-meta">${formatDate(m.date)} · ${results.length} jogador${results.length===1?'':'es'}${m.createdBy ? ` · registrado por ${esc(m.createdBy)}` : ''}</div>
+            </div>
+            ${can('bg.matches.edit') ? `<button class="icon-btn" data-edit-bg-match="${m.id}" title="Editar partida" aria-label="Editar partida">${icon('pencil')}</button>` : ''}
+            ${can('bg.matches.delete') ? `<button class="icon-btn danger-hover" data-del-bg-match="${m.id}" title="Excluir partida" aria-label="Excluir partida">${icon('trash-2')}</button>` : ''}
+          </div>
+          <div class="bg-results">
+            ${results.map(r=>`
+              <div class="bg-result ${r.position<=3 ? 'podium p'+r.position : ''}">
+                ${trophy(r.position)}
+                <span class="name">${esc(r.username)}</span>
+                ${r.score != null && r.score !== '' ? `<span class="score">${r.score} pts</span>` : ''}
+              </div>`).join('')}
+          </div>
+          ${m.notes ? `<div class="bg-notes">${esc(m.notes)}</div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function renderBgMatchModal(match){
+  const isEdit = !!match;
+  const today = new Date().toISOString().slice(0,10);
+  const games = [...state.bg_games].sort((a,b)=> a.name.localeCompare(b.name));
+  const players = bgPlayers();
+  // quem já está na partida continua listado mesmo que tenha perdido o acesso depois
+  (match && match.results || []).forEach(r=>{ if(!players.some(p=> p.id === r.userId)) players.push({id:r.userId, username:r.username}); });
+  const inMatch = new Set((match && match.results || []).map(r=> r.userId));
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal wide">
+      <h3>${isEdit ? 'Editar partida' : 'Nova partida'}</h3>
+      ${!games.length ? `<div class="notice">${icon('info')}<div>Nenhum jogo na Biblioteca ainda. Cadastre o jogo primeiro.</div></div>` : ''}
+      <form id="bgMatchForm" autocomplete="off">
+        <div class="form-row">
+          <div class="field"><label>Data</label><input name="date" type="date" required value="${match ? match.date : today}" max="${today}"></div>
+          <div class="field"><label>Jogo</label>
+            <select name="gameId" id="bgMatchGame" required>
+              <option value="">Selecione o jogo</option>
+              ${games.map(g=>`<option value="${g.id}" ${match && match.gameId===g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}
+            </select>
+            <div class="hint" id="bgMatchGameHint"></div>
+          </div>
+        </div>
+        <div class="form-section">Quem jogou</div>
+        ${!players.length ? `<div class="empty" style="padding:6px 0 12px;">Nenhum usuário com acesso ao BoardGame.</div>` : `
+        <div class="check-pills" id="bgMatchPlayers">
+          ${players.map(p=>`<label class="check-pill"><input type="checkbox" name="players" value="${p.id}" data-username="${esc(p.username)}" ${inMatch.has(p.id)?'checked':''}>${esc(p.username)}</label>`).join('')}
+        </div>`}
+        <div class="form-section">
+          Resultado
+          <span class="links"><button type="button" id="bgSortByScore">Ordenar pela pontuação</button></span>
+        </div>
+        <div id="bgResultRows"></div>
+        <div class="field" style="margin-top:14px;"><label>Observações (opcional)</label><input name="notes" maxlength="200" value="${match ? esc(match.notes||'') : ''}" placeholder="ex: expansão Cidades e Cavaleiros"></div>
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Registrar partida'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* ---------- Ranking ---------- */
+function bgStats(gameId){
+  const matches = state.bg_matches.filter(m=> gameId === 'all' || m.gameId === gameId);
+  const byPlayer = {};
+  matches.forEach(m=> (m.results||[]).forEach(r=>{
+    const p = byPlayer[r.userId] || (byPlayer[r.userId] = {userId:r.userId, username:r.username, played:0, gold:0, silver:0, bronze:0, scores:[]});
+    p.username = r.username;
+    p.played++;
+    if(r.position === 1) p.gold++;
+    if(r.position === 2) p.silver++;
+    if(r.position === 3) p.bronze++;
+    if(r.score != null && r.score !== '' && !isNaN(r.score)) p.scores.push(Number(r.score));
+  }));
+  const rows = Object.values(byPlayer).map(p=> ({...p,
+    winRate: p.played ? p.gold / p.played : 0,
+    best: p.scores.length ? Math.max(...p.scores) : null,
+    avg: p.scores.length ? p.scores.reduce((a,b)=> a+b, 0) / p.scores.length : null,
+  }))
+  // quadro de medalhas: ouro, depois prata, bronze e aproveitamento
+  .sort((a,b)=> b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.winRate - a.winRate || a.username.localeCompare(b.username));
+  return {matches, rows};
+}
+function renderBgRankings(){
+  const gameId = state.bgRankGame;
+  const {matches, rows} = bgStats(gameId);
+  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort((a,b)=> a.name.localeCompare(b.name));
+  const perGame = gameId !== 'all';
+  const record = perGame ? rows.filter(r=> r.best != null).sort((a,b)=> b.best - a.best)[0] : null;
+  const mostPlayed = !perGame ? gamesPlayed.map(g=> ({g, n: bgMatchesOf(g.id).length})).sort((a,b)=> b.n - a.n)[0] : null;
+  const topGold = rows[0] ? rows[0].gold : 0;
+  const leaders = topGold ? rows.filter(r=> r.gold === topGold) : [];
+  const leader = leaders.length === 1 ? leaders[0]
+    : leaders.length ? {username: 'Empate', gold: topGold, tie: leaders.map(r=> r.username).join(', ')} : null;
+  const pct = x => Math.round(x * 100) + '%';
+  const fmtNum = x => x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('pt-BR');
+  return `
+    ${pageHead('BoardGame', 'Rankings', perGame ? `Ranking de ${bgGame(gameId) ? bgGame(gameId).name : 'jogo'}.` : 'Ranking geral de todas as partidas.')}
+    <div class="toolbar">
+      <div class="chip-filter">
+        <button data-bg-rank-game="all" class="${!perGame?'active':''}">Geral</button>
+        ${gamesPlayed.map(g=>`<button data-bg-rank-game="${g.id}" class="${gameId===g.id?'active':''}">${esc(g.name)}</button>`).join('')}
+      </div>
+    </div>
+    ${!matches.length ? `<div class="empty">Nenhuma partida registrada ainda. O ranking aparece assim que a primeira partida for registrada.</div>` : `
+    <div class="stat-row">
+      <div class="stat"><div class="label">Partidas</div><div class="value num">${matches.length}</div></div>
+      <div class="stat"><div class="label">Jogadores</div><div class="value num">${rows.length}</div></div>
+      <div class="stat"><div class="label">Maior vencedor</div><div class="value num" style="font-size:24px; margin-top:12px;">${leader ? esc(leader.username) : '—'}</div>${leader ? `<div class="sub">${leader.tie ? esc(leader.tie) + ' · ' : ''}${leader.gold} vitória${leader.gold===1?'':'s'}</div>` : ''}</div>
+      ${perGame
+        ? `<div class="stat"><div class="label">Recorde de pontos</div><div class="value num">${record ? fmtNum(record.best) : '—'}</div>${record ? `<div class="sub">${esc(record.username)}</div>` : ''}</div>`
+        : `<div class="stat"><div class="label">Jogo mais jogado</div><div class="value num" style="font-size:24px; margin-top:12px;">${mostPlayed ? esc(mostPlayed.g.name) : '—'}</div>${mostPlayed ? `<div class="sub">${mostPlayed.n} partida${mostPlayed.n===1?'':'s'}</div>` : ''}</div>`}
+    </div>
+    <div class="table-wrap">
+    <table class="rank-table">
+      <thead><tr>
+        <th>#</th><th>Jogador</th><th>Partidas</th>
+        <th title="1º lugar"><span class="trophy gold">${icon('trophy')}</span></th>
+        <th title="2º lugar"><span class="trophy silver">${icon('trophy')}</span></th>
+        <th title="3º lugar"><span class="trophy bronze">${icon('trophy')}</span></th>
+        <th>Vitórias</th><th>Média de pontos</th><th>Melhor pontuação</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map((r,i)=>`
+        <tr>
+          <td class="rank-pos-cell">${i < 3 && r.gold + r.silver + r.bronze ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
+          <td><div class="user-cell"><div class="avatar">${esc(r.username.charAt(0))}</div><span>${esc(r.username)}</span></div></td>
+          <td>${r.played}</td>
+          <td class="medal">${r.gold}</td><td class="medal">${r.silver}</td><td class="medal">${r.bronze}</td>
+          <td>${pct(r.winRate)}</td>
+          <td>${fmtNum(r.avg)}</td>
+          <td>${fmtNum(r.best)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>
+    <div class="hint" style="margin-top:10px;">Ordem: mais 1º lugares, depois 2º, 3º e aproveitamento (vitórias ÷ partidas).</div>`}
+  `;
+}
+
+/* ---------- Mídia ---------- */
+function renderBgMedia(){
+  const tab = state.bgMediaTab;
+  return `
+    ${pageHead('BoardGame', 'Mídia', 'Vídeos e fotos das jogatinas.',
+      tab === 'videos' ? videoAddButton('bg_videos', 'bg.videos.create') : photoAddButton('bg_photos', 'bg.photos.create'))}
+    <div class="momentos-tabs">
+      <button data-bg-media-tab="videos" class="${tab==='videos'?'active':''}">Vídeos</button>
+      <button data-bg-media-tab="fotos" class="${tab==='fotos'?'active':''}">Fotos</button>
+    </div>
+    ${tab === 'videos'
+      ? renderVideoGrid({collection:'bg_videos', deletePerm:'bg.videos.delete'})
+      : renderPhotoGrid({collection:'bg_photos', deletePerm:'bg.photos.delete'})}
+  `;
+}
+
+/* ---------- eventos ---------- */
 function bindOtherEnvEvents(){
-  const add = document.getElementById('addGamesVideoBtn');
-  if(add) add.onclick = ()=>{ state.modal = {type:'video', data:{collection:'games_videos'}}; render(); };
-  document.querySelectorAll('[data-del-games-video]').forEach(b=>{
+  document.querySelectorAll('[data-add-video]').forEach(b=>{
+    b.onclick = ()=>{ state.modal = {type:'video', data:{collection: b.dataset.addVideo}}; render(); };
+  });
+  document.querySelectorAll('[data-add-photo]').forEach(b=>{
+    b.onclick = ()=>{ state.modal = {type:'photo', data:{collection: b.dataset.addPhoto}}; render(); };
+  });
+  document.querySelectorAll('[data-del-item]').forEach(b=>{
     b.onclick = async ()=>{
-      if(!confirm('Excluir este vídeo?')) return;
-      state.games_videos = state.games_videos.filter(v=> v.id !== b.dataset.delGamesVideo);
-      if(await sSet('games_videos', state.games_videos)){ render(); toast('Vídeo excluído.'); }
+      const [col, id] = b.dataset.delItem.split(':');
+      const label = b.dataset.delLabel || 'item';
+      if(!confirm(`Excluir ${label === 'foto' ? 'esta' : 'este'} ${label}?`)) return;
+      state[col] = state[col].filter(x=> x.id !== id);
+      if(await sSet(col, state[col])){ render(); toast(`${label[0].toUpperCase() + label.slice(1)} excluíd${label === 'foto' ? 'a' : 'o'}.`); }
     };
   });
+  document.querySelectorAll('[data-bg-media-tab]').forEach(b=>{
+    b.onclick = ()=>{ state.bgMediaTab = b.dataset.bgMediaTab; render(); };
+  });
+  document.querySelectorAll('[data-bg-rank-game]').forEach(b=>{
+    b.onclick = ()=>{ state.bgRankGame = b.dataset.bgRankGame; render(); };
+  });
+  document.querySelectorAll('[data-bg-match-game]').forEach(b=>{
+    b.onclick = ()=>{ state.bgMatchGame = b.dataset.bgMatchGame; render(); };
+  });
+  const libSearch = document.getElementById('bgLibSearch');
+  if(libSearch) libSearch.oninput = ()=>{
+    state.bgLibSearch = libSearch.value;
+    render();
+    const el = document.getElementById('bgLibSearch');
+    if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  };
+
+  const addGame = document.getElementById('addBgGameBtn');
+  if(addGame) addGame.onclick = ()=>{ state.modal = {type:'bgGame', data:null}; render(); };
+  document.querySelectorAll('[data-edit-bg-game]').forEach(b=>{
+    b.onclick = ()=>{ state.modal = {type:'bgGame', data: bgGame(b.dataset.editBgGame)}; render(); };
+  });
+  document.querySelectorAll('[data-del-bg-game]').forEach(b=>{
+    b.onclick = async ()=>{
+      const g = bgGame(b.dataset.delBgGame);
+      const n = bgMatchesOf(g.id).length;
+      if(n){ toast(`"${g.name}" tem ${n} partida${n===1?'':'s'} registrada${n===1?'':'s'}. Exclua as partidas antes para não bagunçar o ranking.`, 'error'); return; }
+      if(!confirm(`Excluir "${g.name}" da biblioteca?`)) return;
+      state.bg_games = state.bg_games.filter(x=> x.id !== g.id);
+      if(await sSet('bg_games', state.bg_games)){ render(); toast('Jogo excluído.'); }
+    };
+  });
+
+  const addMatch = document.getElementById('addBgMatchBtn');
+  if(addMatch) addMatch.onclick = ()=>{ state.modal = {type:'bgMatch', data:null}; render(); };
+  document.querySelectorAll('[data-edit-bg-match]').forEach(b=>{
+    b.onclick = ()=>{ state.modal = {type:'bgMatch', data: state.bg_matches.find(m=> m.id === b.dataset.editBgMatch)}; render(); };
+  });
+  document.querySelectorAll('[data-del-bg-match]').forEach(b=>{
+    b.onclick = async ()=>{
+      const m = state.bg_matches.find(x=> x.id === b.dataset.delBgMatch);
+      if(!confirm(`Excluir a partida de ${bgGameName(m)} (${formatDate(m.date)})? Ela sai do ranking.`)) return;
+      state.bg_matches = state.bg_matches.filter(x=> x.id !== m.id);
+      if(await sSet('bg_matches', state.bg_matches)){ render(); toast('Partida excluída.'); }
+    };
+  });
+
+  bindBgGameForm();
+  bindBgMatchForm();
+}
+
+function bindBgGameForm(){
+  const form = document.getElementById('bgGameForm');
+  if(!form) return;
+  const existing = state.modal.data;
+  let photo = existing ? existing.photo || null : null;
+  const pick = document.getElementById('bgGamePhotoPick');
+  const input = document.getElementById('bgGamePhotoInput');
+  pick.onclick = ()=> input.click();
+  input.onchange = async ()=>{
+    const file = input.files[0];
+    if(!file) return;
+    photo = await resizeImage(file, 600, 0.75);
+    document.getElementById('bgGamePhotoPreview').outerHTML = `<img src="${photo}" id="bgGamePhotoPreview">`;
+  };
+  const remove = document.getElementById('bgGamePhotoRemove');
+  if(remove) remove.onclick = ()=>{
+    photo = null;
+    document.getElementById('bgGamePhotoPreview').outerHTML = `<div id="bgGamePhotoPreview"><div>Foto removida. Toque para escolher outra.</div></div>`;
+    remove.remove();
+  };
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const name = fd.get('name').trim();
+    const players = fd.getAll('players').map(Number);
+    if(!name) return formError('Informe o nome do jogo.');
+    if(!players.length) return formError('Marque quantas pessoas o jogo suporta.');
+    if(state.bg_games.some(g=> g.name.toLowerCase() === name.toLowerCase() && (!existing || g.id !== existing.id))) return formError('Esse jogo já está na biblioteca.');
+    formError(''); formBusy(true);
+    const now = new Date().toISOString();
+    if(existing){
+      Object.assign(bgGame(existing.id), {name, publisher: fd.get('publisher').trim(), players, photo, updatedAt: now, updatedBy: state.currentUser.username});
+    } else {
+      state.bg_games.push({id: uid(), name, publisher: fd.get('publisher').trim(), players, photo, createdAt: now, createdBy: state.currentUser.username});
+    }
+    state.modal = null;
+    if(await sSet('bg_games', state.bg_games)){ render(); toast(existing ? 'Jogo atualizado.' : `${name} cadastrado na biblioteca.`); }
+  };
+}
+
+function bindBgMatchForm(){
+  const form = document.getElementById('bgMatchForm');
+  if(!form) return;
+  const existing = state.modal.data;
+  // resultado em edição: userId → {username, position, score}
+  const results = new Map((existing && existing.results || []).map(r=> [r.userId, {username: r.username, position: r.position, score: r.score ?? ''}]));
+  const rowsEl = document.getElementById('bgResultRows');
+  const gameSel = document.getElementById('bgMatchGame');
+
+  function drawRows(){
+    const n = results.size;
+    if(!n){ rowsEl.innerHTML = `<div class="hint" style="padding:4px 0 8px;">Marque quem jogou para lançar a posição e a pontuação.</div>`; updateHint(); return; }
+    rowsEl.innerHTML = `
+      <div class="result-rows">
+        <div class="result-row head"><span>Jogador</span><span>Posição</span><span>Pontuação</span></div>
+        ${[...results.entries()].sort((a,b)=> (a[1].position||99) - (b[1].position||99)).map(([id, r])=>`
+        <div class="result-row" data-row="${id}">
+          <span class="name">${r.position ? trophy(Number(r.position)) : ''}${esc(r.username)}</span>
+          <select data-pos="${id}">
+            <option value="">—</option>
+            ${Array.from({length:n}, (_, i)=> i+1).map(p=>`<option value="${p}" ${Number(r.position)===p?'selected':''}>${p}º lugar</option>`).join('')}
+          </select>
+          <input type="number" data-score="${id}" value="${r.score}" placeholder="pts" step="any" inputmode="decimal">
+        </div>`).join('')}
+      </div>`;
+    rowsEl.querySelectorAll('[data-pos]').forEach(s=> s.onchange = ()=>{ results.get(s.dataset.pos).position = s.value ? Number(s.value) : ''; drawRows(); });
+    rowsEl.querySelectorAll('[data-score]').forEach(i=> i.oninput = ()=>{ results.get(i.dataset.score).score = i.value; });
+    lucide.createIcons();
+    updateHint();
+  }
+  function updateHint(){
+    const g = bgGame(gameSel.value);
+    const hint = document.getElementById('bgMatchGameHint');
+    if(!g || !(g.players||[]).length){ hint.textContent = ''; return; }
+    const n = results.size;
+    const ok = !n || g.players.map(Number).includes(Math.min(n, MAX_BG_PLAYERS));
+    hint.innerHTML = ok ? `Suporta ${fmtPlayerCounts(g.players)}.` : `<span style="color:var(--danger)">Atenção: ${esc(g.name)} suporta ${fmtPlayerCounts(g.players)} e a partida tem ${n}.</span>`;
+  }
+  gameSel.onchange = updateHint;
+  form.querySelectorAll('input[name=players]').forEach(cb=>{
+    cb.onchange = ()=>{
+      if(cb.checked) results.set(cb.value, {username: cb.dataset.username, position:'', score:''});
+      else results.delete(cb.value);
+      // posições acima do número de jogadores deixam de existir
+      results.forEach(r=>{ if(r.position > results.size) r.position = ''; });
+      drawRows();
+    };
+  });
+  document.getElementById('bgSortByScore').onclick = ()=>{
+    const scored = [...results.values()].filter(r=> r.score !== '' && !isNaN(r.score));
+    if(!scored.length){ formError('Preencha a pontuação para ordenar.'); return; }
+    formError('');
+    // maior pontuação = 1º; empates ficam com a mesma posição
+    const sorted = [...scored].sort((a,b)=> Number(b.score) - Number(a.score));
+    sorted.forEach((r,i)=>{ r.position = i > 0 && Number(r.score) === Number(sorted[i-1].score) ? sorted[i-1].position : i + 1; });
+    drawRows();
+  };
+  drawRows();
+
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const gameId = fd.get('gameId');
+    const date = fd.get('date');
+    if(!gameId) return formError('Selecione o jogo.');
+    if(!results.size) return formError('Marque quem jogou.');
+    const missing = [...results.values()].filter(r=> !r.position);
+    if(missing.length) return formError(`Defina a posição de ${missing.map(r=> r.username).join(', ')}.`);
+    formError(''); formBusy(true);
+    const payload = {
+      date, gameId, gameName: bgGame(gameId).name, notes: fd.get('notes').trim(),
+      results: [...results.entries()].map(([userId, r])=> ({userId, username: r.username, position: Number(r.position),
+        score: r.score === '' || isNaN(r.score) ? null : Number(r.score)})).sort((a,b)=> a.position - b.position),
+    };
+    const now = new Date().toISOString();
+    if(existing){
+      Object.assign(state.bg_matches.find(m=> m.id === existing.id), payload, {updatedAt: now, updatedBy: state.currentUser.username});
+    } else {
+      state.bg_matches.push({id: uid(), ...payload, createdAt: now, createdBy: state.currentUser.username});
+    }
+    state.modal = null;
+    if(await sSet('bg_matches', state.bg_matches)){ render(); toast(existing ? 'Partida atualizada.' : 'Partida registrada.'); }
+  };
 }
 
 /* ============ VIEW EVENTS ============ */
@@ -1570,6 +2182,8 @@ function renderModal(){
   if(m.type === 'video') return renderVideoModal();
   if(m.type === 'account') return renderAccountModal();
   if(m.type === 'user') return renderUserModal(m.data);
+  if(m.type === 'bgGame') return renderBgGameModal(m.data);
+  if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
   return '';
 }
 function renderPlayerModal(player){
@@ -1649,7 +2263,7 @@ function renderPhotoModal(){
           <input type="file" accept="image/*" id="muralPhotoInput" style="display:none;">
         </div>
         <div class="field"><label>Seu nome</label><input name="authorName" placeholder="Quem está postando" value="${state.currentUser ? esc(state.currentUser.username) : ''}"></div>
-        <div class="field"><label>Legenda (opcional)</label><input name="caption" placeholder="Gol de placa no sábado"></div>
+        <div class="field"><label>Legenda (opcional)</label><input name="caption" maxlength="140" placeholder="${state.modal.data && state.modal.data.collection === 'bg_photos' ? 'Mesa final do Catan' : 'Gol de placa no sábado'}"></div>
         <div class="modal-actions">
           <button type="button" class="ghost" id="cancelModal">Cancelar</button>
           <button type="submit" class="primary">Publicar</button>
@@ -1794,12 +2408,13 @@ function bindModalEvents(){
       e.preventDefault();
       if(!pendingMuralPhoto){ toast('Escolha uma foto.', 'error'); return; }
       const fd = new FormData(photoForm);
-      state.mural.push({
+      const key = (state.modal.data && state.modal.data.collection) || 'mural';
+      state[key].push({
         id: uid(), photo: pendingMuralPhoto, caption: fd.get('caption')||'',
         author: (fd.get('authorName')||'').trim() || 'Anônimo', date: new Date().toISOString().slice(0,10)
       });
       state.modal = null;
-      if(await saveMural()){ render(); toast('Foto publicada.'); }
+      if(await sSet(key, state[key])){ render(); toast('Foto publicada.'); }
     };
   }
 }

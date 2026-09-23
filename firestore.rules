@@ -46,6 +46,43 @@ service cloud.firestore {
       allow update, delete: if can('games.videos.delete');
     }
 
+    match /outros_videos/{id} {
+      allow read: if isUser();
+      allow create: if can('outros.videos.create');
+      allow update, delete: if can('outros.videos.delete');
+    }
+
+    // ---------- BoardGame ----------
+    match /bg_games/{id} {          // biblioteca de jogos (as partidas apontam para cá)
+      allow read: if isUser();
+      allow create: if can('bg.games.create');
+      allow update: if can('bg.games.edit');
+      allow delete: if can('bg.games.delete');
+    }
+    match /bg_matches/{id} {
+      allow read: if isUser();
+      allow create: if can('bg.matches.create');
+      allow update: if can('bg.matches.edit');
+      allow delete: if can('bg.matches.delete');
+    }
+    match /bg_videos/{id} {
+      allow read: if isUser();
+      allow create: if can('bg.videos.create');
+      allow update, delete: if can('bg.videos.delete');
+    }
+    match /bg_photos/{id} {
+      allow read: if isUser();
+      allow create: if can('bg.photos.create');
+      allow update, delete: if can('bg.photos.delete');
+    }
+
+    // Diretório: nome e ambientes de cada usuário (sem e-mail nem permissões),
+    // para quem está logado escolher jogadores. Só o Admin mantém.
+    match /directory/{uid} {
+      allow read: if isUser();
+      allow write: if isAdmin();
+    }
+
     match /mural/{id} {
       allow read: if isUser();
       allow create: if can('photos.create');

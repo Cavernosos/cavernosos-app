@@ -388,26 +388,6 @@ async function migratePlayers(){
   if(changed) await savePlayers();
 }
 
-async function seedExamplesIfEmpty(){
-  if(state.players.length > 0 || state.matches.length > 0) return;
-  const p1 = {id: uid(), name:'V. Maciel', number:'92', position:'Goleiro', stars:4, photo:null, attrs:{rit:70,fin:85,pas:80,dri:45,def:90,fis:70}};
-  const p2 = {id: uid(), name:'Resende', number:'14', position:'Pivô', stars:3, photo:null, attrs:{rit:60,fin:90,pas:78,dri:62,def:70,fis:62}};
-  const p3 = {id: uid(), name:'Pereira', number:'9', position:'Pivô', stars:5, photo:null, attrs:{rit:65,fin:95,pas:92,dri:88,def:65,fis:66}};
-  state.players = [p1,p2,p3];
-
-  const today = new Date();
-  const matches = [];
-  for(let i=5;i>=1;i--){
-    const d = new Date(today); d.setDate(d.getDate() - i*7);
-    const presence = [p1.id, p2.id];
-    if(i<=3) presence.push(p3.id);
-    matches.push({id: uid(), date: d.toISOString().slice(0,10), label:'', presence, goals:{}, finalized:true});
-  }
-  state.matches = matches;
-  await savePlayers();
-  await saveMatches();
-}
-
 async function loadAll(){
   const [players, matches, mural, videos] = await Promise.all([
     sGet('players'), sGet('matches'), sGet('mural'), sGet('videos')
@@ -426,16 +406,6 @@ function saveVideos(){ return sSet('videos', state.videos); }
 function extractYoutubeId(url){
   const m = (url||'').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
-}
-
-async function seedVideosIfEmpty(){
-  if(state.videos.length > 0) return;
-  state.videos = [
-    {id: uid(), title:'Amistoso - Cavernosos 3x1 Litoral Sul', url:'https://www.youtube.com/watch?v=u0tZxKiGxX4'},
-    {id: uid(), title:'Pelada - 20 de agosto de 2026', url:'https://www.youtube.com/watch?v=49M3e1odJTs&t=58s'},
-    {id: uid(), title:'Pelada - 23 de julho de 2026', url:'https://www.youtube.com/watch?v=nXuThg_Q0Qk&t=1s'},
-  ];
-  await saveVideos();
 }
 
 /* ============ image resize helper ============ */
@@ -473,9 +443,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     document.getElementById('app').innerHTML = '<p class="empty" style="padding:40px">Não foi possível carregar os dados. Verifique a conexão e recarregue a página.</p>';
     return;
   }
-  await seedExamplesIfEmpty();
   await migratePlayers();
-  await seedVideosIfEmpty();
   render();
 });
 

@@ -285,8 +285,24 @@ label{font-size:12.5px; color:var(--text-dim); display:block; margin-bottom:6px;
 
 <script>
 /* ============ storage helpers ============ */
-async function sGet(key){ try{ const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }catch(e){ return null; } }
-async function sSet(key, val){ try{ await window.storage.set(key, JSON.stringify(val), true); }catch(e){ console.error('storage set failed', key, e); } }
+const HAS_CLAUDE_STORAGE = !!(window.storage && window.storage.get);
+const LS_PREFIX = 'cavernosos:';
+async function sGet(key){
+  try{
+    if(HAS_CLAUDE_STORAGE){ const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
+    const v = localStorage.getItem(LS_PREFIX + key);
+    return v ? JSON.parse(v) : null;
+  }catch(e){ return null; }
+}
+async function sSet(key, val){
+  try{
+    if(HAS_CLAUDE_STORAGE){ await window.storage.set(key, JSON.stringify(val), true); return; }
+    localStorage.setItem(LS_PREFIX + key, JSON.stringify(val));
+  }catch(e){
+    console.error('storage set failed', key, e);
+    alert('Não foi possível salvar (o armazenamento do navegador pode estar cheio — tente fotos menores ou remova algumas).');
+  }
+}
 
 const POSITIONS = ["Goleiro","Fixo","Ala","Pivô","Zagueiro","Lateral","Volante","Meia","Atacante"];
 

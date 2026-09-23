@@ -283,24 +283,63 @@ label{font-size:12.5px; color:var(--text-dim); display:block; margin-bottom:6px;
 
 <div id="app"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-/* ============ storage helpers ============ */
-const HAS_CLAUDE_STORAGE = !!(window.storage && window.storage.get);
-const LS_PREFIX = 'cavernosos:';
+/* ============ storage helpers (Firestore) ============ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDciHxLskZdyZ9nWzSAwFmjvwJ2YT26G8A",
+  authDomain: "pelada-cavernosos.firebaseapp.com",
+  projectId: "pelada-cavernosos",
+  storageBucket: "pelada-cavernosos.firebasestorage.app",
+  messagingSenderId: "620338588989",
+  appId: "1:620338588989:web:08f44dcda38ecef7396954",
+  measurementId: "G-8YB51MJKXT"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Cada item (jogador, partida, foto, vídeo) é um documento na coleção de mesmo nome.
+// `synced` guarda o último JSON salvo/lido de cada item, para só gravar o que mudou
+// e só apagar o que este navegador conhecia (nunca itens que outra pessoa acabou de criar).
+const synced = {};
+let loadFailed = false;
+
 async function sGet(key){
   try{
-    if(HAS_CLAUDE_STORAGE){ const r = await window.storage.get(key, true); return r ? JSON.parse(r.value) : null; }
-    const v = localStorage.getItem(LS_PREFIX + key);
-    return v ? JSON.parse(v) : null;
-  }catch(e){ return null; }
+    const snap = await db.collection(key).get();
+    const items = snap.docs.map(d=> d.data()).sort((a,b)=> (a._order||0) - (b._order||0));
+    synced[key] = {};
+    items.forEach(it=>{ delete it._order; synced[key][it.id] = JSON.stringify(it); });
+    return items;
+  }catch(e){
+    console.error('storage get failed', key, e);
+    loadFailed = true;
+    return null;
+  }
 }
 async function sSet(key, val){
   try{
-    if(HAS_CLAUDE_STORAGE){ await window.storage.set(key, JSON.stringify(val), true); return; }
-    localStorage.setItem(LS_PREFIX + key, JSON.stringify(val));
+    const known = synced[key] || (synced[key] = {});
+    const batch = db.batch();
+    const col = db.collection(key);
+    const ids = new Set();
+    let ops = 0;
+    val.forEach((item, i)=>{
+      ids.add(item.id);
+      const json = JSON.stringify(item);
+      if(known[item.id] === json) return;
+      batch.set(col.doc(item.id), {...JSON.parse(json), _order: i});
+      known[item.id] = json; ops++;
+    });
+    Object.keys(known).forEach(id=>{
+      if(!ids.has(id)){ batch.delete(col.doc(id)); delete known[id]; ops++; }
+    });
+    if(ops) await batch.commit();
   }catch(e){
     console.error('storage set failed', key, e);
-    alert('Não foi possível salvar (o armazenamento do navegador pode estar cheio — tente fotos menores ou remova algumas).');
+    synced[key] = null;
+    alert('Não foi possível salvar no banco de dados. Verifique a conexão e tente de novo.');
   }
 }
 
@@ -430,6 +469,10 @@ function render(){
 }
 window.addEventListener('DOMContentLoaded', async ()=>{
   await loadAll();
+  if(loadFailed){
+    document.getElementById('app').innerHTML = '<p class="empty" style="padding:40px">Não foi possível carregar os dados. Verifique a conexão e recarregue a página.</p>';
+    return;
+  }
   await seedExamplesIfEmpty();
   await migratePlayers();
   await seedVideosIfEmpty();

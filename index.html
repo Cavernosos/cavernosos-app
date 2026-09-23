@@ -191,6 +191,13 @@ button .lucide{vertical-align:-4px;}
 .pw-wrap input{padding-right:40px;}
 .pw-wrap .icon-btn{position:absolute; right:3px; top:50%; transform:translateY(-50%); padding:5px;}
 .hint{font-size:11.5px; color:var(--text-faint); margin-top:5px;}
+.pw-rules{list-style:none; margin-top:8px; display:grid; gap:3px;}
+.pw-rules li{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--text-faint);}
+.pw-rules .lucide{width:13px; height:13px;}
+.pw-rules .lucide-circle-check{display:none;}
+.pw-rules li.ok{color:#8BC293;}
+.pw-rules li.ok .lucide-circle{display:none;}
+.pw-rules li.ok .lucide-circle-check{display:inline;}
 .form-error{color:var(--danger); font-size:12.5px; margin-top:10px; min-height:1em;}
 .check-pills{display:flex; gap:8px; flex-wrap:wrap;}
 .check-pill{display:flex; align-items:center; gap:7px; border:1px solid var(--border); padding:8px 12px; cursor:pointer; font-size:13px; color:var(--text-dim); margin:0;}
@@ -364,7 +371,7 @@ button .lucide{vertical-align:-4px;}
 }
 .modal{
   background:var(--bg-elev); border:1px solid var(--border); padding:28px;
-  width:100%; max-width:440px; max-height:88vh; overflow-y:auto;
+  width:100%; max-width:440px; max-height:88vh; overflow-y:auto; overflow-x:hidden;
 }
 .modal h3{font-size:19px; margin-bottom:20px;}
 .modal-actions{display:flex; gap:10px; margin-top:22px; justify-content:flex-end;}
@@ -547,12 +554,27 @@ function can(perm){
 const isAdmin = ()=> !!state.currentUser && state.currentUser.role === 'admin';
 const normUsername = s => (s||'').trim().toLowerCase();
 const validUsername = s => /^[a-z0-9._-]{3,30}$/.test(s);
+const normEmail = s => (s||'').trim().toLowerCase();
+const validEmail = s => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+
+// Política de senha: 6 a 30 caracteres, maiúscula, minúscula, número e caractere especial.
+const PASSWORD_RULES = [
+  {label:'6 a 30 caracteres', test: p=> p.length >= 6 && p.length <= 30},
+  {label:'Uma letra maiúscula', test: p=> /\p{Lu}/u.test(p)},
+  {label:'Uma letra minúscula', test: p=> /\p{Ll}/u.test(p)},
+  {label:'Um número', test: p=> /\d/.test(p)},
+  {label:'Um caractere especial (ex.: ! @ # $ % *)', test: p=> /[^\p{L}\d]/u.test(p)},
+];
+function passwordProblem(p){
+  const failed = PASSWORD_RULES.filter(r=> !r.test(p));
+  return failed.length ? 'A senha precisa ter: ' + failed.map(r=> r.label.toLowerCase()).join(', ') + '.' : '';
+}
 
 function authErrorMsg(e){
   const c = (e && e.code) || '';
   if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found','auth/invalid-login-credentials'].includes(c)) return 'Usuário ou senha incorretos.';
   if(c === 'auth/too-many-requests') return 'Muitas tentativas. Aguarde alguns minutos e tente de novo.';
-  if(c === 'auth/weak-password') return 'A senha precisa ter pelo menos 6 caracteres.';
+  if(c === 'auth/weak-password' || c === 'auth/password-does-not-meet-requirements') return 'A senha não atende às regras: 6 a 30 caracteres, maiúscula, minúscula, número e caractere especial.';
   if(c === 'auth/requires-recent-login') return 'Por segurança, saia e entre de novo antes de trocar a senha.';
   if(c === 'auth/network-request-failed') return 'Sem conexão. Verifique a internet.';
   if(c === 'auth/operation-not-allowed') return 'O login por senha não está ativado no Firebase.';
@@ -1512,7 +1534,7 @@ function filteredUsers(){
   const q = state.usersSearch.trim().toLowerCase();
   return state.users.filter(u=>
     (state.usersFilter === 'all' || (u.profiles||[]).includes(state.usersFilter)) &&
-    (!q || u.username.includes(q)));
+    (!q || u.username.includes(q) || (u.email||'').includes(q)));
 }
 function renderUsersList(){
   const list = filteredUsers();
@@ -1520,7 +1542,7 @@ function renderUsersList(){
   const meId = state.currentUser && state.currentUser.id;
   return `
     <div class="toolbar">
-      <div class="search-box">${icon('search')}<input id="usersSearch" placeholder="Buscar usuário" value="${esc(state.usersSearch)}" autocomplete="off"></div>
+      <div class="search-box">${icon('search')}<input id="usersSearch" placeholder="Buscar usuário ou e-mail" value="${esc(state.usersSearch)}" autocomplete="off"></div>
       <div class="chip-filter">
         ${[['all','Todos'], ...PROFILES.map(p=>[p,p])].map(([k,l])=>
           `<button data-users-filter="${k}" class="${state.usersFilter===k?'active':''}">${l}</button>`).join('')}
@@ -1533,7 +1555,7 @@ function renderUsersList(){
       <tbody>
         ${list.map(u=>`
         <tr class="${u.active === false ? 'inactive' : ''}">
-          <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><span>${esc(u.username)}</span>${u.id === meId ? '<span class="you">você</span>' : ''}</div></td>
+          <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><div><span>${esc(u.username)}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}</div></div></td>
           <td>${roleBadge(u.role)}</td>
           <td><div class="chips">${(u.profiles||[]).length ? u.profiles.map(p=>`<span class="chip">${esc(p)}</span>`).join('') : '<span class="hint" style="margin:0">Sem perfil</span>'}</div></td>
           <td>${u.active === false ? '<span class="badge off">Inativo</span>' : '<span class="badge ok">Ativo</span>'}</td>
@@ -1608,6 +1630,11 @@ function setPermTree(tree, perms){
 function pwInput(name, attrs){
   return `<div class="pw-wrap"><input name="${name}" type="password" ${attrs||''}><button type="button" class="icon-btn" data-toggle-pw title="Mostrar senha" aria-label="Mostrar senha">${icon('eye')}</button></div>`;
 }
+// Campo de senha nova com a lista de regras que vai marcando enquanto a pessoa digita.
+function newPwInput(name, attrs){
+  return `${pwInput(name, `maxlength="30" autocomplete="new-password" data-pw-rules ${attrs||''}`)}
+    <ul class="pw-rules">${PASSWORD_RULES.map((r,i)=>`<li data-rule="${i}">${icon('circle')}${icon('circle-check')}${r.label}</li>`).join('')}</ul>`;
+}
 function renderLoginModal(){
   return `
   <div class="overlay" id="modalOverlay">
@@ -1634,8 +1661,9 @@ function renderSetupModal(){
       <div class="notice">${icon('shield-check')}<div>Ainda não existe nenhum usuário. Esta conta será o <b>Admin</b> principal e poderá criar os demais usuários.</div></div>
       <form id="setupForm" autocomplete="off">
         <div class="field"><label>Usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: victor" autofocus><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
-        <div class="field"><label>Senha</label>${pwInput('password', 'required minlength="6" autocomplete="new-password" placeholder="Mínimo 6 caracteres"')}</div>
-        <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required minlength="6" autocomplete="new-password"')}</div>
+        <div class="field"><label>E-mail</label><input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></div>
+        <div class="field"><label>Senha</label>${newPwInput('password', 'required')}</div>
+        <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
         <div class="form-error" id="formError"></div>
         <div class="modal-actions">
           <button type="button" class="ghost" id="cancelModal">Cancelar</button>
@@ -1655,6 +1683,7 @@ function renderAccountModal(){
         <div class="avatar" style="width:44px; height:44px; font-size:18px;">${esc(u.username.charAt(0))}</div>
         <div>
           <div style="font-weight:600;">${esc(u.username)}</div>
+          ${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}
           <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">${roleBadge(u.role)}${(u.profiles||[]).map(p=>`<span class="chip">${esc(p)}</span>`).join('')}</div>
         </div>
       </div>
@@ -1662,8 +1691,8 @@ function renderAccountModal(){
         <div class="form-section">Trocar senha</div>
         <div class="field"><label>Senha atual</label>${pwInput('current', 'required autocomplete="current-password"')}</div>
         <div class="form-row">
-          <div class="field"><label>Nova senha</label>${pwInput('password', 'required minlength="6" autocomplete="new-password"')}</div>
-          <div class="field"><label>Confirmar nova senha</label>${pwInput('confirm', 'required minlength="6" autocomplete="new-password"')}</div>
+          <div class="field"><label>Nova senha</label>${newPwInput('password', 'required')}</div>
+          <div class="field"><label>Confirmar nova senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
         </div>
         <div class="form-error" id="formError"></div>
         <div class="modal-actions">
@@ -1694,24 +1723,26 @@ function renderUserModal(user){
             <div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div>
           </div>
           <div class="field">
-            <label>${isEdit ? 'Nova senha' : 'Senha'}</label>
-            ${pwInput('password', `${isEdit ? '' : 'required'} minlength="6" autocomplete="new-password" placeholder="${isEdit ? 'Deixe em branco para manter' : 'Mínimo 6 caracteres'}"`)}
+            <label>E-mail</label>
+            <input name="email" type="email" required value="${user && user.email ? esc(user.email) : ''}" placeholder="nome@email.com" autocomplete="off">
           </div>
         </div>
         <div class="form-row">
+          <div class="field">
+            <label>${isEdit ? 'Nova senha' : 'Senha'}</label>
+            ${newPwInput('password', `${isEdit ? '' : 'required'} placeholder="${isEdit ? 'Deixe em branco para manter' : ''}"`)}
+          </div>
           <div class="field">
             <label>Poder</label>
             <select name="role" id="roleSelect" ${self ? 'disabled' : ''}>
               ${Object.entries(ROLES).map(([k,l])=>`<option value="${k}" ${role===k?'selected':''}>${l}</option>`).join('')}
             </select>
             ${self ? '<div class="hint">Você não pode alterar o próprio poder.</div>' : ''}
+            ${isEdit ? `
+            <label style="margin-top:16px;">Status</label>
+            <label class="switch-row" style="padding:6px 0;"><input type="checkbox" name="active" ${user.active !== false ? 'checked' : ''} ${self ? 'disabled' : ''}> Usuário ativo</label>
+            ${self ? '<div class="hint">Você não pode desativar a si mesmo.</div>' : ''}` : ''}
           </div>
-          ${isEdit ? `
-          <div class="field">
-            <label>Status</label>
-            <label class="switch-row" style="padding:10px 0;"><input type="checkbox" name="active" ${user.active !== false ? 'checked' : ''} ${self ? 'disabled' : ''}> Usuário ativo</label>
-            ${self ? '<div class="hint">Você não pode desativar a si mesmo.</div>' : ''}
-          </div>` : '<div></div>'}
         </div>
         <div class="field">
           <label>Perfis</label>
@@ -1781,6 +1812,12 @@ function bindUsersEvents(){
 }
 
 function bindAuthModals(){
+  document.querySelectorAll('[data-pw-rules]').forEach(input=>{
+    const items = input.closest('.field').querySelectorAll('.pw-rules li');
+    const update = ()=> items.forEach(li=> li.classList.toggle('ok', PASSWORD_RULES[li.dataset.rule].test(input.value)));
+    input.addEventListener('input', update);
+    update();
+  });
   document.querySelectorAll('[data-toggle-pw]').forEach(b=>{
     b.onclick = ()=>{
       const input = b.parentElement.querySelector('input');
@@ -1818,8 +1855,10 @@ function bindAuthModals(){
     const fd = new FormData(setupForm);
     const username = normUsername(fd.get('username'));
     const password = fd.get('password');
+    const contactEmail = normEmail(fd.get('email'));
     if(!validUsername(username)) return formError('Usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
-    if(password.length < 6) return formError('A senha precisa ter pelo menos 6 caracteres.');
+    if(!validEmail(contactEmail)) return formError('Informe um e-mail válido.');
+    if(passwordProblem(password)) return formError(passwordProblem(password));
     if(password !== fd.get('confirm')) return formError('As senhas não conferem.');
     formError(''); formBusy(true, 'Criando...');
     state.settingUp = true;
@@ -1827,7 +1866,7 @@ function bindAuthModals(){
       const email = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       const now = new Date().toISOString();
-      const user = {id: cred.user.uid, username, role:'admin', profiles:[], perms:[], active:true, createdAt: now, createdBy: username};
+      const user = {id: cred.user.uid, username, email: contactEmail, role:'admin', profiles:[], perms:[], active:true, createdAt: now, createdBy: username};
       const batch = db.batch();
       batch.set(db.collection('users').doc(user.id), user);
       batch.set(db.collection('logins').doc(username), {uid: user.id, email});
@@ -1854,7 +1893,7 @@ function bindAuthModals(){
     e.preventDefault();
     const fd = new FormData(accountForm);
     const password = fd.get('password');
-    if(password.length < 6) return formError('A nova senha precisa ter pelo menos 6 caracteres.');
+    if(passwordProblem(password)) return formError(passwordProblem(password));
     if(password !== fd.get('confirm')) return formError('As senhas não conferem.');
     formError(''); formBusy(true);
     try{
@@ -1918,10 +1957,13 @@ function bindUserForm(form, existing){
     const perms = role === 'admin' ? customPerms : readPermTree(tree);
     const profiles = fd.getAll('profiles');
     const active = self ? true : (existing ? !!form.querySelector('[name=active]').checked : true);
+    const email = normEmail(fd.get('email'));
 
     if(!validUsername(username)) return formError('Usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
+    if(!validEmail(email)) return formError('Informe um e-mail válido.');
+    if(state.users.some(u=> u.email === email && (!existing || u.id !== existing.id))) return formError('Já existe um usuário com esse e-mail.');
     if(!existing && !password) return formError('Defina uma senha.');
-    if(password && password.length < 6) return formError('A senha precisa ter pelo menos 6 caracteres.');
+    if(password && passwordProblem(password)) return formError(passwordProblem(password));
     formError(''); formBusy(true);
 
     try{
@@ -1934,7 +1976,7 @@ function bindUserForm(form, existing){
       const batch = db.batch();
       if(!existing){
         const acc = await createAuthAccount(username, password);
-        const user = {id: acc.uid, username, role, profiles, perms, active: true, createdAt: now, createdBy: me, updatedAt: now};
+        const user = {id: acc.uid, username, email, role, profiles, perms, active: true, createdAt: now, createdBy: me, updatedAt: now};
         batch.set(db.collection('users').doc(acc.uid), user);
         batch.set(db.collection('logins').doc(username), {uid: acc.uid, email: acc.email});
         await batch.commit();
@@ -1942,7 +1984,7 @@ function bindUserForm(form, existing){
       } else {
         const loginSnap = await db.collection('logins').doc(existing.username).get();
         let login = loginSnap.exists ? loginSnap.data() : null;
-        const updated = {...existing, username, role, profiles, perms, active, updatedAt: now, updatedBy: me};
+        const updated = {...existing, username, email, role, profiles, perms, active, updatedAt: now, updatedBy: me};
         if(password){
           if(self){
             await auth.currentUser.updatePassword(password);

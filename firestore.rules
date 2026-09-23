@@ -46,24 +46,34 @@ service cloud.firestore {
       allow update, delete: if can('photos.delete');
     }
 
-    // Cadastro dos usuários: só Admin grava. O primeiro Admin pode se criar
-    // enquanto o site ainda não foi configurado.
+    // Cadastro dos usuários: só Admin altera.
+    // - O primeiro Admin pode se criar enquanto o site ainda não foi configurado.
+    // - Qualquer pessoa pode se cadastrar pelo site, mas só como "aguardando
+    //   aprovação": inativa, sem permissões e sem poder de Admin.
     match /users/{uid} {
       allow get: if request.auth != null && (request.auth.uid == uid || isAdmin() || can('users.view'));
       allow list: if isAdmin() || can('users.view');
       allow create: if isAdmin()
                     || (!appInitialized() && request.auth != null && request.auth.uid == uid
-                        && request.resource.data.role == 'admin');
+                        && request.resource.data.role == 'admin')
+                    || (appInitialized() && request.auth != null && request.auth.uid == uid
+                        && request.resource.data.role == 'user'
+                        && request.resource.data.active == false
+                        && request.resource.data.status == 'pending'
+                        && request.resource.data.perms.size() == 0);
       allow update, delete: if isAdmin();
     }
 
     // Usuário → login. A tela de login precisa consultar um nome por vez,
     // mas ninguém de fora consegue listar todos os usuários.
+    // Quem se cadastra só pode registrar o próprio nome, junto com o próprio cadastro.
     match /logins/{username} {
       allow get: if true;
       allow list: if isAdmin();
       allow create: if isAdmin()
-                    || (!appInitialized() && request.auth != null && request.resource.data.uid == request.auth.uid);
+                    || (request.auth != null && request.resource.data.uid == request.auth.uid
+                        && (!appInitialized()
+                            || getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == username));
       allow update, delete: if isAdmin();
     }
 

@@ -176,6 +176,21 @@ button .lucide{vertical-align:-4px;}
 .badge.admin{color:var(--accent); border-color:var(--accent-dim);}
 .badge.ok{color:#8BC293; border-color:var(--grass-dim);}
 .badge.off{color:var(--text-faint);}
+.badge.pending{color:var(--accent); border-color:var(--accent-dim); background:rgba(242,183,5,0.06);}
+.users-table tr.pending-row td{background:rgba(242,183,5,0.03);}
+.td-actions button{margin-left:6px; padding:7px 12px; font-size:13px;}
+.pending-notice{align-items:center;}
+.pending-notice > div{flex:1;}
+.nav-badge{margin-left:auto; background:var(--accent); color:#191305; font-family:'Inter'; font-size:10.5px; font-weight:700; min-width:18px; height:18px; padding:0 5px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; letter-spacing:0;}
+.nav button{position:relative;}
+.sidebar.collapsed .nav-badge{position:absolute; top:4px; right:6px; min-width:15px; height:15px; font-size:9.5px;}
+.link-btn{background:none; border:none; padding:0; color:var(--accent); font-weight:600; font-size:inherit;}
+.link-btn:hover{text-decoration:underline;}
+.login-switch{margin-top:18px; padding-top:16px; border-top:1px solid var(--border-soft); text-align:center; font-size:13px; color:var(--text-dim);}
+.login-done{text-align:center;}
+.login-done .lucide{width:40px; height:40px; color:var(--accent); margin-bottom:10px;}
+.login-done h2{font-size:20px; margin-bottom:8px;}
+.login-done p{color:var(--text-dim); font-size:14px; line-height:1.5;}
 .chips{display:flex; gap:5px; flex-wrap:wrap;}
 .chip{font-size:11.5px; padding:2px 8px; background:var(--bg-elev); border:1px solid var(--border-soft); color:var(--text-dim);}
 .td-actions{text-align:right; white-space:nowrap;}
@@ -416,6 +431,7 @@ button .lucide{vertical-align:-4px;}
   .nav button, .sidebar.collapsed .nav button{white-space:nowrap; padding:8px 10px; font-size:11.5px; gap:6px; justify-content:flex-start;}
   .nav button .lucide{width:19px; height:19px;}
   .nav .nav-label{display:none;}
+  .nav-badge, .sidebar.collapsed .nav-badge{position:absolute; top:0; right:0; min-width:15px; height:15px; font-size:9.5px;}
   .nav, .sidebar.collapsed .nav{gap:0; justify-content:space-around;}
   .nav button.active{padding-left:10px; border-left:none; border-bottom:2px solid var(--accent);}
   .sidebar-foot, .sidebar.collapsed .sidebar-foot{border:none; margin:0; padding:0;}
@@ -638,9 +654,13 @@ async function resolveCurrentUser(fbUser){
     const u = doc.exists ? doc.data() : null;
     if(!u || u.active === false){
       await auth.signOut();
-      toast(u ? 'Este usuário está desativado. Fale com um administrador.' : 'Usuário não encontrado.', 'error');
+      state.justLoggedIn = false;
+      state.loginNotice = !u ? 'Usuário não encontrado.'
+        : userStatus(u) === 'pending' ? 'Seu cadastro está aguardando aprovação dos administradores.'
+        : 'Este usuário está desativado. Fale com um administrador.';
       return;
     }
+    state.loginNotice = '';
     state.currentUser = u;
     if(state.justLoggedIn){ state.justLoggedIn = false; toast(`Bem-vindo, ${u.username}!`); }
   }catch(e){
@@ -648,10 +668,51 @@ async function resolveCurrentUser(fbUser){
     await auth.signOut();
   }
 }
-// App auxiliar para criar contas sem deslogar o administrador atual.
-function helperAuth(){
-  const app = firebase.apps.find(a=> a.name === 'helper') || firebase.initializeApp(firebaseConfig, 'helper');
-  return app.auth();
+// Status do cadastro: pending (aguardando aprovação), active ou inactive.
+const STATUS_LABELS = {pending:'Aguardando aprovação', active:'Ativo', inactive:'Inativo'};
+function userStatus(u){ return u.status || (u.active === false ? 'inactive' : 'active'); }
+function statusBadge(u){
+  const s = userStatus(u);
+  const cls = s === 'active' ? 'ok' : s === 'pending' ? 'pending' : 'off';
+  return `<span class="badge ${cls}">${s === 'pending' ? icon('clock') : ''}${STATUS_LABELS[s]}</span>`;
+}
+const pendingCount = ()=> state.users.filter(u=> userStatus(u) === 'pending').length;
+
+// App auxiliar para criar contas sem mexer no login de quem está usando o site.
+function helperApp(){
+  return firebase.apps.find(a=> a.name === 'helper') || firebase.initializeApp(firebaseConfig, 'helper');
+}
+function helperAuth(){ return helperApp().auth(); }
+
+// Pede ao servidor (função da Vercel) para mandar o e-mail de "cadastro aprovado".
+async function sendApprovalEmail(userId){
+  try{
+    const token = await auth.currentUser.getIdToken();
+    const r = await fetch('/api/send-approval-email', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', Authorization:'Bearer ' + token},
+      body: JSON.stringify({userId}),
+    });
+    const data = await r.json().catch(()=> ({}));
+    if(!r.ok) throw new Error(data.error || r.status);
+    return true;
+  }catch(e){
+    console.error('approval email failed', e);
+    return false;
+  }
+}
+async function approveUser(u){
+  const now = new Date().toISOString();
+  const me = state.currentUser.username;
+  await db.collection('users').doc(u.id).update({
+    status:'active', active:true, approvedAt: now, approvedBy: me, updatedAt: now, updatedBy: me,
+    perms: (u.perms && u.perms.length) ? u.perms : DEFAULT_USER_PERMS,
+  });
+  const sent = await sendApprovalEmail(u.id);
+  await loadUsers();
+  render();
+  toast(sent ? `${u.username} aprovado. E-mail de aviso enviado para ${u.email}.`
+             : `${u.username} aprovado, mas o e-mail de aviso não pôde ser enviado.`, sent ? undefined : 'error');
 }
 async function createAuthAccount(username, password){
   const email = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
@@ -824,7 +885,10 @@ function renderShell(){
       </button>
     </div>
     <div class="nav">
-      ${nav.map(n=>`<button data-nav="${n.id}" class="${state.view===n.id?'active':''}" title="${n.label}">${icon(n.icon)}<span class="nav-label">${n.label}</span></button>`).join('')}
+      ${nav.map(n=>{
+        const badge = n.id === 'users' && isAdmin() ? pendingCount() : 0;
+        return `<button data-nav="${n.id}" class="${state.view===n.id?'active':''}" title="${n.label}${badge ? ` (${badge} aguardando aprovação)` : ''}">${icon(n.icon)}<span class="nav-label">${n.label}</span>${badge ? `<span class="nav-badge">${badge}</span>` : ''}</button>`;
+      }).join('')}
     </div>
     <div class="sidebar-foot">
       <div class="schedule">
@@ -1540,19 +1604,28 @@ function renderUsers(){
 }
 function filteredUsers(){
   const q = state.usersSearch.trim().toLowerCase();
-  return state.users.filter(u=>
-    (state.usersFilter === 'all' || (u.profiles||[]).includes(state.usersFilter)) &&
-    (!q || u.username.includes(q) || (u.email||'').includes(q)));
+  const f = state.usersFilter;
+  return state.users
+    .filter(u=>
+      (f === 'all' || (f === 'pending' ? userStatus(u) === 'pending' : (u.profiles||[]).includes(f))) &&
+      (!q || u.username.includes(q) || (u.email||'').includes(q)))
+    // cadastros aguardando aprovação sempre no topo
+    .sort((a,b)=> (userStatus(a) === 'pending' ? 0 : 1) - (userStatus(b) === 'pending' ? 0 : 1));
 }
 function renderUsersList(){
   const list = filteredUsers();
   const admin = isAdmin();
   const meId = state.currentUser && state.currentUser.id;
+  const pending = pendingCount();
   return `
+    ${admin && pending ? `
+    <div class="notice pending-notice">${icon('clock')}<div><b>${pending} cadastro${pending===1?'':'s'} aguardando aprovação.</b> Aprove para liberar o acesso: a pessoa recebe um e-mail avisando.</div>
+      ${state.usersFilter !== 'pending' ? `<button class="ghost" data-users-filter="pending" style="padding:4px 8px; font-size:12.5px; color:var(--accent);">Ver só esses</button>` : ''}
+    </div>` : ''}
     <div class="toolbar">
       <div class="search-box">${icon('search')}<input id="usersSearch" placeholder="Buscar usuário ou e-mail" value="${esc(state.usersSearch)}" autocomplete="off"></div>
       <div class="chip-filter">
-        ${[['all','Todos'], ...PROFILES.map(p=>[p,p])].map(([k,l])=>
+        ${[['all','Todos'], ...(admin ? [['pending', `Aguardando${pending ? ` (${pending})` : ''}`]] : []), ...PROFILES.map(p=>[p,p])].map(([k,l])=>
           `<button data-users-filter="${k}" class="${state.usersFilter===k?'active':''}">${l}</button>`).join('')}
       </div>
     </div>
@@ -1561,15 +1634,20 @@ function renderUsersList(){
     <table class="users-table">
       <thead><tr><th>Usuário</th><th>Poder</th><th>Perfis</th><th>Status</th><th>Criado em</th>${admin ? '<th></th>' : ''}</tr></thead>
       <tbody>
-        ${list.map(u=>`
-        <tr class="${u.active === false ? 'inactive' : ''}">
+        ${list.map(u=>{
+          const st = userStatus(u);
+          return `
+        <tr class="${st === 'inactive' ? 'inactive' : ''} ${st === 'pending' ? 'pending-row' : ''}">
           <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><div><span>${esc(u.username)}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}</div></div></td>
           <td>${roleBadge(u.role)}</td>
           <td><div class="chips">${(u.profiles||[]).length ? u.profiles.map(p=>`<span class="chip">${esc(p)}</span>`).join('') : '<span class="hint" style="margin:0">Sem perfil</span>'}</div></td>
-          <td>${u.active === false ? '<span class="badge off">Inativo</span>' : '<span class="badge ok">Ativo</span>'}</td>
-          <td style="color:var(--text-dim); font-size:12.5px;">${fmtDay(u.createdAt)}</td>
-          ${admin ? `<td class="td-actions"><button class="btn-icon" data-edit-user="${u.id}">${icon('pencil')}Editar</button></td>` : ''}
-        </tr>`).join('')}
+          <td>${statusBadge(u)}${st === 'active' && u.approvedBy ? `<div class="hint" style="margin-top:4px;">aprovado por ${esc(u.approvedBy)}</div>` : ''}</td>
+          <td style="color:var(--text-dim); font-size:12.5px;">${fmtDay(u.createdAt)}${u.selfRegistered ? '<div class="hint" style="margin-top:2px;">pelo site</div>' : ''}</td>
+          ${admin ? `<td class="td-actions">
+            ${st === 'pending' ? `<button class="primary btn-icon" data-approve-user="${u.id}">${icon('check')}Aprovar</button>` : ''}
+            <button class="btn-icon" data-edit-user="${u.id}">${icon('pencil')}Editar</button>
+          </td>` : ''}
+        </tr>`;}).join('')}
       </tbody>
     </table>
     <div class="hint" style="margin-top:10px;">Mostrando ${list.length} de ${state.users.length} usuário${state.users.length===1?'':'s'}.</div>`}
@@ -1653,7 +1731,25 @@ function renderLoginScreen(){
         <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
         <div class="form-error" id="formError"></div>
         <button type="submit" class="primary login-submit" id="formSubmit">Criar administrador</button>
+      </form>` : state.authMode === 'registered' ? `
+      <div class="login-done">
+        ${icon('hourglass')}
+        <h2>Cadastro enviado!</h2>
+        <p>Aguardando aprovação dos administradores.</p>
+        <p style="margin-top:8px; font-size:13px;">Você vai receber um e-mail em <b>${esc(state.registeredEmail || '')}</b> quando o cadastro for aprovado.</p>
+        <button class="login-submit" style="margin-top:22px;" data-auth-mode="login">Voltar para o login</button>
+      </div>` : state.authMode === 'register' ? `
+      <form id="registerForm" autocomplete="off">
+        <div style="font-family:'Oswald'; font-size:15px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:16px;">Cadastre-se agora</div>
+        <div class="field"><label>Nome de usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: joao.silva" autofocus><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
+        <div class="field"><label>E-mail</label><input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></div>
+        <div class="field"><label>Senha</label>${newPwInput('password', 'required')}</div>
+        <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
+        <div class="form-error" id="formError"></div>
+        <button type="submit" class="primary login-submit btn-icon" id="formSubmit">${icon('user-plus')}Enviar cadastro</button>
+        <div class="login-switch">Já tem conta? <button type="button" class="link-btn" data-auth-mode="login">Entrar</button></div>
       </form>` : `
+      ${state.loginNotice ? `<div class="notice">${icon('info')}<div>${esc(state.loginNotice)}</div></div>` : ''}
       <form id="loginForm">
         <div class="field"><label>Usuário</label><input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" autofocus></div>
         <div class="field"><label>Senha</label>${pwInput('password', 'required maxlength="30" autocomplete="current-password"')}</div>
@@ -1661,6 +1757,7 @@ function renderLoginScreen(){
         <div class="form-error" id="formError"></div>
         <button type="submit" class="primary login-submit btn-icon" id="formSubmit">${icon('log-in')}Entrar</button>
         <div class="hint" style="margin-top:16px; text-align:center;">Esqueceu a senha? Peça para um administrador definir uma nova.</div>
+        <div class="login-switch">Ainda não tem conta? <button type="button" class="link-btn" data-auth-mode="register">Cadastre-se agora</button></div>
       </form>`}
     </div>
     <div class="login-foot">Quinta-feira, 21h às 22h30 · Sargento Wolf, Afogados</div>
@@ -1700,7 +1797,9 @@ function renderUserModal(user){
   const isEdit = !!user;
   const self = isEdit && state.currentUser && user.id === state.currentUser.id;
   const role = user ? user.role : 'user';
-  const perms = user ? (user.perms || []) : DEFAULT_USER_PERMS;
+  const status = user ? userStatus(user) : 'active';
+  // cadastro vindo do site chega sem permissões: sugere o padrão para o admin revisar
+  const perms = user ? ((status === 'pending' && !(user.perms||[]).length) ? DEFAULT_USER_PERMS : (user.perms || [])) : DEFAULT_USER_PERMS;
   const profiles = user ? (user.profiles || []) : [];
   return `
   <div class="overlay" id="modalOverlay">
@@ -1733,7 +1832,11 @@ function renderUserModal(user){
             ${self ? '<div class="hint">Você não pode alterar o próprio poder.</div>' : ''}
             ${isEdit ? `
             <label style="margin-top:16px;">Status</label>
-            <label class="switch-row" style="padding:6px 0;"><input type="checkbox" name="active" ${user.active !== false ? 'checked' : ''} ${self ? 'disabled' : ''}> Usuário ativo</label>
+            <select name="status" ${self ? 'disabled' : ''}>
+              ${Object.entries(STATUS_LABELS).filter(([k])=> k !== 'pending' || status === 'pending')
+                .map(([k,l])=>`<option value="${k}" ${status===k?'selected':''}>${l}</option>`).join('')}
+            </select>
+            ${status === 'pending' ? '<div class="hint">Ao mudar para Ativo, a pessoa recebe um e-mail avisando da aprovação.</div>' : ''}
             ${self ? '<div class="hint">Você não pode desativar a si mesmo.</div>' : ''}` : ''}
           </div>
         </div>
@@ -1777,6 +1880,15 @@ function bindUsersEvents(){
   if(newUserBtn) newUserBtn.onclick = ()=>{ state.modal = {type:'user', data:null}; render(); };
   document.querySelectorAll('[data-edit-user]').forEach(b=>{
     b.onclick = ()=>{ state.modal = {type:'user', data: state.users.find(u=> u.id === b.dataset.editUser)}; render(); };
+  });
+  document.querySelectorAll('[data-approve-user]').forEach(b=>{
+    b.onclick = async ()=>{
+      const u = state.users.find(x=> x.id === b.dataset.approveUser);
+      if(!u || !confirm(`Aprovar o cadastro de "${u.username}"${u.email ? ` (${u.email})` : ''}?`)) return;
+      b.disabled = true; b.textContent = 'Aprovando...';
+      try{ await approveUser(u); }
+      catch(e){ console.error(e); toast(authErrorMsg(e), 'error'); b.disabled = false; b.textContent = 'Aprovar'; }
+    };
   });
   document.querySelectorAll('[data-users-filter]').forEach(b=>{
     b.onclick = ()=>{ state.usersFilter = b.dataset.usersFilter; render(); };
@@ -1825,6 +1937,52 @@ function bindAuthModals(){
     }
   };
 
+  document.querySelectorAll('[data-auth-mode]').forEach(b=>{
+    b.onclick = ()=>{ state.authMode = b.dataset.authMode; state.loginNotice = ''; render(); };
+  });
+
+  const registerForm = document.getElementById('registerForm');
+  if(registerForm) registerForm.onsubmit = async e=>{
+    e.preventDefault();
+    const fd = new FormData(registerForm);
+    const username = normUsername(fd.get('username'));
+    const contactEmail = normEmail(fd.get('email'));
+    const password = fd.get('password');
+    if(!validUsername(username)) return formError('Nome de usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
+    if(!validEmail(contactEmail)) return formError('Informe um e-mail válido.');
+    if(passwordProblem(password)) return formError(passwordProblem(password));
+    if(password !== fd.get('confirm')) return formError('As senhas não conferem.');
+    formError(''); formBusy(true, 'Enviando...');
+    // A conta é criada num app auxiliar: a pessoa não fica logada e o cadastro
+    // é gravado com a identidade dela (as regras só permitem status "pending").
+    const h = helperApp();
+    try{
+      const taken = await db.collection('logins').doc(username).get();
+      if(taken.exists) throw {message: 'Esse nome de usuário já está em uso. Escolha outro.'};
+      await h.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+      const authEmail = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
+      const cred = await h.auth().createUserWithEmailAndPassword(authEmail, password);
+      const now = new Date().toISOString();
+      const user = {id: cred.user.uid, username, email: contactEmail, role:'user', profiles:[], perms:[],
+                    active:false, status:'pending', selfRegistered:true, createdAt: now, createdBy: username};
+      const hdb = h.firestore();
+      const batch = hdb.batch();
+      batch.set(hdb.collection('users').doc(user.id), user);
+      batch.set(hdb.collection('logins').doc(username), {uid: user.id, email: authEmail});
+      try{ await batch.commit(); }
+      catch(err){ await cred.user.delete().catch(()=>{}); throw err; }
+      await h.auth().signOut();
+      state.authMode = 'registered';
+      state.registeredEmail = contactEmail;
+      render();
+    }catch(err){
+      console.error(err);
+      await h.auth().signOut().catch(()=>{});
+      formBusy(false);
+      formError(err.message && !err.code ? err.message : authErrorMsg(err));
+    }
+  };
+
   const setupForm = document.getElementById('setupForm');
   if(setupForm) setupForm.onsubmit = async e=>{
     e.preventDefault();
@@ -1842,7 +2000,7 @@ function bindAuthModals(){
       const email = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       const now = new Date().toISOString();
-      const user = {id: cred.user.uid, username, email: contactEmail, role:'admin', profiles:[], perms:[], active:true, createdAt: now, createdBy: username};
+      const user = {id: cred.user.uid, username, email: contactEmail, role:'admin', profiles:[], perms:[], active:true, status:'active', createdAt: now, createdBy: username};
       const batch = db.batch();
       batch.set(db.collection('users').doc(user.id), user);
       batch.set(db.collection('logins').doc(username), {uid: user.id, email});
@@ -1932,7 +2090,9 @@ function bindUserForm(form, existing){
     const role = self ? existing.role : fd.get('role');
     const perms = role === 'admin' ? customPerms : readPermTree(tree);
     const profiles = fd.getAll('profiles');
-    const active = self ? true : (existing ? !!form.querySelector('[name=active]').checked : true);
+    const status = self || !existing ? 'active' : fd.get('status');
+    const active = status === 'active';
+    const approving = !!existing && userStatus(existing) === 'pending' && status === 'active';
     const email = normEmail(fd.get('email'));
 
     if(!validUsername(username)) return formError('Usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
@@ -1952,7 +2112,7 @@ function bindUserForm(form, existing){
       const batch = db.batch();
       if(!existing){
         const acc = await createAuthAccount(username, password);
-        const user = {id: acc.uid, username, email, role, profiles, perms, active: true, createdAt: now, createdBy: me, updatedAt: now};
+        const user = {id: acc.uid, username, email, role, profiles, perms, active: true, status: 'active', createdAt: now, createdBy: me, updatedAt: now};
         batch.set(db.collection('users').doc(acc.uid), user);
         batch.set(db.collection('logins').doc(username), {uid: acc.uid, email: acc.email});
         await batch.commit();
@@ -1960,7 +2120,8 @@ function bindUserForm(form, existing){
       } else {
         const loginSnap = await db.collection('logins').doc(existing.username).get();
         let login = loginSnap.exists ? loginSnap.data() : null;
-        const updated = {...existing, username, email, role, profiles, perms, active, updatedAt: now, updatedBy: me};
+        const updated = {...existing, username, email, role, profiles, perms, active, status, updatedAt: now, updatedBy: me};
+        if(approving){ updated.approvedAt = now; updated.approvedBy = me; }
         if(password){
           if(self){
             await auth.currentUser.updatePassword(password);
@@ -1979,7 +2140,13 @@ function bindUserForm(form, existing){
         batch.set(db.collection('logins').doc(username), {uid: updated.id, email: login.email});
         await batch.commit();
         if(self) state.currentUser = updated;
-        toast(`Usuário ${username} atualizado.`);
+        if(approving){
+          const sent = await sendApprovalEmail(updated.id);
+          toast(sent ? `${username} aprovado. E-mail de aviso enviado para ${email}.`
+                     : `${username} aprovado, mas o e-mail de aviso não pôde ser enviado.`, sent ? undefined : 'error');
+        } else {
+          toast(`Usuário ${username} atualizado.`);
+        }
       }
       await loadUsers();
       state.modal = null;

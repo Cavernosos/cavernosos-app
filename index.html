@@ -833,6 +833,20 @@ function userEnvs(u){
   const p = u.perms || [];
   return ENVS.filter(e=> (!e.perm || p.includes(e.perm)) && e.nav.some(n=> !n.perm || p.includes(n.perm))).map(e=> e.id);
 }
+// "Nome Sobrenome" do usuário; sem nome cadastrado, cai no nome de usuário.
+function fullName(u){
+  if(!u) return '';
+  return [u.firstName, u.lastName].map(s=> (s||'').trim()).filter(Boolean).join(' ') || u.username || '';
+}
+function cleanName(v){ return String(v||'').trim().replace(/\s+/g,' ').slice(0,40); }
+function directoryEntry(u){
+  return {id: u.id, username: u.username, firstName: u.firstName || '', lastName: u.lastName || '', active: userStatus(u) === 'active', envs: userEnvs(u)};
+}
+// Nome mostrado nos cards: o do usuário vinculado ao jogador, se houver.
+function playerName(p){
+  const u = p && p.userId && state.directory.find(d=> d.id === p.userId);
+  return u ? fullName(u) : (p ? p.name : '');
+}
 async function syncDirectory(){
   try{
     const col = db.collection('directory');
@@ -840,15 +854,16 @@ async function syncDirectory(){
     const batch = db.batch();
     let ops = 0;
     state.users.forEach(u=>{
-      const entry = {id: u.id, username: u.username, active: userStatus(u) === 'active', envs: userEnvs(u)};
+      const entry = directoryEntry(u);
       const old = current.get(u.id);
-      const same = old && old.username === entry.username && old.active === entry.active && (old.envs||[]).join() === entry.envs.join();
+      const same = old && old.username === entry.username && old.firstName === entry.firstName && old.lastName === entry.lastName
+        && old.active === entry.active && (old.envs||[]).join() === entry.envs.join();
       if(!same){ batch.set(col.doc(u.id), entry); ops++; }
       current.delete(u.id);
     });
     current.forEach((_, id)=>{ batch.delete(col.doc(id)); ops++; });
     if(ops) await batch.commit();
-    state.directory = state.users.map(u=> ({id: u.id, username: u.username, active: userStatus(u) === 'active', envs: userEnvs(u)}));
+    state.directory = state.users.map(directoryEntry);
   }catch(e){ console.error('directory sync failed', e); }
 }
 const bgPlayers = ()=> state.directory.filter(d=> d.active && (d.envs||[]).includes('boardgame'))
@@ -1321,7 +1336,7 @@ function renderDashboard(){
 }
 function playerPhotoTag(player, cls){
   if(player && player.photo) return `<img src="${player.photo}" class="${cls}">`;
-  const initial = player ? esc(player.name.charAt(0).toUpperCase()) : '?';
+  const initial = player ? esc(playerName(player).charAt(0).toUpperCase()) : '?';
   return `<div class="${cls}" style="display:flex;align-items:center;justify-content:center;font-family:Oswald;font-size:13px;color:var(--text-faint);">${initial}</div>`;
 }
 
@@ -1351,8 +1366,8 @@ function renderPlayerGrid(){
       ${state.players.map(p=>`
         <div class="player-card">
           <div class="num-badge">${p.number ? '#'+p.number : ''}</div>
-          ${p.photo ? `<img src="${p.photo}" class="player-photo">` : `<div class="player-photo placeholder">${p.name.charAt(0).toUpperCase()}</div>`}
-          <h3>${esc(p.name)}</h3>
+          ${p.photo ? `<img src="${p.photo}" class="player-photo">` : `<div class="player-photo placeholder">${esc(playerName(p).charAt(0).toUpperCase())}</div>`}
+          <h3>${esc(playerName(p))}</h3>
           <div class="pos">${esc(p.position)}${p.type ? ' · '+esc(p.type) : ''}</div>
           <div class="freq">Frequência: ${playerFrequency(p.id)} pelada${playerFrequency(p.id)===1?'':'s'}</div>
           ${starsHtml(p.stars||0, 'stars')}
@@ -1382,9 +1397,9 @@ function renderPlayerCardsFifa(){
             <div class="fifa-num">${p.number ? '#'+p.number : ''}</div>
           </div>
           <div class="fifa-photo">
-            ${p.photo ? `<img src="${p.photo}">` : `<div class="fifa-photo-ph">${p.name.charAt(0).toUpperCase()}</div>`}
+            ${p.photo ? `<img src="${p.photo}">` : `<div class="fifa-photo-ph">${esc(playerName(p).charAt(0).toUpperCase())}</div>`}
           </div>
-          <div class="fifa-name">${esc(p.name)}</div>
+          <div class="fifa-name">${esc(playerName(p))}</div>
           ${p.type ? `<div class="fifa-type">${esc(p.type)}</div>` : ''}
           ${starsHtml(p.stars||0, 'stars fifa-stars')}
           <div class="fifa-stats">
@@ -1449,7 +1464,7 @@ function renderMatchDetail(matchId){
         <div class="presence-item ${present?'present':''}">
           <input type="checkbox" class="checkbox" data-presence-toggle="${p.id}" ${present?'checked':''} ${locked?'disabled':''}>
           ${playerPhotoTag(p,'')}
-          <div class="pname">${esc(p.name)}</div>
+          <div class="pname">${esc(playerName(p))}</div>
           ${present ? `
           <div class="goal-ctrl">
             ${locked ? '' : `<button data-goal-minus="${p.id}">&minus;</button>`}
@@ -2235,7 +2250,16 @@ function renderPlayerModal(player){
           </div>
           <input type="file" accept="image/*" id="photoInput" style="display:none;">
         </div>
-        <div class="field"><label>Nome</label><input name="name" required value="${player ? esc(player.name) : ''}"></div>
+        <div class="field"><label>Usuário do site</label>
+          <select name="userId" id="playerUserSelect">
+            <option value="">Nenhum (usar o nome abaixo)</option>
+            ${[...state.directory].filter(d=> d.active || (player && player.userId === d.id))
+              .sort((a,b)=> fullName(a).localeCompare(fullName(b)))
+              .map(d=>`<option value="${d.id}" ${player && player.userId === d.id ? 'selected':''}>${esc(fullName(d))}${fullName(d) !== d.username ? ` (${esc(d.username)})` : ''}</option>`).join('')}
+          </select>
+          <div class="hint">Com um usuário vinculado, o card mostra o nome e sobrenome dele.</div>
+        </div>
+        <div class="field"><label>Nome</label><input name="name" required value="${player ? esc(playerName(player)) : ''}" ${player && player.userId ? 'readonly' : ''}></div>
         <div class="field"><label>Tipo</label>
           <select name="type" id="playerTypeSelect">
             ${PLAYER_TYPES.map(t=>`<option ${(player && player.type ? player.type : 'Mensalista')===t ? 'selected':''}>${t}</option>`).join('')}
@@ -2370,6 +2394,13 @@ function bindModalEvents(){
       document.getElementById('gkAttrs').hidden = !gk;
       if(gk) playerForm.elements.position.value = 'Goleiro';
     };
+    const userSelect = document.getElementById('playerUserSelect');
+    userSelect.onchange = ()=>{
+      const u = state.directory.find(d=> d.id === userSelect.value);
+      const nameInput = playerForm.elements.name;
+      if(u) nameInput.value = fullName(u);
+      nameInput.readOnly = !!u;
+    };
     playerForm.onsubmit = async (e)=>{
       e.preventDefault();
       const fd = new FormData(playerForm);
@@ -2381,11 +2412,13 @@ function bindModalEvents(){
       FIELD_ATTRS.forEach(d=> attrs[d.k] = clamp99(fd.get(d.k)));
       GK_ATTRS.forEach(d=> gkAttrs[d.k] = clamp99(fd.get('gk_'+d.k)));
       const type = fd.get('type');
+      const userId = fd.get('userId') || '';
       const existing = state.modal.data;
       let player;
       if(existing){
         player = state.players.find(p=>p.id === existing.id);
         player.name = name;
+        player.userId = userId;
         player.type = type;
         player.position = fd.get('position');
         player.number = fd.get('number') || '';
@@ -2394,7 +2427,7 @@ function bindModalEvents(){
         player.attrs = attrs;
         player.gkAttrs = gkAttrs;
       } else {
-        player = {id: uid(), name, type, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, stars, attrs, gkAttrs};
+        player = {id: uid(), name, userId, type, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, stars, attrs, gkAttrs};
         state.players.push(player);
       }
       await savePlayers();
@@ -2494,7 +2527,7 @@ function filteredUsers(){
   return state.users
     .filter(u=>
       (f === 'all' || (f === 'pending' ? userStatus(u) === 'pending' : (u.profiles||[]).includes(f))) &&
-      (!q || u.username.includes(q) || (u.email||'').includes(q)))
+      (!q || u.username.includes(q) || (u.email||'').includes(q) || fullName(u).toLowerCase().includes(q)))
     // cadastros aguardando aprovação sempre no topo
     .sort((a,b)=> (userStatus(a) === 'pending' ? 0 : 1) - (userStatus(b) === 'pending' ? 0 : 1));
 }
@@ -2524,7 +2557,7 @@ function renderUsersList(){
           const st = userStatus(u);
           return `
         <tr class="${st === 'inactive' ? 'inactive' : ''} ${st === 'pending' ? 'pending-row' : ''}">
-          <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><div><span>${esc(u.username)}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}</div></div></td>
+          <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><div><span>${esc(fullName(u))}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${fullName(u) !== u.username ? `<div class="hint" style="margin-top:2px;">@${esc(u.username)}</div>` : ''}${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}</div></div></td>
           <td>${roleBadge(u.role)}</td>
           <td><div class="chips">${(u.profiles||[]).length ? u.profiles.map(p=>`<span class="chip">${esc(p)}</span>`).join('') : '<span class="hint" style="margin:0">Sem perfil</span>'}</div></td>
           <td>${statusBadge(u)}${st === 'active' && u.approvedBy ? `<div class="hint" style="margin-top:4px;">aprovado por ${esc(u.approvedBy)}</div>` : ''}</td>
@@ -2614,7 +2647,11 @@ function renderLoginScreen(){
       ${setup ? `
       <div class="notice">${icon('shield-check')}<div>Primeiro acesso: crie a conta do <b>Admin</b> principal. Ela poderá criar os demais usuários.</div></div>
       <form id="setupForm" autocomplete="off">
-        <div class="field"><label>Usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: victor" autofocus><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
+        <div class="form-row">
+          <div class="field"><label>Nome</label><input name="firstName" required maxlength="40" autocomplete="given-name" autofocus></div>
+          <div class="field"><label>Sobrenome</label><input name="lastName" required maxlength="40" autocomplete="family-name"></div>
+        </div>
+        <div class="field"><label>Usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: victor"><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
         <div class="field"><label>E-mail</label><input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></div>
         <div class="field"><label>Senha</label>${newPwInput('password', 'required')}</div>
         <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
@@ -2630,7 +2667,11 @@ function renderLoginScreen(){
       </div>` : state.authMode === 'register' ? `
       <form id="registerForm" autocomplete="off">
         <div style="font-family:'Oswald'; font-size:15px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:16px;">Cadastre-se agora</div>
-        <div class="field"><label>Nome de usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: joao.silva" autofocus><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
+        <div class="form-row">
+          <div class="field"><label>Nome</label><input name="firstName" required maxlength="40" autocomplete="given-name" placeholder="ex: João" autofocus></div>
+          <div class="field"><label>Sobrenome</label><input name="lastName" required maxlength="40" autocomplete="family-name" placeholder="ex: Silva"></div>
+        </div>
+        <div class="field"><label>Nome de usuário</label><input name="username" required autocapitalize="none" spellcheck="false" placeholder="ex: joao.silva"><div class="hint">Letras minúsculas, números, ponto, hífen ou _ (3 a 30).</div></div>
         <div class="field"><label>E-mail</label><input name="email" type="email" required autocomplete="email" placeholder="voce@email.com"></div>
         <div class="field"><label>Senha</label>${newPwInput('password', 'required')}</div>
         <div class="field"><label>Confirmar senha</label>${pwInput('confirm', 'required maxlength="30" autocomplete="new-password"')}</div>
@@ -2660,7 +2701,8 @@ function renderAccountModal(){
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:6px;">
         <div class="avatar" style="width:44px; height:44px; font-size:18px;">${esc(u.username.charAt(0))}</div>
         <div>
-          <div style="font-weight:600;">${esc(u.username)}</div>
+          <div style="font-weight:600;">${esc(fullName(u))}</div>
+          ${fullName(u) !== u.username ? `<div class="hint" style="margin-top:2px;">@${esc(u.username)}</div>` : ''}
           ${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}
           <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">${roleBadge(u.role)}${(u.profiles||[]).map(p=>`<span class="chip">${esc(p)}</span>`).join('')}</div>
         </div>
@@ -2695,6 +2737,11 @@ function renderUserModal(user){
       <h3>${isEdit ? 'Editar usuário' : 'Novo usuário'}</h3>
       ${isEdit ? `<div class="modal-sub">Criado em ${fmtDay(user.createdAt)}${user.createdBy ? ` por ${esc(user.createdBy)}` : ''}${user.updatedAt ? ` · atualizado em ${fmtDay(user.updatedAt)}` : ''}</div>` : ''}
       <form id="userForm" autocomplete="off">
+        <div class="form-section">Dados pessoais</div>
+        <div class="form-row">
+          <div class="field"><label>Nome</label><input name="firstName" required maxlength="40" value="${user && user.firstName ? esc(user.firstName) : ''}" placeholder="ex: João"></div>
+          <div class="field"><label>Sobrenome</label><input name="lastName" required maxlength="40" value="${user && user.lastName ? esc(user.lastName) : ''}" placeholder="ex: Silva"></div>
+        </div>
         <div class="form-section">Dados de acesso</div>
         <div class="form-row">
           <div class="field">
@@ -2836,6 +2883,8 @@ function bindAuthModals(){
     const username = normUsername(fd.get('username'));
     const contactEmail = normEmail(fd.get('email'));
     const password = fd.get('password');
+    const firstName = cleanName(fd.get('firstName')), lastName = cleanName(fd.get('lastName'));
+    if(!firstName || !lastName) return formError('Informe seu nome e sobrenome.');
     if(!validUsername(username)) return formError('Nome de usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
     if(!validEmail(contactEmail)) return formError('Informe um e-mail válido.');
     if(passwordProblem(password)) return formError(passwordProblem(password));
@@ -2851,7 +2900,7 @@ function bindAuthModals(){
       const authEmail = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
       const cred = await h.auth().createUserWithEmailAndPassword(authEmail, password);
       const now = new Date().toISOString();
-      const user = {id: cred.user.uid, username, email: contactEmail, role:'user', profiles:[], perms:[],
+      const user = {id: cred.user.uid, username, firstName, lastName, email: contactEmail, role:'user', profiles:[], perms:[],
                     active:false, status:'pending', selfRegistered:true, createdAt: now, createdBy: username};
       const hdb = h.firestore();
       const batch = hdb.batch();
@@ -2878,6 +2927,8 @@ function bindAuthModals(){
     const username = normUsername(fd.get('username'));
     const password = fd.get('password');
     const contactEmail = normEmail(fd.get('email'));
+    const firstName = cleanName(fd.get('firstName')), lastName = cleanName(fd.get('lastName'));
+    if(!firstName || !lastName) return formError('Informe seu nome e sobrenome.');
     if(!validUsername(username)) return formError('Usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
     if(!validEmail(contactEmail)) return formError('Informe um e-mail válido.');
     if(passwordProblem(password)) return formError(passwordProblem(password));
@@ -2888,7 +2939,7 @@ function bindAuthModals(){
       const email = `${username}-${Math.random().toString(36).slice(2,8)}@${LOGIN_DOMAIN}`;
       const cred = await auth.createUserWithEmailAndPassword(email, password);
       const now = new Date().toISOString();
-      const user = {id: cred.user.uid, username, email: contactEmail, role:'admin', profiles:[], perms:[], active:true, status:'active', createdAt: now, createdBy: username};
+      const user = {id: cred.user.uid, username, firstName, lastName, email: contactEmail, role:'admin', profiles:[], perms:[], active:true, status:'active', createdAt: now, createdBy: username};
       const batch = db.batch();
       batch.set(db.collection('users').doc(user.id), user);
       batch.set(db.collection('logins').doc(username), {uid: user.id, email});
@@ -2982,7 +3033,9 @@ function bindUserForm(form, existing){
     const active = status === 'active';
     const approving = !!existing && userStatus(existing) === 'pending' && status === 'active';
     const email = normEmail(fd.get('email'));
+    const firstName = cleanName(fd.get('firstName')), lastName = cleanName(fd.get('lastName'));
 
+    if(!firstName || !lastName) return formError('Informe o nome e o sobrenome.');
     if(!validUsername(username)) return formError('Usuário inválido. Use 3 a 30 letras minúsculas, números, ponto, hífen ou _.');
     if(!validEmail(email)) return formError('Informe um e-mail válido.');
     if(state.users.some(u=> u.email === email && (!existing || u.id !== existing.id))) return formError('Já existe um usuário com esse e-mail.');
@@ -3000,7 +3053,7 @@ function bindUserForm(form, existing){
       const batch = db.batch();
       if(!existing){
         const acc = await createAuthAccount(username, password);
-        const user = {id: acc.uid, username, email, role, profiles, perms, active: true, status: 'active', createdAt: now, createdBy: me, updatedAt: now};
+        const user = {id: acc.uid, username, firstName, lastName, email, role, profiles, perms, active: true, status: 'active', createdAt: now, createdBy: me, updatedAt: now};
         batch.set(db.collection('users').doc(acc.uid), user);
         batch.set(db.collection('logins').doc(username), {uid: acc.uid, email: acc.email});
         await batch.commit();
@@ -3008,7 +3061,7 @@ function bindUserForm(form, existing){
       } else {
         const loginSnap = await db.collection('logins').doc(existing.username).get();
         let login = loginSnap.exists ? loginSnap.data() : null;
-        const updated = {...existing, username, email, role, profiles, perms, active, status, updatedAt: now, updatedBy: me};
+        const updated = {...existing, username, firstName, lastName, email, role, profiles, perms, active, status, updatedAt: now, updatedBy: me};
         if(approving){ updated.approvedAt = now; updated.approvedBy = me; }
         if(password){
           if(self){

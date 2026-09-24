@@ -1457,7 +1457,8 @@ function renderPlayerCardsFifa(){
 // Cada usuário tem um documento em votes/{uid} com as notas que deu: ratings[playerId] = {rit, fin, ...}.
 function myVotes(){
   const me = state.currentUser;
-  const v = me && state.votes.find(x=> x.id === me.id);
+  const uid = auth.currentUser ? auth.currentUser.uid : me && me.id;
+  const v = uid && state.votes.find(x=> x.id === uid);
   return (v && v.ratings) || {};
 }
 function renderVotes(){
@@ -1531,16 +1532,19 @@ function bindVotesEvents(){
     });
     if(incomplete.length) return formError(`Preencha os 6 campos de: ${incomplete.join(', ')}.`);
     formError(''); formBusy(true);
-    const doc = {id: me.id, voter: me.username, ratings, updatedAt: new Date().toISOString()};
+    const vid = auth.currentUser.uid;   // as regras exigem o documento com o uid do login
+    const doc = {id: vid, voter: me.username, ratings, updatedAt: new Date().toISOString()};
     try{
-      await db.collection('votes').doc(me.id).set(doc);
-      state.votes = state.votes.filter(v=> v.id !== me.id).concat(doc);
+      await db.collection('votes').doc(vid).set(doc);
+      state.votes = state.votes.filter(v=> v.id !== vid).concat(doc);
       render();
       toast(`Votos salvos (${Object.keys(ratings).length} jogador${Object.keys(ratings).length===1?'':'es'}).`);
     }catch(err){
       console.error(err);
       formBusy(false);
-      formError(err.code === 'permission-denied' ? 'Você não tem permissão para votar.' : 'Não foi possível salvar. Verifique a conexão e tente de novo.');
+      formError(err.code === 'permission-denied'
+        ? (isAdmin() ? 'O banco recusou o voto: publique as regras novas do Firebase (arquivo firestore.rules) no console.' : 'O banco recusou o voto. Peça a um administrador para conferir sua permissão de votar.')
+        : 'Não foi possível salvar. Verifique a conexão e tente de novo.');
     }
   };
 }

@@ -25,6 +25,14 @@ service cloud.firestore {
       allow delete: if can('players.delete');
     }
 
+    // Votação: cada usuário grava só o próprio documento (votes/{uid}); todos veem para calcular a média.
+    match /votes/{uid} {
+      allow read: if isUser();
+      allow create, update: if can('players.vote') && request.auth.uid == uid
+                            && request.resource.data.id == uid;
+      allow delete: if isAdmin() || (isUser() && request.auth.uid == uid);
+    }
+
     match /matches/{id} {
       allow read: if isUser();
       allow create: if can('matches.create');

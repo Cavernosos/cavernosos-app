@@ -457,8 +457,15 @@ button .lucide{vertical-align:-4px;}
 .fifa-photo-ph{width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-size:34px; color:var(--text-faint);}
 .fifa-name{font-family:'Oswald'; font-size:17px; letter-spacing:.03em; text-transform:uppercase;}
 .fifa-stars{justify-content:center; display:flex; gap:2px; margin-top:6px; font-size:13px;}
+.fifa-type{font-family:'Oswald'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-top:2px;}
+.attr-list{border-top:1px solid var(--border-soft);}
+.attr-row{display:grid; grid-template-columns:1fr 76px; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-soft);}
+.attr-name{font-size:13.5px; font-weight:600;}
+.attr-name .abbr{font-family:'Oswald'; font-weight:500; color:var(--accent); margin-right:6px; letter-spacing:.04em;}
+.attr-hint{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
+.attr-row input{text-align:center;}
 .fifa-stats{
-  display:grid; grid-template-columns:1fr 1fr; column-gap:18px; row-gap:8px;
+  display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto); grid-auto-flow:column; column-gap:18px; row-gap:8px;
   margin-top:18px; padding-top:16px; border-top:1px solid var(--border-soft);
 }
 .fifa-stat{display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Oswald'; font-size:14px;}
@@ -961,10 +968,35 @@ function starsHtml(count, cls){
   for(let i=1;i<=5;i++){ out += `<span class="${i<=count?'filled':''}">★</span>`; }
   return `<div class="${cls}">${out}</div>`;
 }
+const PLAYER_TYPES = ['Mensalista','Diarista','Goleiro'];
+const FIELD_ATTRS = [
+  {k:'rit', abbr:'RIT', name:'Ritmo',       hint:'Aceleração e pique'},
+  {k:'fin', abbr:'FIN', name:'Finalização', hint:'Finalização, força do chute, voleio, pênalti'},
+  {k:'pas', abbr:'PAS', name:'Passe',       hint:'Visão, cruzamento, passe curto, lançamento, curva'},
+  {k:'dri', abbr:'DRI', name:'Drible',      hint:'Agilidade, equilíbrio, reação, controle de bola, frieza'},
+  {k:'def', abbr:'DEF', name:'Defesa',      hint:'Interceptação, dividida, noção'},
+  {k:'fis', abbr:'FÍS', name:'Físico',      hint:'Impulso, fôlego, força, combatividade'},
+];
+const GK_ATTRS = [
+  {k:'ela', abbr:'ELA', name:'Elasticidade'},
+  {k:'man', abbr:'MAN', name:'Manejo'},
+  {k:'chu', abbr:'CHU', name:'Chute'},
+  {k:'ref', abbr:'REF', name:'Reflexos'},
+  {k:'vel', abbr:'VEL', name:'Velocidade'},
+  {k:'pos', abbr:'POS', name:'Posicionamento'},
+];
+function isGK(player){ return player && player.type === 'Goleiro'; }
+function playerAttrDefs(player){ return isGK(player) ? GK_ATTRS : FIELD_ATTRS; }
+function playerAttrValues(player){
+  const src = isGK(player) ? player.gkAttrs : player.attrs;
+  const out = {};
+  playerAttrDefs(player).forEach(d=> out[d.k] = src && src[d.k] != null ? src[d.k] : 50);
+  return out;
+}
 function computeOVR(player){
-  const a = player.attrs;
-  if(!a) return 50;
-  return Math.round((a.rit+a.fin+a.pas+a.dri+a.def+a.fis)/6);
+  const v = playerAttrValues(player);
+  const keys = Object.keys(v);
+  return Math.round(keys.reduce((s,k)=> s + v[k], 0) / keys.length);
 }
 const KNOWN_ATTRS = {
   'maciel': {rit:70,fin:85,pas:80,dri:45,def:90,fis:70},
@@ -1321,7 +1353,7 @@ function renderPlayerGrid(){
           <div class="num-badge">${p.number ? '#'+p.number : ''}</div>
           ${p.photo ? `<img src="${p.photo}" class="player-photo">` : `<div class="player-photo placeholder">${p.name.charAt(0).toUpperCase()}</div>`}
           <h3>${esc(p.name)}</h3>
-          <div class="pos">${esc(p.position)}</div>
+          <div class="pos">${esc(p.position)}${p.type ? ' · '+esc(p.type) : ''}</div>
           <div class="freq">Frequência: ${playerFrequency(p.id)} pelada${playerFrequency(p.id)===1?'':'s'}</div>
           ${starsHtml(p.stars||0, 'stars')}
           ${can('players.edit') || can('players.delete') ? `<div class="actions">
@@ -1340,7 +1372,7 @@ function renderPlayerCardsFifa(){
   return `
     <div class="fifa-grid">
       ${state.players.map(p=>{
-        const a = p.attrs || {rit:50,fin:50,pas:50,dri:50,def:50,fis:50};
+        const a = playerAttrValues(p);
         const ovr = computeOVR(p);
         return `
         <div class="fifa-card">
@@ -1353,14 +1385,10 @@ function renderPlayerCardsFifa(){
             ${p.photo ? `<img src="${p.photo}">` : `<div class="fifa-photo-ph">${p.name.charAt(0).toUpperCase()}</div>`}
           </div>
           <div class="fifa-name">${esc(p.name)}</div>
+          ${p.type ? `<div class="fifa-type">${esc(p.type)}</div>` : ''}
           ${starsHtml(p.stars||0, 'stars fifa-stars')}
           <div class="fifa-stats">
-            <div class="fifa-stat"><span class="k">RIT</span><span class="v">${a.rit}</span></div>
-            <div class="fifa-stat"><span class="k">DRI</span><span class="v">${a.dri}</span></div>
-            <div class="fifa-stat"><span class="k">FIN</span><span class="v">${a.fin}</span></div>
-            <div class="fifa-stat"><span class="k">DEF</span><span class="v">${a.def}</span></div>
-            <div class="fifa-stat"><span class="k">PAS</span><span class="v">${a.pas}</span></div>
-            <div class="fifa-stat"><span class="k">FÍS</span><span class="v">${a.fis}</span></div>
+            ${playerAttrDefs(p).map(d=>`<div class="fifa-stat" title="${d.name}${d.hint ? ': '+d.hint : ''}"><span class="k">${d.abbr}</span><span class="v">${a[d.k]}</span></div>`).join('')}
           </div>
         </div>`;
       }).join('')}
@@ -2184,6 +2212,16 @@ function renderModal(){
   if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
   return '';
 }
+function attrInputs(defs, values, prefix){
+  return `<div class="attr-list">${defs.map(d=>`
+    <div class="attr-row">
+      <div>
+        <div class="attr-name"><span class="abbr">${d.abbr}</span>${d.name}</div>
+        ${d.hint ? `<div class="attr-hint">${d.hint}</div>` : ''}
+      </div>
+      <input name="${prefix}${d.k}" type="number" min="0" max="99" value="${values && values[d.k] != null ? values[d.k] : 50}" aria-label="${d.name}">
+    </div>`).join('')}</div>`;
+}
 function renderPlayerModal(player){
   const isEdit = !!player;
   return `
@@ -2198,6 +2236,11 @@ function renderPlayerModal(player){
           <input type="file" accept="image/*" id="photoInput" style="display:none;">
         </div>
         <div class="field"><label>Nome</label><input name="name" required value="${player ? esc(player.name) : ''}"></div>
+        <div class="field"><label>Tipo</label>
+          <select name="type" id="playerTypeSelect">
+            ${PLAYER_TYPES.map(t=>`<option ${(player && player.type ? player.type : 'Mensalista')===t ? 'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
         <div class="field"><label>Posição</label>
           <select name="position">
             ${POSITIONS.map(pos=>`<option ${player && player.position===pos ? 'selected':''}>${pos}</option>`).join('')}
@@ -2211,16 +2254,13 @@ function renderPlayerModal(player){
           </div>
           <input type="hidden" name="stars" id="starsInput" value="${player ? (player.stars||0) : 0}">
         </div>
-        <div class="field">
-          <label>Habilidades (0-99, estilo FIFA)</label>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <div><label style="margin-bottom:4px;">RIT</label><input name="rit" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.rit:50}"></div>
-            <div><label style="margin-bottom:4px;">DRI</label><input name="dri" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.dri:50}"></div>
-            <div><label style="margin-bottom:4px;">FIN</label><input name="fin" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.fin:50}"></div>
-            <div><label style="margin-bottom:4px;">DEF</label><input name="def" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.def:50}"></div>
-            <div><label style="margin-bottom:4px;">PAS</label><input name="pas" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.pas:50}"></div>
-            <div><label style="margin-bottom:4px;">FÍS</label><input name="fis" type="number" min="0" max="99" value="${player&&player.attrs?player.attrs.fis:50}"></div>
-          </div>
+        <div class="field" id="fieldAttrs" ${isGK(player) ? 'hidden' : ''}>
+          <label>Habilidades de linha (0-99, estilo FIFA)</label>
+          ${attrInputs(FIELD_ATTRS, player && player.attrs, '')}
+        </div>
+        <div class="field" id="gkAttrs" ${isGK(player) ? '' : 'hidden'}>
+          <label>Habilidades de goleiro (0-99, estilo FIFA)</label>
+          ${attrInputs(GK_ATTRS, player && player.gkAttrs, 'gk_')}
         </div>
 
         <div class="modal-actions">
@@ -2323,6 +2363,13 @@ function bindModalEvents(){
   }
   const playerForm = document.getElementById('playerForm');
   if(playerForm){
+    const typeSelect = document.getElementById('playerTypeSelect');
+    typeSelect.onchange = ()=>{
+      const gk = typeSelect.value === 'Goleiro';
+      document.getElementById('fieldAttrs').hidden = gk;
+      document.getElementById('gkAttrs').hidden = !gk;
+      if(gk) playerForm.elements.position.value = 'Goleiro';
+    };
     playerForm.onsubmit = async (e)=>{
       e.preventDefault();
       const fd = new FormData(playerForm);
@@ -2330,22 +2377,24 @@ function bindModalEvents(){
       if(!name) return;
       const stars = parseInt(fd.get('stars')||'0', 10);
       const clamp99 = v => Math.max(0, Math.min(99, parseInt(v||'0',10)));
-      const attrs = {
-        rit: clamp99(fd.get('rit')), fin: clamp99(fd.get('fin')), pas: clamp99(fd.get('pas')),
-        dri: clamp99(fd.get('dri')), def: clamp99(fd.get('def')), fis: clamp99(fd.get('fis'))
-      };
+      const attrs = {}, gkAttrs = {};
+      FIELD_ATTRS.forEach(d=> attrs[d.k] = clamp99(fd.get(d.k)));
+      GK_ATTRS.forEach(d=> gkAttrs[d.k] = clamp99(fd.get('gk_'+d.k)));
+      const type = fd.get('type');
       const existing = state.modal.data;
       let player;
       if(existing){
         player = state.players.find(p=>p.id === existing.id);
         player.name = name;
+        player.type = type;
         player.position = fd.get('position');
         player.number = fd.get('number') || '';
         player.photo = pendingPhoto;
         player.stars = stars;
         player.attrs = attrs;
+        player.gkAttrs = gkAttrs;
       } else {
-        player = {id: uid(), name, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, stars, attrs};
+        player = {id: uid(), name, type, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, stars, attrs, gkAttrs};
         state.players.push(player);
       }
       await savePlayers();

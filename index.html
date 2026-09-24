@@ -8,11 +8,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root{
-  --bg:#12100D;
-  --bg-elev:#1B1712;
-  --bg-card:#201B14;
-  --border:#372C1B;
-  --border-soft:#2A2317;
+  --bg:#000000;
+  --bg-elev:#0E0E0E;
+  --bg-card:#141414;
+  --border:#2E2A22;
+  --border-soft:#1F1C17;
   --accent:#F2B705;
   --accent-dim:#B98B0A;
   --grass:#4C7A52;
@@ -31,12 +31,12 @@
 }
 /* ---------- ambientes (tema de cada um) ---------- */
 html[data-env="boardgame"]{
-  --bg:#EEEFF2; --bg-elev:#FFFFFF; --bg-card:#FFFFFF;
-  --border:#D3D6DD; --border-soft:#E3E5EA;
-  --accent:#4B5563; --accent-dim:#9CA3AF; --accent-soft:rgba(75,85,99,0.09); --accent-hover:#374151; --on-accent:#FFFFFF;
-  --text:#1F2329; --text-dim:#5B6370; --text-faint:#8C939E;
-  --grass:#3F8F5A; --grass-dim:#A7D3B5; --ok:#2F7A4A; --danger:#C0392B;
-  --hover:rgba(0,0,0,0.04); --glow:rgba(0,0,0,0.035);
+  --bg:#2B2E33; --bg-elev:#33373D; --bg-card:#3A3F46;
+  --border:#525862; --border-soft:#454A52;
+  --accent:#C4CAD2; --accent-dim:#8A919B; --accent-soft:rgba(196,202,210,0.10); --accent-hover:#E1E5EA; --on-accent:#1C1F23;
+  --text:#ECEEF1; --text-dim:#AEB4BC; --text-faint:#7E858E;
+  --grass:#5FA877; --grass-dim:#3A6148; --ok:#8FD1A5; --danger:#E0705F;
+  --hover:rgba(255,255,255,0.04); --glow:rgba(196,202,210,0.07);
 }
 html[data-env="games"]{
   --bg:#050E26; --bg-elev:#0A1838; --bg-card:#0E1F47;
@@ -47,12 +47,12 @@ html[data-env="games"]{
   --hover:rgba(255,255,255,0.05); --glow:rgba(0,112,209,0.35);
 }
 html[data-env="outros"]{
-  --bg:#FFF6D6; --bg-elev:#FFF0BF; --bg-card:#FFFBEB;
-  --border:#E8D48F; --border-soft:#F1E3AE;
-  --accent:#A26A00; --accent-dim:#D4A646; --accent-soft:rgba(162,106,0,0.10); --accent-hover:#855700; --on-accent:#FFFFFF;
-  --text:#2E2610; --text-dim:#6B5D34; --text-faint:#9A8A5C;
-  --grass:#5E8C3A; --grass-dim:#C9DDB2; --ok:#4A7A2A; --danger:#B8412E;
-  --hover:rgba(0,0,0,0.04); --glow:rgba(255,200,40,0.25);
+  --bg:#1F0E03; --bg-elev:#2B1506; --bg-card:#341A08;
+  --border:#5C3010; --border-soft:#46240B;
+  --accent:#D9731A; --accent-dim:#9E5213; --accent-soft:rgba(217,115,26,0.12); --accent-hover:#F08A2F; --on-accent:#1F0D02;
+  --text:#F5E9DB; --text-dim:#C7A688; --text-faint:#8C6C52;
+  --grass:#6E9C48; --grass-dim:#3D5A28; --ok:#A5D07E; --danger:#E0664F;
+  --hover:rgba(255,255,255,0.04); --glow:rgba(217,115,26,0.14);
 }
 html[data-env="games"] body{
   background:
@@ -61,8 +61,6 @@ html[data-env="games"] body{
     linear-gradient(180deg, #071640 0%, #050E26 60%);
   background-attachment:fixed;
 }
-html[data-env="boardgame"] .modal, html[data-env="outros"] .modal{box-shadow:0 20px 60px rgba(0,0,0,.18);}
-html[data-env="boardgame"] .overlay, html[data-env="outros"] .overlay{background:rgba(30,30,30,0.35);}
 body, .sidebar, .main{transition:background-color .25s ease, color .25s ease;}
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{height:100%;}

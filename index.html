@@ -220,6 +220,164 @@ label{font-size:12.5px; color:var(--text-dim); display:block; margin-bottom:6px;
 .rank-table th, .rank-table td{white-space:nowrap;}
 .rank-table td.medal{font-family:'Oswald'; font-size:15px;}
 .rank-table .rank-pos-cell{width:44px;}
+.rank-table td.up{color:#4cbf7a;} .rank-table td.down{color:var(--danger);}
+
+/* ---------- BoardGame: componentes ---------- */
+.bg-link{color:inherit; cursor:pointer; text-decoration:none; border-bottom:1px dotted var(--border);}
+.bg-link:hover{color:var(--accent); border-bottom-color:var(--accent);}
+a.chip.bg-link{border-bottom:1px solid var(--border-soft); display:inline-flex; align-items:center; gap:5px;}
+.bg-av{width:26px; height:26px; border-radius:50%; object-fit:cover; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;
+  background:var(--bg-elev); color:var(--text-dim); font-family:'Oswald'; font-size:12px; border:1px solid var(--border-soft);}
+.bg-av.guest{border-style:dashed;}
+.bg-av.lg{width:44px; height:44px; font-size:18px;}
+.bg-av.xl{width:96px; height:96px; font-size:40px;}
+.bgm-list{display:flex; flex-direction:column; gap:8px;}
+.bgm-row{display:flex; align-items:flex-start; gap:12px; padding:12px 14px; background:var(--bg-card); border:1px solid var(--border-soft); cursor:pointer; transition:border-color .15s;}
+.bgm-row:hover, .bgm-row:focus-visible{border-color:var(--accent-dim); outline:none;}
+.bgm-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;}
+.bgm-title{font-weight:600; font-size:15px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.bgm-players{display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;}
+.bgm-p{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; padding:3px 8px; border:1px solid var(--border-soft); background:var(--bg); color:var(--text-dim);}
+.bgm-p.won{color:var(--text); border-color:#D4A01766; background:rgba(212,160,23,0.08);}
+.bgm-p .lucide{width:13px; height:13px; color:#D4A017;}
+.bgm-p i.pos-num{font-style:normal; font-size:11.5px; min-width:0;}
+.bgm-p em{font-style:normal; color:var(--text-faint); font-size:11.5px;}
+.bgm-side{display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text-faint);}
+.bgm-side .lucide{width:14px; height:14px;}
+.bg-mode{display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:600; padding:2px 8px; border:1px solid var(--border); color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em;}
+.bg-mode .lucide{width:12px; height:12px;}
+.bg-mode.win{color:#4cbf7a; border-color:rgba(76,191,122,.5);} .bg-mode.loss{color:var(--danger); border-color:var(--danger);}
+.bg-hero{display:flex; gap:20px; align-items:flex-start; margin-top:4px;}
+.bg-hero-img{width:150px; height:150px; object-fit:cover; flex-shrink:0; border:1px solid var(--border-soft); background:var(--bg);}
+.bg-hero-img.ph .lucide{width:44px; height:44px;}
+.bg-hero h2{margin-top:4px;}
+.bg-facts{display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; font-size:13px; color:var(--text-dim); align-items:center;}
+.bg-facts span{display:inline-flex; align-items:center; gap:5px;}
+.bg-facts .lucide{width:15px; height:15px;}
+.bg-coop{display:flex; gap:14px; align-items:center; padding:16px 18px; border:1px solid; margin-bottom:8px;}
+.bg-coop .lucide{width:30px; height:30px;}
+.bg-coop b{display:block; font-family:'Oswald'; font-size:20px; letter-spacing:.03em;}
+.bg-coop span{font-size:12.5px; color:var(--text-dim);}
+.bg-coop.win{border-color:rgba(76,191,122,.5); background:rgba(76,191,122,.08); color:#4cbf7a;}
+.bg-coop.loss{border-color:var(--danger); background:rgba(224,100,90,.08); color:var(--danger);}
+.bg-podium{display:grid; grid-template-columns:repeat(3, minmax(0, 170px)); justify-content:center; align-items:end; gap:10px; margin:8px 0 6px;}
+.bg-step{display:flex; flex-direction:column; align-items:center; gap:5px; text-align:center; min-width:0;}
+.bg-step-name{font-size:13.5px; font-weight:600; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bg-step-score{font-size:12px; color:var(--text-faint);}
+.bg-step-block{width:100%; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; background:var(--bg-card); border:1px solid var(--border-soft); border-bottom:none;}
+.bg-step-block .trophy .lucide{width:26px; height:26px;}
+.bg-step.s1 .bg-step-block{height:110px; border-color:#D4A01766; background:rgba(212,160,23,0.08);}
+.bg-step.s2 .bg-step-block{height:80px;} .bg-step.s3 .bg-step-block{height:60px;}
+.bg-teams{display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:10px; margin-bottom:8px;}
+.bg-team{border:1px solid var(--border-soft); background:var(--bg-card); padding:12px 14px; display:flex; flex-direction:column; gap:8px; font-size:13.5px;}
+.bg-team > div:not(.bg-team-head){display:flex; align-items:center; gap:8px;}
+.bg-team.won{border-color:#D4A01766; background:rgba(212,160,23,0.08);}
+.bg-team-head{font-family:'Oswald'; font-size:15px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em;}
+.bg-card{cursor:pointer; transition:border-color .15s;}
+.bg-card:hover, .bg-card:focus-visible{border-color:var(--accent-dim); outline:none;}
+.bg-cover-wrap{position:relative;}
+.bg-rating{position:absolute; top:8px; left:8px; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; background:rgba(0,0,0,.7); color:#fff; font-size:12px; font-weight:700;}
+.bg-rating .lucide{width:12px; height:12px; fill:#D4A017; color:#D4A017;}
+.bg-my{position:absolute; top:8px; right:8px; display:flex; gap:4px;}
+.bg-my span{display:flex; padding:4px; background:rgba(0,0,0,.7); color:#fff;}
+.bg-my .lucide{width:13px; height:13px;}
+.bg-owners{font-size:12px; color:var(--text-faint); display:flex; gap:5px; align-items:center; margin-top:2px;}
+.bg-owners .lucide{width:12px; height:12px; flex-shrink:0;}
+.bg-collection-bar{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; align-items:center;}
+.bg-collection-bar button{display:inline-flex; align-items:center; gap:6px; padding:7px 12px; font-size:13px;}
+.bg-collection-bar button .lucide{width:15px; height:15px;}
+.bg-collection-bar button.on{background:var(--accent-soft); border-color:var(--accent-dim); color:var(--accent);}
+.bg-collection-bar button.danger-hover:hover{color:var(--danger); border-color:var(--danger);}
+.bg-note{display:inline-flex; align-items:center; gap:6px; margin:0; padding:0 4px 0 10px; border:1px solid var(--border); font-size:13px; color:var(--text-dim);}
+.bg-note .lucide{width:15px; height:15px;}
+.bg-note select{width:auto; border:0; padding:6px 8px; background:transparent;}
+.bg-taxo, .bg-people{display:flex; flex-direction:column; gap:8px; margin:6px 0 4px; font-size:13.5px;}
+.bg-taxo > div, .bg-people > div{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+.bg-taxo-lbl{display:inline-flex; align-items:center; gap:5px; min-width:120px; font-family:'Oswald'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+.bg-taxo-lbl .lucide{width:13px; height:13px;}
+.bg-people{margin-top:20px; padding:14px 16px; border:1px solid var(--border-soft); background:var(--bg-card);}
+.bg-player-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:12px;}
+.bg-player{background:var(--bg-card); border:1px solid var(--border-soft); padding:14px 16px; display:flex; flex-direction:column; gap:12px; cursor:pointer; transition:border-color .15s;}
+.bg-player:hover, .bg-player:focus-visible{border-color:var(--accent-dim); outline:none;}
+.bg-player-head{display:flex; align-items:center; gap:12px;}
+.bg-player-name{font-weight:600; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bg-player-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; text-align:center;}
+.bg-player-stats b{display:block; font-family:'Oswald'; font-size:19px; color:var(--accent);}
+.bg-player-stats span{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
+.bg-player .bg-meta{display:flex; align-items:center; gap:4px; flex-wrap:wrap;}
+.bg-player .bg-meta .lucide{width:13px; height:13px;}
+.bg-duo{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:10px; margin-top:-12px;}
+.bg-fact-card{display:flex; gap:12px; align-items:flex-start; padding:14px 16px; background:var(--bg-card); border:1px solid var(--border-soft);}
+.bg-fact-card > .lucide{width:22px; height:22px; color:var(--accent); flex-shrink:0; margin-top:2px;}
+.bg-fact-card span{display:block; font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
+.bg-fact-card b{display:block; font-size:15px; margin-top:3px;}
+.bg-fact-card em{display:block; font-style:normal; font-size:12px; color:var(--text-dim); margin-top:2px;}
+.chip.king{color:#D4A017; border-color:#D4A01766; display:inline-flex; align-items:center; gap:5px;}
+.chip.king .lucide{width:12px; height:12px;}
+.bg-badges{display:grid; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:8px;}
+.bg-badge{display:flex; flex-direction:column; gap:3px; padding:12px; border:1px dashed var(--border); opacity:.45; filter:grayscale(1);}
+.bg-badge .lucide{width:24px; height:24px; color:var(--text-faint); margin-bottom:4px;}
+.bg-badge b{font-size:13px;} .bg-badge span{font-size:11.5px; color:var(--text-dim);}
+.bg-badge.on{opacity:1; filter:none; border-style:solid; border-color:var(--accent-dim); background:var(--accent-soft);}
+.bg-badge.on .lucide{color:var(--accent);}
+.bg-recap-hero{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:1px; background:var(--accent-dim); border:1px solid var(--accent-dim); margin-bottom:16px;}
+.bg-recap-hero div{background:var(--bg-card); padding:22px 18px; text-align:center;}
+.bg-recap-hero b{display:block; font-family:'Oswald'; font-size:42px; color:var(--accent); line-height:1.1;}
+.bg-recap-hero span{font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em;}
+.bg-recap-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:10px;}
+.bg-recap-card{display:flex; flex-direction:column; gap:4px; padding:16px; background:var(--bg-card); border:1px solid var(--border-soft);}
+.bg-recap-card > .lucide{width:22px; height:22px; color:var(--accent); margin-bottom:4px;}
+.bg-recap-card span{font-size:11.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.06em;}
+.bg-recap-card b{font-size:17px;}
+.bg-recap-card em{font-style:normal; font-size:12.5px; color:var(--text-dim);}
+/* gráficos: uma série, cor de destaque, tooltip no hover */
+.bar-chart{width:100%; max-width:720px; overflow-x:auto;}
+.bar-chart svg{width:100%; min-width:360px; height:calc(var(--h) + 22px); display:block;}
+.bc-axis{stroke:var(--border); stroke-width:1;}
+.bc-bar{fill:var(--accent);}
+.bc-hit{fill:transparent;}
+.bc-g:hover .bc-bar{opacity:.8;}
+.bc-g:hover .bc-hit{fill:var(--accent-soft);}
+.bc-val{font-size:11px; fill:var(--text-dim); text-anchor:middle; font-family:'Inter',sans-serif;}
+.bc-lbl{font-size:10.5px; fill:var(--text-faint); text-anchor:middle; font-family:'Inter',sans-serif;}
+.hbars{display:flex; flex-direction:column; gap:8px; max-width:720px;}
+.hbar{display:grid; grid-template-columns:minmax(110px, 200px) 1fr auto; gap:12px; align-items:center; font-size:13px;}
+.hbar-lbl{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.hbar-track{height:10px; background:var(--bg-elev);}
+.hbar-fill{height:100%; background:var(--accent); border-radius:0 4px 4px 0;}
+.hbar-val{min-width:70px; text-align:right; font-variant-numeric:tabular-nums;}
+.hbar:hover .hbar-fill{opacity:.8;}
+.chart-tip{position:fixed; z-index:200; display:none; pointer-events:none; padding:6px 10px; font-size:12px; background:var(--bg-elev); color:var(--text); border:1px solid var(--border); box-shadow:0 4px 14px rgba(0,0,0,.3);}
+/* formulários do BoardGame */
+.seg{display:inline-flex; border:1px solid var(--border); flex-wrap:wrap;}
+.seg label{margin:0; cursor:pointer;}
+.seg input{position:absolute; opacity:0; width:0; height:0;}
+.seg span{display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; color:var(--text-dim);}
+.seg span .lucide{width:14px; height:14px;}
+.seg input:checked + span{background:var(--accent); color:var(--on-accent);}
+.seg input:focus-visible + span{outline:2px solid var(--accent-dim); outline-offset:-2px;}
+.result-rows.mode-comp .result-row, .result-rows.mode-teams .result-row{grid-template-columns:minmax(120px,1.3fr) 110px 80px 1fr 44px;}
+.result-rows.mode-coop .result-row{grid-template-columns:minmax(120px,1.3fr) 80px 1fr 44px;}
+.result-row .checkbox{justify-self:center;}
+.bg-team-pos{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:10px; font-size:13px; color:var(--text-dim);}
+.bg-team-pos label{display:inline-flex; align-items:center; gap:6px; margin:0;}
+.bg-team-pos select{width:auto; padding:5px 8px;}
+.ludo-list{display:flex; flex-direction:column; gap:4px; margin-top:8px; max-height:240px; overflow-y:auto;}
+.ludo-item{display:flex; align-items:center; gap:10px; text-align:left; padding:6px 8px; font-size:13px;}
+.ludo-item img, .ludo-item .lucide{width:34px; height:34px; object-fit:cover; flex-shrink:0;}
+.ludo-item em{color:var(--text-faint); font-style:normal;}
+.bg-random-out{display:flex; align-items:center; gap:12px; min-height:74px; margin-top:14px; padding:12px; border:1px dashed var(--border); background:var(--bg);}
+.bg-random-out > div{flex:1; min-width:0;}
+.bg-random-out b{font-size:16px;}
+.bg-spin{font-family:'Oswald'; font-size:20px; color:var(--accent); text-align:center; width:100%;}
+@media (max-width:640px){
+  .bg-hero{flex-direction:column; gap:12px;}
+  .bg-hero-img{width:110px; height:110px;}
+  .result-rows .result-row:not(.head){grid-template-columns:1fr 1fr !important;}
+  .result-rows .result-row .name{grid-column:1 / -1;}
+  .result-rows .result-row.head{display:none;}
+  .hbar{grid-template-columns:110px 1fr auto;}
+}
 .coming-soon{border:1px dashed var(--border); background:var(--bg-card); padding:40px 24px; text-align:center; max-width:560px;}
 .coming-soon .lucide{width:34px; height:34px; color:var(--accent); margin-bottom:12px;}
 .coming-soon h3{font-size:16px; margin-bottom:8px;}
@@ -956,7 +1114,7 @@ function fullName(u){
 }
 function cleanName(v){ return String(v||'').trim().replace(/\s+/g,' ').slice(0,40); }
 function directoryEntry(u){
-  return {id: u.id, username: u.username, firstName: u.firstName || '', lastName: u.lastName || '', active: userStatus(u) === 'active', envs: userEnvs(u)};
+  return {id: u.id, username: u.username, firstName: u.firstName || '', lastName: u.lastName || '', photoURL: u.photoURL || '', active: userStatus(u) === 'active', envs: userEnvs(u)};
 }
 function playerName(p){ return p ? p.name : ''; }
 async function syncDirectory(){
@@ -978,8 +1136,6 @@ async function syncDirectory(){
     state.directory = state.users.map(directoryEntry);
   }catch(e){ console.error('directory sync failed', e); }
 }
-const bgPlayers = ()=> state.directory.filter(d=> d.active && (d.envs||[]).includes('boardgame'))
-  .sort((a,b)=> a.username.localeCompare(b.username));
 // Resolve o perfil do usuário logado (documento users/{uid}).
 async function resolveCurrentUser(fbUser){
   if(state.settingUp) return; // o cadastro do primeiro admin ainda está sendo gravado
@@ -1146,11 +1302,17 @@ let state = {
   sidebarCollapsed: lsGet('cavernosos:sidebar') === 'collapsed',
   env: lsGet('cavernosos:env') || 'pelada',
   envViews: {},
-  games_videos: [], outros_videos: [], bg_games: [], bg_matches: [], bg_videos: [], bg_photos: [], directory: [], votes: [],
+  games_videos: [], outros_videos: [], bg_games: [], bg_matches: [], bg_videos: [], bg_photos: [], bg_guests: [], bg_collection: [], directory: [], votes: [],
   bgMediaTab: 'videos',
   bgRankGame: 'all',
-  bgMatchGame: 'all',
-  bgLibSearch: '',
+  bgRankTab: 'medals',
+  bgRankPeriod: '',
+  bgRecapYear: '',
+  bgShowGuests: false,
+  bgOpen: null,      // página aberta: {kind: 'match'|'game'|'player', id}
+  bgStack: [],       // histórico para o botão Voltar
+  bgMatchFilter: {game:'', player:'', period:''},
+  bgLibFilter: {q:'', players:'', status:'', sort:'name', showExp:false},
   videoFilters: {}, // por coleção: {date, q}
   matchFilter: {date:'', q:''},
   openMatchId: null,
@@ -1256,7 +1418,7 @@ async function loadAll(){
   EXTRA_COLLECTIONS.forEach((k,i)=> state[k] = lists[i] || []);
   loadFailed = failedBefore;
 }
-const EXTRA_COLLECTIONS = ['games_videos','outros_videos','bg_games','bg_matches','bg_videos','bg_photos','directory','votes'];
+const EXTRA_COLLECTIONS = ['games_videos','outros_videos','bg_games','bg_matches','bg_videos','bg_photos','bg_guests','bg_collection','directory','votes'];
 
 function savePlayers(){ return sSet('players', state.players); }
 function saveMatches(){ return sSet('matches', state.matches); }
@@ -1342,8 +1504,10 @@ const ENVS = [
   ]},
   {id:'boardgame', label:'BoardGame', icon:'dices', perm:'boardgame.view', nav:[
     {id:'bg-matches', label:'Partidas', icon:'swords'},
+    {id:'bg-library', label:'Jogos', icon:'library'},
+    {id:'bg-players', label:'Jogadores', icon:'users'},
     {id:'bg-rankings', label:'Rankings', icon:'trophy'},
-    {id:'bg-library', label:'Biblioteca', icon:'library'},
+    {id:'bg-recap', label:'Retrospectiva', icon:'calendar-heart'},
     {id:'bg-media', label:'Mídia', icon:'image'},
   ]},
   {id:'games', label:'Games', icon:'gamepad-2', perm:'games.view', nav:[
@@ -1434,7 +1598,7 @@ function renderNoAccess(){
 function bindShell(){
   document.querySelectorAll('[data-nav]').forEach(b=>{
     b.onclick = ()=>{
-      state.view = b.dataset.nav; state.modal=null; state.openMatchId=null;
+      state.view = b.dataset.nav; state.modal=null; state.openMatchId=null; state.bgOpen=null; state.bgStack=[];
       const env = currentEnv();
       if(env && env.nav.some(n=> n.id === state.view)) state.envViews[env.id] = state.view;
       render();
@@ -1447,7 +1611,7 @@ function bindShell(){
       lsSet('cavernosos:env', env.id);
       const nav = envNav(env);
       state.view = nav.some(n=> n.id === state.envViews[env.id]) ? state.envViews[env.id] : nav[0].id;
-      state.modal = null; state.openMatchId = null;
+      state.modal = null; state.openMatchId = null; state.bgOpen = null; state.bgStack = [];
       render();
     };
   });
@@ -1475,7 +1639,10 @@ function renderView(){
   if(state.view === 'matches' || state.view === 'mural') return renderMatches();
   if(state.view === 'users') return renderUsers();
   if(state.view === 'games-videos') return renderGamesVideos();
+  if(state.bgOpen && state.view.startsWith('bg-')) return renderBgDetail();
   if(state.view === 'bg-matches') return renderBgMatches();
+  if(state.view === 'bg-players') return renderBgPlayers();
+  if(state.view === 'bg-recap') return renderBgRecap();
   if(state.view === 'bg-rankings') return renderBgRankings();
   if(state.view === 'bg-library') return renderBgLibrary();
   if(state.view === 'bg-media') return renderBgMedia();
@@ -1979,10 +2146,30 @@ function renderOutrosVideos(){
 }
 
 /* ============ BOARDGAME ============ */
+// Inspirado na Ludopedia (ficha do jogo, coleção, resumo de estatísticas, índice H)
+// e no Ludohall (registro de partidas, perfil do jogador, ELO, conquistas, retrospectiva).
 const MAX_BG_PLAYERS = 12;
+const BG_MODES = {comp:'Competitivo', coop:'Cooperativo', teams:'Times'};
+const BG_WEIGHTS = ['', 'Leve', 'Médio-leve', 'Médio', 'Médio-pesado', 'Pesado'];
+const BG_TEAMS = ['A','B','C','D'];
+const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const byName = (a,b)=> a.name.localeCompare(b.name);
 const bgGame = id => state.bg_games.find(g=> g.id === id);
 const bgGameName = m => (bgGame(m.gameId) || {}).name || m.gameName || 'Jogo removido';
 const bgMatchesOf = gameId => state.bg_matches.filter(m=> m.gameId === gameId);
+const bgBaseGames = ()=> state.bg_games.filter(g=> g.type !== 'expansao').sort(byName);
+const bgExpansionsOf = gameId => state.bg_games.filter(g=> g.type === 'expansao' && g.baseId === gameId).sort(byName);
+const bgHasScore = r => r.score != null && r.score !== '' && !isNaN(r.score);
+const fmtNum = x => x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('pt-BR');
+const pct = x => Math.round(x * 100) + '%';
+function fmtMinutes(min){
+  min = Math.round(min || 0);
+  if(!min) return '0 min';
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? `${h}h${m ? String(m).padStart(2,'0') : ''}` : `${m} min`;
+}
+function monthLabel(ym){ const [y,m] = ym.split('-'); return `${MONTHS[Number(m)-1]} de ${y}`; }
+const capFirst = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 // [2,3,4] → "2 a 4 jogadores"; [2,4,6] → "2, 4 ou 6 jogadores"
 function fmtPlayerCounts(counts){
@@ -2004,248 +2191,835 @@ function gameThumb(g, cls){
   return g && g.photo ? `<img class="${cls}" src="${g.photo}" alt="">` : `<div class="${cls} ph">${icon('dices')}</div>`;
 }
 
-/* ---------- Biblioteca ---------- */
-function renderBgLibrary(){
-  const q = state.bgLibSearch.trim().toLowerCase();
-  const list = state.bg_games
-    .filter(g=> !q || g.name.toLowerCase().includes(q) || (g.publisher||'').toLowerCase().includes(q))
-    .sort((a,b)=> a.name.localeCompare(b.name));
-  return `
-    ${pageHead('BoardGame', 'Biblioteca', `${state.bg_games.length} jogo${state.bg_games.length===1?'':'s'} na coleção do grupo.`,
-      can('bg.games.create') ? `<button class="primary btn-icon" id="addBgGameBtn">${icon('plus')}Cadastrar jogo</button>` : '')}
-    ${state.bg_games.length ? `
-    <div class="toolbar">
-      <div class="search-box">${icon('search')}<input id="bgLibSearch" placeholder="Buscar jogo ou editora" value="${esc(state.bgLibSearch)}" autocomplete="off"></div>
-    </div>` : ''}
-    ${!state.bg_games.length ? `<div class="empty">Nenhum jogo cadastrado ainda. ${can('bg.games.create') ? 'Cadastre o primeiro para começar a registrar partidas.' : ''}</div>` :
-      !list.length ? `<div class="empty">Nenhum jogo encontrado.</div>` : `
-    <div class="bg-grid">
-      ${list.map(g=>{
-        const played = bgMatchesOf(g.id).length;
-        return `
-        <div class="bg-card">
-          ${gameThumb(g, 'bg-cover')}
-          <div class="bg-body">
-            <h3>${esc(g.name)}</h3>
-            ${g.publisher ? `<div class="bg-meta">${esc(g.publisher)}</div>` : ''}
-            <div class="bg-tags">
-              ${(g.players||[]).length ? `<span class="chip">${icon('users')}${fmtPlayerCounts(g.players)}</span>` : ''}
-              <span class="chip">${icon('swords')}${played} partida${played===1?'':'s'}</span>
-            </div>
-            ${can('bg.games.edit') || can('bg.games.delete') ? `
-            <div class="actions">
-              ${can('bg.games.edit') ? `<button data-edit-bg-game="${g.id}">Editar</button>` : ''}
-              ${can('bg.games.delete') ? `<button class="danger" data-del-bg-game="${g.id}">Excluir</button>` : ''}
-            </div>` : ''}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`}
-  `;
+/* ---------- jogadores: usuários do site + convidados ---------- */
+// Nos resultados, o jogador é o id do usuário ou "guest:<id>" para convidados.
+const GUEST = 'guest:';
+const isGuestKey = k => String(k || '').startsWith(GUEST);
+const bgGuest = key => state.bg_guests.find(g=> GUEST + g.id === key);
+// convidado ligado a uma conta conta como a própria conta nas estatísticas
+function bgCanon(key){ const g = isGuestKey(key) && bgGuest(key); return g && g.linkedUserId ? g.linkedUserId : key; }
+function bgPlayerInfo(key, fallback){
+  if(isGuestKey(key)){
+    const g = bgGuest(key);
+    return {key, name: g ? g.name : (fallback || 'Convidado'), guest: true};
+  }
+  const d = state.directory.find(x=> x.id === key);
+  const u = state.currentUser && state.currentUser.id === key ? state.currentUser : null;
+  return {key, name: d ? fullName(d) : u ? fullName(u) : (fallback || 'Ex-jogador'), guest: false, photo: (d && d.photoURL) || (u && u.photoURL) || ''};
 }
-function renderBgGameModal(game){
-  const isEdit = !!game;
-  const counts = new Set((game && game.players || []).map(Number));
-  return `
-  <div class="overlay" id="modalOverlay">
-    <div class="modal">
-      <h3>${isEdit ? 'Editar jogo' : 'Cadastrar jogo'}</h3>
-      <form id="bgGameForm" autocomplete="off">
-        <div class="field">
-          <div class="photo-pick bg-photo-pick" id="bgGamePhotoPick">
-            ${game && game.photo ? `<img src="${game.photo}" id="bgGamePhotoPreview">` : `<div id="bgGamePhotoPreview">${icon('image-plus')}<div>Toque para escolher a foto da caixa</div></div>`}
-          </div>
-          <input type="file" accept="image/*" id="bgGamePhotoInput" style="display:none;">
-          ${game && game.photo ? `<button type="button" class="ghost" id="bgGamePhotoRemove" style="padding:4px 0; font-size:12px;">Remover foto</button>` : ''}
-        </div>
-        <div class="field"><label>Nome do jogo</label><input name="name" required maxlength="80" value="${game ? esc(game.name) : ''}" placeholder="ex: Catan"></div>
-        <div class="field"><label>Editora</label><input name="publisher" maxlength="80" value="${game ? esc(game.publisher||'') : ''}" placeholder="ex: Devir"></div>
-        <div class="field">
-          <label>Quantas pessoas suporta</label>
-          <div class="count-pills">
-            ${Array.from({length: MAX_BG_PLAYERS}, (_, i)=> i+1).map(n=>`
-              <label class="count-pill"><input type="checkbox" name="players" value="${n}" ${counts.has(n)?'checked':''}><span>${n}${n===MAX_BG_PLAYERS?'+':''}</span></label>`).join('')}
-          </div>
-          <div class="hint">Marque todas as quantidades de jogadores aceitas.</div>
-        </div>
-        <div class="form-error" id="formError"></div>
-        <div class="modal-actions">
-          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Cadastrar'}</button>
-        </div>
-      </form>
-    </div>
+const bgName = (key, fallback)=> bgPlayerInfo(key, fallback).name;
+function bgAvatar(key, cls){
+  const p = bgPlayerInfo(key);
+  return p.photo ? `<img class="${cls||'bg-av'}" src="${esc(p.photo)}" alt="" referrerpolicy="no-referrer">`
+    : `<span class="${cls||'bg-av'} ${p.guest ? 'guest' : ''}">${esc(p.name.charAt(0).toUpperCase())}</span>`;
+}
+const bgPlayerLink = (key, fallback)=> `<a class="bg-link" data-bg-open="player:${esc(key)}">${esc(bgName(key, fallback))}</a>`;
+// quem pode ser escolhido numa partida
+function bgPlayers(){
+  const users = state.directory.filter(d=> d.active && (d.envs||[]).includes('boardgame'))
+    .map(d=> ({key: d.id, name: fullName(d), guest: false}));
+  const guests = state.bg_guests.filter(g=> !g.linkedUserId).map(g=> ({key: GUEST + g.id, name: g.name, guest: true}));
+  return [...users, ...guests].sort(byName);
+}
+
+/* ---------- regras da partida ---------- */
+const bgChrono = list => [...list].sort((a,b)=> (a.date||'').localeCompare(b.date||'') || (a.time||'').localeCompare(b.time||'') || (a.createdAt||'').localeCompare(b.createdAt||''));
+function bgWinnerKeys(m){
+  const rs = m.results || [];
+  if(m.mode === 'coop') return m.coopWin ? rs.map(r=> bgCanon(r.userId)) : [];
+  return rs.filter(r=> Number(r.position) === 1).map(r=> bgCanon(r.userId));
+}
+const bgMatchPhotos = m => state.bg_photos.filter(p=> p.matchId === m.id);
+function bgInPeriod(m, period){ return !period || (m.date||'').startsWith(period); }
+
+/* ---------- ELO: sobe ou desce conforme contra quem você ganha ---------- */
+const ELO_START = 1000, ELO_K = 32;
+let eloCache = {key:null, val:null};
+function bgElo(gameId){
+  const ck = state.bg_matches.length + ':' + (state.bg_matches.map(m=> m.updatedAt || m.createdAt || '').join('|')) + ':' + (gameId||'');
+  if(eloCache.key === ck) return eloCache.val;
+  const rating = {}, games = {}, deltas = {};
+  bgChrono(state.bg_matches.filter(m=> !gameId || m.gameId === gameId)).forEach(m=>{
+    if(m.mode === 'coop') return;
+    const rs = (m.results||[]).filter(r=> r.position);
+    if(rs.length < 2) return;
+    const keys = rs.map(r=> bgCanon(r.userId));
+    const R = keys.map(k=> rating[k] ?? ELO_START);
+    const mates = (i,j)=> m.mode === 'teams' && rs[i].team && rs[i].team === rs[j].team;
+    deltas[m.id] = {};
+    keys.forEach((k,i)=>{
+      let sum = 0, opp = 0;
+      keys.forEach((k2,j)=>{
+        if(i === j || k === k2 || mates(i,j)) return;
+        const exp = 1 / (1 + Math.pow(10, (R[j] - R[i]) / 400));
+        const act = rs[i].position < rs[j].position ? 1 : rs[i].position === rs[j].position ? 0.5 : 0;
+        sum += act - exp; opp++;
+      });
+      if(!opp) return;
+      const delta = Math.round(ELO_K * sum / opp);
+      deltas[m.id][k] = delta;
+    });
+    Object.entries(deltas[m.id]).forEach(([k,d])=>{ rating[k] = (rating[k] ?? ELO_START) + d; games[k] = (games[k]||0) + 1; });
+  });
+  eloCache = {key: ck, val: {rating, games, deltas}};
+  return eloCache.val;
+}
+
+/* ---------- estatísticas agregadas por jogador ---------- */
+function hIndex(counts){ const c = [...counts].sort((a,b)=> b-a); let h = 0; while(h < c.length && c[h] >= h+1) h++; return h; }
+function bgAggregate(matches){
+  const P = {};
+  const get = (k, r)=> P[k] || (P[k] = {key:k, name: bgName(k, r.username), guest: isGuestKey(k), played:0, wins:0, gold:0, silver:0, bronze:0,
+    coopPlayed:0, coopWins:0, minutes:0, games:{}, partners:{}, beatenBy:{}, beat:{}, cur:0, bestStreak:0, maxMinutes:0, firstTimeWins:0, months:{}, last:''});
+  bgChrono(matches).forEach(m=>{
+    const rs = m.results || [];
+    const winners = new Set(bgWinnerKeys(m));
+    const keys = rs.map(r=> bgCanon(r.userId));
+    rs.forEach((r,i)=>{
+      const k = keys[i], p = get(k, r), won = winners.has(k);
+      p.played++; p.last = m.date || p.last;
+      if(won){ p.wins++; p.cur++; p.bestStreak = Math.max(p.bestStreak, p.cur); } else p.cur = 0;
+      if(m.mode === 'coop'){ p.coopPlayed++; if(won) p.coopWins++; }
+      else { if(r.position === 1) p.gold++; if(r.position === 2) p.silver++; if(r.position === 3) p.bronze++; }
+      const dur = Number(m.duration) || 0;
+      p.minutes += dur; p.maxMinutes = Math.max(p.maxMinutes, dur);
+      const g = p.games[m.gameId] || (p.games[m.gameId] = {played:0, wins:0});
+      g.played++; if(won) g.wins++;
+      if(r.firstTime && won) p.firstTimeWins++;
+      const mo = (m.date||'').slice(0,7); p.months[mo] = (p.months[mo]||0) + 1;
+      keys.forEach((k2,j)=>{
+        if(j === i || k2 === k) return;
+        p.partners[k2] = (p.partners[k2]||0) + 1;
+        if(m.mode !== 'coop' && r.position && rs[j].position){
+          if(rs[j].position < r.position) p.beatenBy[k2] = (p.beatenBy[k2]||0) + 1;
+          if(rs[j].position > r.position) p.beat[k2] = (p.beat[k2]||0) + 1;
+        }
+      });
+    });
+  });
+  Object.values(P).forEach(p=>{
+    p.winRate = p.played ? p.wins / p.played : 0;
+    p.distinct = Object.keys(p.games).length;
+    p.hIndex = hIndex(Object.values(p.games).map(g=> g.played));
+  });
+  return P;
+}
+// recordes de pontos e "reis" (maior vencedor) de cada jogo
+function bgRecords(){
+  const records = {}, kings = {};
+  state.bg_games.forEach(g=>{
+    const ms = bgMatchesOf(g.id);
+    let best = null;
+    ms.forEach(m=> (m.results||[]).forEach(r=>{
+      if(bgHasScore(r) && (!best || Number(r.score) > best.score)) best = {score: Number(r.score), key: bgCanon(r.userId), name: r.username, matchId: m.id, date: m.date};
+    }));
+    if(best) records[g.id] = best;
+    if(ms.length >= 5){
+      const wins = {};
+      ms.forEach(m=> bgWinnerKeys(m).forEach(k=> wins[k] = (wins[k]||0) + 1));
+      const top = Object.entries(wins).sort((a,b)=> b[1]-a[1]);
+      if(top.length && (!top[1] || top[1][1] < top[0][1])) kings[g.id] = {key: top[0][0], wins: top[0][1]};
+    }
+  });
+  return {records, kings};
+}
+const BG_BADGES = [
+  {id:'first',    icon:'dice-1',      name:'Primeira jogatina',    desc:'Jogou a primeira partida',                 test:p=> p.played >= 1},
+  {id:'win1',     icon:'trophy',      name:'Primeira vitória',     desc:'Venceu uma partida',                       test:p=> p.wins >= 1},
+  {id:'p25',      icon:'flame',       name:'Frequentador',         desc:'25 partidas jogadas',                      test:p=> p.played >= 25},
+  {id:'p100',     icon:'crown',       name:'Viciado',              desc:'100 partidas jogadas',                     test:p=> p.played >= 100},
+  {id:'w10',      icon:'medal',       name:'Campeão',              desc:'10 vitórias',                              test:p=> p.wins >= 10},
+  {id:'w50',      icon:'gem',         name:'Lenda',                desc:'50 vitórias',                              test:p=> p.wins >= 50},
+  {id:'s3',       icon:'zap',         name:'Invicto',              desc:'3 vitórias seguidas',                      test:p=> p.bestStreak >= 3},
+  {id:'s5',       icon:'rocket',      name:'Imparável',            desc:'5 vitórias seguidas',                      test:p=> p.bestStreak >= 5},
+  {id:'g10',      icon:'compass',     name:'Explorador',           desc:'10 jogos diferentes',                      test:p=> p.distinct >= 10},
+  {id:'g25',      icon:'map',         name:'Desbravador',          desc:'25 jogos diferentes',                      test:p=> p.distinct >= 25},
+  {id:'coop',     icon:'handshake',   name:'Trabalho em equipe',   desc:'5 vitórias em cooperativos',               test:p=> p.coopWins >= 5},
+  {id:'marathon', icon:'hourglass',   name:'Maratonista',          desc:'Jogou uma partida de 3 horas ou mais',     test:p=> p.maxMinutes >= 180},
+  {id:'beginner', icon:'sparkles',    name:'Sorte de principiante',desc:'Venceu na primeira vez que jogou um jogo', test:p=> p.firstTimeWins >= 1},
+  {id:'h5',       icon:'chart-column',name:'Índice H 5',           desc:'5 jogos jogados 5 vezes ou mais',          test:p=> p.hIndex >= 5},
+  {id:'record',   icon:'target',      name:'Recordista',           desc:'Dono do recorde de pontos de algum jogo',  test:(p,c)=> Object.values(c.records).some(r=> r.key === p.key)},
+  {id:'king',     icon:'castle',      name:'Rei da mesa',          desc:'Maior vencedor de um jogo (mín. 5 partidas)', test:(p,c)=> Object.values(c.kings).some(k=> k.key === p.key)},
+];
+function bgBadgesOf(p, ctx){ return BG_BADGES.filter(b=> b.test(p, ctx)); }
+
+/* ---------- minha coleção (Tenho / Quero jogar / Quero ter / nota) ---------- */
+const bgMyUid = ()=> auth.currentUser ? auth.currentUser.uid : (state.currentUser && state.currentUser.id);
+function bgMyColl(){
+  const id = bgMyUid();
+  const c = state.bg_collection.find(x=> x.id === id);
+  return c ? {wantPlay:[], wishlist:[], ratings:{}, ...c} : {id, wantPlay:[], wishlist:[], ratings:{}};
+}
+async function bgSaveMyColl(c){
+  c.updatedAt = new Date().toISOString();
+  c.username = state.currentUser.username;
+  try{
+    await db.collection('bg_collection').doc(c.id).set(c);
+    state.bg_collection = state.bg_collection.filter(x=> x.id !== c.id).concat(c);
+    return true;
+  }catch(e){
+    console.error(e);
+    toast(e.code === 'permission-denied' ? 'O banco recusou. Um admin precisa publicar as regras novas do Firebase.' : 'Não foi possível salvar.', 'error');
+    return false;
+  }
+}
+function bgGameRating(gameId){
+  const notes = state.bg_collection.map(c=> c.ratings && c.ratings[gameId]).filter(n=> typeof n === 'number');
+  return {avg: notes.length ? notes.reduce((a,b)=> a+b, 0) / notes.length : null, n: notes.length};
+}
+const bgWanting = (gameId, list)=> state.bg_collection.filter(c=> (c[list]||[]).includes(gameId)).map(c=> c.id);
+
+/* ---------- gráfico de barras simples (uma série) ---------- */
+// items: [{label, value, tip}] — barras verticais, sem legenda (o título da seção nomeia a série)
+function barChart(items, opts = {}){
+  const max = Math.max(1, ...items.map(i=> i.value));
+  const H = 120, W = Math.max(items.length * 34, 200), bw = Math.min(24, W / items.length - 6);
+  const step = W / items.length;
+  return `<div class="bar-chart" style="--h:${H}px">
+    <svg viewBox="0 0 ${W} ${H + 22}" preserveAspectRatio="none" role="img" aria-label="${esc(opts.title || '')}">
+      <line x1="0" y1="${H}" x2="${W}" y2="${H}" class="bc-axis"/>
+      ${items.map((it,i)=>{
+        const h = it.value ? Math.max(3, it.value / max * (H - 16)) : 0;
+        const x = i * step + (step - bw) / 2;
+        return `<g class="bc-g" data-tip="${esc(it.tip || `${it.label}: ${it.value}`)}">
+          <rect class="bc-hit" x="${i*step}" y="0" width="${step}" height="${H}"/>
+          ${h ? `<path class="bc-bar" d="M${x},${H} V${H-h+4} Q${x},${H-h} ${x+4},${H-h} H${x+bw-4} Q${x+bw},${H-h} ${x+bw},${H-h+4} V${H} Z"/>` : ''}
+          ${it.value && (opts.labelAll || it.value === max) ? `<text x="${x + bw/2}" y="${H-h-5}" class="bc-val">${it.value}</text>` : ''}
+          <text x="${x + bw/2}" y="${H + 15}" class="bc-lbl">${esc(it.label)}</text>
+        </g>`;
+      }).join('')}
+    </svg>
   </div>`;
 }
+// barras horizontais (jogos mais jogados)
+function hBars(items){
+  const max = Math.max(1, ...items.map(i=> i.value));
+  return `<div class="hbars">${items.map(it=>`
+    <div class="hbar" data-tip="${esc(it.tip || '')}">
+      <div class="hbar-lbl">${it.labelHtml}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(2, it.value / max * 100)}%"></div></div>
+      <div class="hbar-val">${it.valueHtml}</div>
+    </div>`).join('')}</div>`;
+}
+
+/* ---------- navegação interna (páginas de partida, jogo e jogador) ---------- */
+function renderBgDetail(){
+  const o = state.bgOpen;
+  if(o.kind === 'match'){ const m = state.bg_matches.find(x=> x.id === o.id); if(m) return renderBgMatchPage(m); }
+  if(o.kind === 'game'){ const g = bgGame(o.id); if(g) return renderBgGamePage(g); }
+  if(o.kind === 'player') return renderBgPlayerPage(o.id);
+  state.bgOpen = null;
+  return renderView();
+}
+const bgBackBtn = ()=> `<button class="ghost btn-icon" data-bg-back style="padding:6px 0; margin-bottom:14px;">${icon('arrow-left')}Voltar</button>`;
 
 /* ---------- Partidas ---------- */
+function bgModeBadge(m){
+  if(m.mode === 'coop') return `<span class="bg-mode ${m.coopWin ? 'win' : 'loss'}">${icon('handshake')}Coop · ${m.coopWin ? 'Vitória' : 'Derrota'}</span>`;
+  if(m.mode === 'teams') return `<span class="bg-mode">${icon('users')}Times</span>`;
+  return '';
+}
+function bgPeriodOptions(matches, selected){
+  const years = [...new Set(matches.map(m=> (m.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+  const months = [...new Set(matches.map(m=> (m.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+  return `<option value="">Todo o período</option>
+    ${years.map(y=> `<optgroup label="${y}"><option value="${y}" ${selected===y?'selected':''}>Ano de ${y}</option>
+      ${months.filter(mo=> mo.startsWith(y)).map(mo=> `<option value="${mo}" ${selected===mo?'selected':''}>${capFirst(monthLabel(mo))}</option>`).join('')}</optgroup>`).join('')}`;
+}
 function renderBgMatches(){
-  const filter = state.bgMatchGame;
-  const list = state.bg_matches
-    .filter(m=> filter === 'all' || m.gameId === filter)
-    .sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||'').localeCompare(a.createdAt||''));
-  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort((a,b)=> a.name.localeCompare(b.name));
+  const f = state.bgMatchFilter;
+  const all = bgChrono(state.bg_matches).reverse();
+  const list = all.filter(m=> (!f.game || m.gameId === f.game)
+    && (!f.player || (m.results||[]).some(r=> bgCanon(r.userId) === f.player))
+    && bgInPeriod(m, f.period));
+  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort(byName);
+  const playersIn = Object.values(bgAggregate(state.bg_matches)).sort(byName);
+  const minutes = list.reduce((s,m)=> s + (Number(m.duration)||0), 0);
+  const groups = [];
+  list.forEach(m=>{
+    const ym = (m.date||'').slice(0,7);
+    let g = groups[groups.length-1];
+    if(!g || g.ym !== ym) groups.push(g = {ym, items: []});
+    g.items.push(m);
+  });
   return `
-    ${pageHead('BoardGame', 'Partidas', 'Registre quem jogou, a posição e a pontuação de cada jogatina.',
+    ${pageHead('BoardGame', 'Partidas', 'Quem jogou, o que jogou, quem ganhou e como foi cada jogatina.',
       can('bg.matches.create') ? `<button class="primary btn-icon" id="addBgMatchBtn">${icon('plus')}Nova partida</button>` : '')}
-    ${gamesPlayed.length ? `
+    ${all.length ? `
     <div class="toolbar">
-      <div class="chip-filter">
-        <button data-bg-match-game="all" class="${filter==='all'?'active':''}">Todos os jogos</button>
-        ${gamesPlayed.map(g=>`<button data-bg-match-game="${g.id}" class="${filter===g.id?'active':''}">${esc(g.name)}</button>`).join('')}
-      </div>
+      <select data-bg-mfilter="game" style="width:auto;" aria-label="Filtrar por jogo">
+        <option value="">Todos os jogos</option>
+        ${gamesPlayed.map(g=> `<option value="${g.id}" ${f.game===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}
+      </select>
+      <select data-bg-mfilter="player" style="width:auto;" aria-label="Filtrar por jogador">
+        <option value="">Todos os jogadores</option>
+        ${playersIn.map(p=> `<option value="${esc(p.key)}" ${f.player===p.key?'selected':''}>${esc(p.name)}</option>`).join('')}
+      </select>
+      <select data-bg-mfilter="period" style="width:auto;" aria-label="Filtrar por período">${bgPeriodOptions(all, f.period)}</select>
+      ${f.game || f.player || f.period ? `<button class="ghost btn-icon" id="bgMatchFilterClear">${icon('x')}Limpar</button>` : ''}
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="label">Partidas</div><div class="value num">${list.length}</div></div>
+      <div class="stat"><div class="label">Horas jogadas</div><div class="value num">${fmtMinutes(minutes)}</div></div>
+      <div class="stat"><div class="label">Jogos diferentes</div><div class="value num">${new Set(list.map(m=> m.gameId)).size}</div></div>
+      <div class="stat"><div class="label">Jogadores</div><div class="value num">${new Set(list.flatMap(m=> (m.results||[]).map(r=> bgCanon(r.userId)))).size}</div></div>
     </div>` : ''}
-    ${!list.length ? `<div class="empty">${state.bg_games.length ? 'Nenhuma partida registrada ainda.' : 'Cadastre um jogo na Biblioteca para registrar a primeira partida.'}</div>` : `
-    <div class="bg-match-list">
-      ${list.map(m=>{
-        const g = bgGame(m.gameId);
-        const results = [...(m.results||[])].sort((a,b)=> a.position - b.position);
+    ${!all.length ? `<div class="empty">${state.bg_games.length ? 'Nenhuma partida registrada ainda.' : 'Cadastre um jogo em Jogos para registrar a primeira partida.'}</div>`
+      : !list.length ? `<div class="empty">Nenhuma partida com esses filtros.</div>`
+      : groups.map(g=> `
+        <div class="section-title">${capFirst(monthLabel(g.ym))} <span class="type-summary">· ${g.items.length} partida${g.items.length===1?'':'s'}</span></div>
+        <div class="bgm-list">${g.items.map(bgMatchRow).join('')}</div>`).join('')}
+  `;
+}
+function bgMatchRow(m){
+  const g = bgGame(m.gameId);
+  const rs = [...(m.results||[])].sort((a,b)=> (a.position||99) - (b.position||99));
+  const winners = new Set(bgWinnerKeys(m));
+  const photos = bgMatchPhotos(m).length;
+  const sub = [formatFullDate(m.date), m.duration ? fmtMinutes(m.duration) : '', m.location || '', `${rs.length} jogador${rs.length===1?'':'es'}`].filter(Boolean).join(' · ');
+  return `
+  <div class="bgm-row" data-bg-open="match:${m.id}" role="button" tabindex="0">
+    ${gameThumb(g, 'bg-thumb')}
+    <div class="bgm-main">
+      <div class="bgm-title">${esc(bgGameName(m))}${(m.expansions||[]).length ? `<span class="chip">+${m.expansions.length} exp.</span>` : ''}${bgModeBadge(m)}</div>
+      <div class="bg-meta">${sub}</div>
+      <div class="bgm-players">${rs.map(r=>{
+        const k = bgCanon(r.userId), won = winners.has(k);
+        return `<span class="bgm-p ${won ? 'won' : ''}">${won ? icon('trophy') : m.mode !== 'coop' && r.position ? `<i class="pos-num">${r.position}º</i>` : ''}${esc(bgName(k, r.username))}${bgHasScore(r) ? `<em>${fmtNum(Number(r.score))}</em>` : ''}</span>`;
+      }).join('')}</div>
+    </div>
+    ${photos ? `<span class="bgm-side" title="${photos} foto${photos===1?'':'s'}">${icon('image')}${photos}</span>` : ''}
+  </div>`;
+}
+
+/* ---------- Página da partida ---------- */
+function renderBgMatchPage(m){
+  const g = bgGame(m.gameId);
+  const rs = [...(m.results||[])].sort((a,b)=> (a.position||99) - (b.position||99) || (Number(b.score)||0) - (Number(a.score)||0));
+  const elo = bgElo().deltas[m.id] || {};
+  const photos = bgMatchPhotos(m);
+  const exps = (m.expansions||[]).map(bgGame).filter(Boolean);
+  const facts = [
+    m.time ? `${icon('clock')}${m.time}` : '',
+    m.duration ? `${icon('timer')}${fmtMinutes(m.duration)}` : '',
+    m.location ? `${icon('map-pin')}${esc(m.location)}` : '',
+    `${icon('users')}${rs.length} jogador${rs.length===1?'':'es'}`,
+  ].filter(Boolean);
+  const podium = m.mode !== 'coop' && m.mode !== 'teams' && rs.length >= 2;
+  const teams = m.mode === 'teams' ? BG_TEAMS.map(t=> ({t, members: rs.filter(r=> r.team === t)})).filter(x=> x.members.length).sort((a,b)=> (a.members[0].position||99) - (b.members[0].position||99)) : [];
+  return `
+    <div class="page-head">
+      ${bgBackBtn()}
+      <div class="bg-hero">
+        ${gameThumb(g, 'bg-hero-img')}
+        <div style="min-width:0; flex:1;">
+          <div class="kicker">${formatFullDate(m.date)}</div>
+          <h2><a class="bg-link" data-bg-open="game:${m.gameId}">${esc(bgGameName(m))}</a></h2>
+          <div class="bg-facts">${facts.map(f=> `<span>${f}</span>`).join('')}${bgModeBadge(m)}</div>
+          ${exps.length ? `<div class="bg-tags" style="margin-top:8px;">${exps.map(e=> `<a class="chip bg-link" data-bg-open="game:${e.id}">${icon('puzzle')}${esc(e.name)}</a>`).join('')}</div>` : ''}
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        ${can('bg.matches.edit') ? `<button class="primary btn-icon" data-edit-bg-match="${m.id}">${icon('pencil')}Editar</button>` : ''}
+        <button class="btn-icon" data-bg-share="${m.id}">${icon('share-2')}Compartilhar placar</button>
+        ${can('bg.photos.create') ? `<button class="btn-icon" data-add-photo="bg_photos" data-photo-match="${m.id}">${icon('image-plus')}Adicionar foto</button>` : ''}
+        ${can('bg.matches.delete') ? `<button class="danger btn-icon" data-del-bg-match="${m.id}">${icon('trash-2')}Excluir</button>` : ''}
+      </div>
+    </div>
+
+    ${m.mode === 'coop' ? `
+    <div class="bg-coop ${m.coopWin ? 'win' : 'loss'}">${icon(m.coopWin ? 'party-popper' : 'shield')}<div><b>${m.coopWin ? 'Vitória do grupo!' : 'O jogo venceu desta vez.'}</b><span>Partida cooperativa: todos ganham ou perdem juntos.</span></div></div>` : ''}
+
+    ${podium ? `
+    <div class="bg-podium">
+      ${[1,0,2].map(i=> rs[i] ? `
+        <div class="bg-step s${i+1}">
+          ${bgAvatar(bgCanon(rs[i].userId), 'bg-av lg')}
+          <div class="bg-step-name">${bgPlayerLink(bgCanon(rs[i].userId), rs[i].username)}</div>
+          ${bgHasScore(rs[i]) ? `<div class="bg-step-score">${fmtNum(Number(rs[i].score))} pts</div>` : ''}
+          <div class="bg-step-block">${trophy(rs[i].position)}</div>
+        </div>` : '<div></div>').join('')}
+    </div>` : ''}
+
+    ${teams.length ? `<div class="bg-teams">${teams.map(t=> `
+      <div class="bg-team ${t.members[0].position === 1 ? 'won' : ''}">
+        <div class="bg-team-head">${trophy(t.members[0].position)} Time ${t.t}</div>
+        ${t.members.map(r=> `<div>${bgAvatar(bgCanon(r.userId))} ${bgPlayerLink(bgCanon(r.userId), r.username)}</div>`).join('')}
+      </div>`).join('')}</div>` : ''}
+
+    <div class="section-title">Resultado</div>
+    <div class="table-wrap">
+    <table class="rank-table">
+      <thead><tr>${m.mode === 'coop' ? '' : '<th>#</th>'}<th>Jogador</th>${m.mode === 'teams' ? '<th>Time</th>' : ''}<th>Pontos</th><th>Facção / personagem</th>${m.mode === 'coop' ? '' : '<th title="Variação no rating ELO">ELO</th>'}</tr></thead>
+      <tbody>${rs.map(r=>{
+        const k = bgCanon(r.userId), d = elo[k];
+        return `<tr>
+          ${m.mode === 'coop' ? '' : `<td class="rank-pos-cell">${r.position ? trophy(r.position) : ''}</td>`}
+          <td><div class="user-cell">${bgAvatar(k)}<span>${bgPlayerLink(k, r.username)}</span>${r.firstTime ? '<span class="chip" title="Primeira vez jogando este jogo">1ª vez</span>' : ''}</div></td>
+          ${m.mode === 'teams' ? `<td>${r.team ? 'Time ' + r.team : '—'}</td>` : ''}
+          <td>${bgHasScore(r) ? fmtNum(Number(r.score)) : '—'}</td>
+          <td>${r.faction ? esc(r.faction) : '—'}</td>
+          ${m.mode === 'coop' ? '' : `<td class="${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d == null ? '—' : (d > 0 ? '+' : '') + d}</td>`}
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+    </div>
+
+    ${m.notes ? `<div class="section-title">Observações</div><div class="pm-notes-full">${esc(m.notes)}</div>` : ''}
+    <div class="section-title">Fotos (${photos.length})</div>
+    ${photos.length ? renderPhotoGrid({collection:'bg_photos', deletePerm:'bg.photos.delete', items: photos}) : `<div class="empty" style="padding-top:0;">Nenhuma foto desta partida.</div>`}
+    <div class="hint" style="margin-top:18px;">${m.createdBy ? `Registrada por ${esc(m.createdBy)}` : ''}${m.updatedBy ? ` · editada por ${esc(m.updatedBy)}` : ''}</div>
+  `;
+}
+
+/* ---------- Jogos (coleção do grupo) ---------- */
+function renderBgLibrary(){
+  const f = state.bgLibFilter;
+  const q = f.q.trim().toLowerCase();
+  const my = bgMyColl();
+  const counts = {};
+  state.bg_matches.forEach(m=> counts[m.gameId] = (counts[m.gameId]||0) + 1);
+  let list = state.bg_games
+    .filter(g=> f.showExp || g.type !== 'expansao')
+    .filter(g=> !q || [g.name, g.publisher, g.designers, (g.mechanics||[]).join(' ')].join(' ').toLowerCase().includes(q))
+    .filter(g=> !f.players || (g.players||[]).map(Number).includes(Number(f.players)))
+    .filter(g=> !f.status
+      || (f.status === 'owned' && (g.owners||[]).length)
+      || (f.status === 'mine' && (g.owners||[]).includes(bgMyUid()))
+      || (f.status === 'wantPlay' && bgWanting(g.id, 'wantPlay').length)
+      || (f.status === 'wishlist' && bgWanting(g.id, 'wishlist').length)
+      || (f.status === 'never' && !counts[g.id]));
+  const sorters = {
+    name: byName,
+    played: (a,b)=> (counts[b.id]||0) - (counts[a.id]||0) || byName(a,b),
+    rating: (a,b)=> (bgGameRating(b.id).avg ?? -1) - (bgGameRating(a.id).avg ?? -1) || byName(a,b),
+    recent: (a,b)=> (b.createdAt||'').localeCompare(a.createdAt||''),
+  };
+  list = list.sort(sorters[f.sort] || byName);
+  const bases = state.bg_games.filter(g=> g.type !== 'expansao').length;
+  const exps = state.bg_games.length - bases;
+  return `
+    ${pageHead('BoardGame', 'Jogos', `${bases} jogo${bases===1?'':'s'}${exps ? ` e ${exps} ${exps===1?'expansão':'expansões'}` : ''} na coleção do grupo.`,
+      `<div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${state.bg_games.length ? `<button class="btn-icon" id="bgRandomBtn">${icon('shuffle')}O que jogar hoje?</button>` : ''}
+        ${can('bg.games.create') ? `<button class="primary btn-icon" id="addBgGameBtn">${icon('plus')}Cadastrar jogo</button>` : ''}
+      </div>`)}
+    ${state.bg_games.length ? `
+    <div class="toolbar">
+      <div class="search-box">${icon('search')}<input id="bgLibSearch" placeholder="Jogo, editora, designer, mecânica" value="${esc(f.q)}" autocomplete="off"></div>
+      <select data-bg-lfilter="players" style="width:auto;" aria-label="Número de jogadores">
+        <option value="">Qualquer nº de pessoas</option>
+        ${Array.from({length: MAX_BG_PLAYERS}, (_,i)=> i+1).map(n=> `<option value="${n}" ${String(f.players)===String(n)?'selected':''}>Para ${n} pessoa${n===1?'':'s'}</option>`).join('')}
+      </select>
+      <select data-bg-lfilter="status" style="width:auto;" aria-label="Coleção">
+        <option value="">Todos os jogos</option>
+        <option value="owned" ${f.status==='owned'?'selected':''}>Alguém do grupo tem</option>
+        <option value="mine" ${f.status==='mine'?'selected':''}>Os que eu tenho</option>
+        <option value="wantPlay" ${f.status==='wantPlay'?'selected':''}>Alguém quer jogar</option>
+        <option value="wishlist" ${f.status==='wishlist'?'selected':''}>Na lista de desejos</option>
+        <option value="never" ${f.status==='never'?'selected':''}>Nunca jogados</option>
+      </select>
+      <select data-bg-lfilter="sort" style="width:auto;" aria-label="Ordenar">
+        <option value="name" ${f.sort==='name'?'selected':''}>Ordem alfabética</option>
+        <option value="played" ${f.sort==='played'?'selected':''}>Mais jogados</option>
+        <option value="rating" ${f.sort==='rating'?'selected':''}>Melhor nota do grupo</option>
+        <option value="recent" ${f.sort==='recent'?'selected':''}>Cadastrados por último</option>
+      </select>
+      ${exps ? `<label class="switch-row" style="margin:0; font-size:13px;"><input type="checkbox" data-bg-lfilter="showExp" ${f.showExp?'checked':''}> Mostrar expansões</label>` : ''}
+    </div>` : ''}
+    ${!state.bg_games.length ? `<div class="empty">Nenhum jogo cadastrado ainda. ${can('bg.games.create') ? 'Cadastre o primeiro para começar a registrar partidas.' : ''}</div>`
+      : !list.length ? `<div class="empty">Nenhum jogo encontrado.</div>` : `
+    <div class="bg-grid">
+      ${list.map(g=>{
+        const played = counts[g.id] || 0;
+        const rating = bgGameRating(g.id);
+        const base = g.type === 'expansao' && bgGame(g.baseId);
         return `
-        <div class="bg-match">
-          <div class="bg-match-head">
-            ${gameThumb(g, 'bg-thumb')}
-            <div style="flex:1; min-width:0;">
-              <div class="bg-match-game">${esc(bgGameName(m))}</div>
-              <div class="bg-meta">${formatDate(m.date)} · ${results.length} jogador${results.length===1?'':'es'}${m.createdBy ? ` · registrado por ${esc(m.createdBy)}` : ''}</div>
+        <div class="bg-card" data-bg-open="game:${g.id}" role="button" tabindex="0">
+          <div class="bg-cover-wrap">
+            ${gameThumb(g, 'bg-cover')}
+            ${rating.avg != null ? `<span class="bg-rating" title="Nota do grupo (${rating.n} voto${rating.n===1?'':'s'})">${icon('star')}${fmtNum(rating.avg)}</span>` : ''}
+            <span class="bg-my">
+              ${(g.owners||[]).includes(bgMyUid()) ? `<span title="Eu tenho">${icon('package')}</span>` : ''}
+              ${my.wantPlay.includes(g.id) ? `<span title="Quero jogar">${icon('heart')}</span>` : ''}
+              ${my.wishlist.includes(g.id) ? `<span title="Quero ter">${icon('bookmark')}</span>` : ''}
+            </span>
+          </div>
+          <div class="bg-body">
+            <h3>${esc(g.name)}</h3>
+            <div class="bg-meta">${[base ? `Expansão de ${esc(base.name)}` : '', g.year || '', esc(g.publisher || '')].filter(Boolean).join(' · ')}</div>
+            <div class="bg-tags">
+              ${(g.players||[]).length ? `<span class="chip">${icon('users')}${fmtPlayerCounts(g.players)}</span>` : ''}
+              ${g.time ? `<span class="chip">${icon('timer')}${g.time} min</span>` : ''}
+              ${g.weight ? `<span class="chip">${icon('scale')}${BG_WEIGHTS[g.weight]}</span>` : ''}
+              <span class="chip">${icon('swords')}${played} partida${played===1?'':'s'}</span>
             </div>
-            ${can('bg.matches.edit') ? `<button class="icon-btn" data-edit-bg-match="${m.id}" title="Editar partida" aria-label="Editar partida">${icon('pencil')}</button>` : ''}
-            ${can('bg.matches.delete') ? `<button class="icon-btn danger-hover" data-del-bg-match="${m.id}" title="Excluir partida" aria-label="Excluir partida">${icon('trash-2')}</button>` : ''}
+            ${(g.owners||[]).length ? `<div class="bg-owners" title="Quem tem">${icon('package')}${(g.owners||[]).map(k=> esc(bgName(k))).join(', ')}</div>` : ''}
           </div>
-          <div class="bg-results">
-            ${results.map(r=>`
-              <div class="bg-result ${r.position<=3 ? 'podium p'+r.position : ''}">
-                ${trophy(r.position)}
-                <span class="name">${esc(r.username)}</span>
-                ${r.score != null && r.score !== '' ? `<span class="score">${r.score} pts</span>` : ''}
-              </div>`).join('')}
-          </div>
-          ${m.notes ? `<div class="bg-notes">${esc(m.notes)}</div>` : ''}
         </div>`;
       }).join('')}
     </div>`}
   `;
 }
-function renderBgMatchModal(match){
-  const isEdit = !!match;
-  const today = new Date().toISOString().slice(0,10);
-  const games = [...state.bg_games].sort((a,b)=> a.name.localeCompare(b.name));
-  const players = bgPlayers();
-  // quem já está na partida continua listado mesmo que tenha perdido o acesso depois
-  (match && match.results || []).forEach(r=>{ if(!players.some(p=> p.id === r.userId)) players.push({id:r.userId, username:r.username}); });
-  const inMatch = new Set((match && match.results || []).map(r=> r.userId));
-  return `
-  <div class="overlay" id="modalOverlay">
-    <div class="modal wide">
-      <h3>${isEdit ? 'Editar partida' : 'Nova partida'}</h3>
-      ${!games.length ? `<div class="notice">${icon('info')}<div>Nenhum jogo na Biblioteca ainda. Cadastre o jogo primeiro.</div></div>` : ''}
-      <form id="bgMatchForm" autocomplete="off">
-        <div class="form-row">
-          <div class="field"><label>Data</label><input name="date" type="date" required value="${match ? match.date : today}" max="${today}"></div>
-          <div class="field"><label>Jogo</label>
-            <select name="gameId" id="bgMatchGame" required>
-              <option value="">Selecione o jogo</option>
-              ${games.map(g=>`<option value="${g.id}" ${match && match.gameId===g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}
-            </select>
-            <div class="hint" id="bgMatchGameHint"></div>
-          </div>
-        </div>
-        <div class="form-section">Quem jogou</div>
-        ${!players.length ? `<div class="empty" style="padding:6px 0 12px;">Nenhum usuário com acesso ao BoardGame.</div>` : `
-        <div class="check-pills" id="bgMatchPlayers">
-          ${players.map(p=>`<label class="check-pill"><input type="checkbox" name="players" value="${p.id}" data-username="${esc(p.username)}" ${inMatch.has(p.id)?'checked':''}>${esc(p.username)}</label>`).join('')}
-        </div>`}
-        <div class="form-section">
-          Resultado
-          <span class="links"><button type="button" id="bgSortByScore">Ordenar pela pontuação</button></span>
-        </div>
-        <div id="bgResultRows"></div>
-        <div class="field" style="margin-top:14px;"><label>Observações (opcional)</label><input name="notes" maxlength="200" value="${match ? esc(match.notes||'') : ''}" placeholder="ex: expansão Cidades e Cavaleiros"></div>
-        <div class="form-error" id="formError"></div>
-        <div class="modal-actions">
-          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Registrar partida'}</button>
-        </div>
-      </form>
-    </div>
-  </div>`;
-}
 
-/* ---------- Ranking ---------- */
-function bgStats(gameId){
-  const matches = state.bg_matches.filter(m=> gameId === 'all' || m.gameId === gameId);
-  const byPlayer = {};
-  matches.forEach(m=> (m.results||[]).forEach(r=>{
-    const p = byPlayer[r.userId] || (byPlayer[r.userId] = {userId:r.userId, username:r.username, played:0, gold:0, silver:0, bronze:0, scores:[]});
-    p.username = r.username;
-    p.played++;
-    if(r.position === 1) p.gold++;
-    if(r.position === 2) p.silver++;
-    if(r.position === 3) p.bronze++;
-    if(r.score != null && r.score !== '' && !isNaN(r.score)) p.scores.push(Number(r.score));
-  }));
-  const rows = Object.values(byPlayer).map(p=> ({...p,
-    winRate: p.played ? p.gold / p.played : 0,
-    best: p.scores.length ? Math.max(...p.scores) : null,
-    avg: p.scores.length ? p.scores.reduce((a,b)=> a+b, 0) / p.scores.length : null,
-  }))
-  // quadro de medalhas: ouro, depois prata, bronze e aproveitamento
-  .sort((a,b)=> b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.winRate - a.winRate || a.username.localeCompare(b.username));
-  return {matches, rows};
-}
-function renderBgRankings(){
-  const gameId = state.bgRankGame;
-  const {matches, rows} = bgStats(gameId);
-  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort((a,b)=> a.name.localeCompare(b.name));
-  const perGame = gameId !== 'all';
-  const record = perGame ? rows.filter(r=> r.best != null).sort((a,b)=> b.best - a.best)[0] : null;
-  const mostPlayed = !perGame ? gamesPlayed.map(g=> ({g, n: bgMatchesOf(g.id).length})).sort((a,b)=> b.n - a.n)[0] : null;
-  const topGold = rows[0] ? rows[0].gold : 0;
-  const leaders = topGold ? rows.filter(r=> r.gold === topGold) : [];
-  const leader = leaders.length === 1 ? leaders[0]
-    : leaders.length ? {username: 'Empate', gold: topGold, tie: leaders.map(r=> r.username).join(', ')} : null;
-  const pct = x => Math.round(x * 100) + '%';
-  const fmtNum = x => x == null ? '—' : (Math.round(x * 10) / 10).toLocaleString('pt-BR');
+/* ---------- Página do jogo ---------- */
+function renderBgGamePage(g){
+  const ms = bgMatchesOf(g.id);
+  const base = g.type === 'expansao' ? bgGame(g.baseId) : null;
+  const exps = bgExpansionsOf(g.id);
+  const usedIn = g.type === 'expansao' ? state.bg_matches.filter(m=> (m.expansions||[]).includes(g.id)) : [];
+  const my = bgMyColl();
+  const rating = bgGameRating(g.id);
+  const myNote = my.ratings[g.id];
+  const agg = Object.values(bgAggregate(ms));
+  const elo = bgElo(g.id);
+  const scores = ms.flatMap(m=> (m.results||[]).filter(bgHasScore).map(r=> ({score: Number(r.score), key: bgCanon(r.userId), name: r.username})));
+  const best = scores.length ? scores.reduce((a,b)=> b.score > a.score ? b : a) : null;
+  const worst = scores.length ? scores.reduce((a,b)=> b.score < a.score ? b : a) : null;
+  const minutes = ms.reduce((s,m)=> s + (Number(m.duration)||0), 0);
+  const timed = ms.filter(m=> Number(m.duration));
+  const coop = ms.filter(m=> m.mode === 'coop');
+  const ranking = agg.map(p=> ({...p, elo: elo.rating[p.key]})).sort((a,b)=> b.wins - a.wins || b.winRate - a.winRate || (b.elo||0) - (a.elo||0));
+  const mine = (g.owners||[]).includes(bgMyUid());
+  const facts = [
+    (g.players||[]).length ? [icon('users'), fmtPlayerCounts(g.players)] : null,
+    g.time ? [icon('timer'), `${g.time} min`] : null,
+    g.minAge ? [icon('baby'), `${g.minAge}+ anos`] : null,
+    g.weight ? [icon('scale'), `Peso ${BG_WEIGHTS[g.weight].toLowerCase()} (${g.weight}/5)`] : null,
+    g.year ? [icon('calendar-days'), g.year] : null,
+  ].filter(Boolean);
   return `
-    ${pageHead('BoardGame', 'Rankings', perGame ? `Ranking de ${bgGame(gameId) ? bgGame(gameId).name : 'jogo'}.` : 'Ranking geral de todas as partidas.')}
-    <div class="toolbar">
-      <div class="chip-filter">
-        <button data-bg-rank-game="all" class="${!perGame?'active':''}">Geral</button>
-        ${gamesPlayed.map(g=>`<button data-bg-rank-game="${g.id}" class="${gameId===g.id?'active':''}">${esc(g.name)}</button>`).join('')}
+    <div class="page-head">
+      ${bgBackBtn()}
+      <div class="bg-hero">
+        ${gameThumb(g, 'bg-hero-img')}
+        <div style="min-width:0; flex:1;">
+          <div class="kicker">${g.type === 'expansao' ? 'Expansão' : 'Jogo'}${g.publisher ? ' · ' + esc(g.publisher) : ''}</div>
+          <h2>${esc(g.name)}</h2>
+          ${base ? `<p>Expansão de <a class="bg-link" data-bg-open="game:${base.id}">${esc(base.name)}</a></p>` : ''}
+          <div class="bg-facts">${facts.map(f=> `<span>${f[0]}${f[1]}</span>`).join('')}</div>
+          ${g.designers ? `<div class="bg-meta" style="margin-top:8px;">Design: ${esc(g.designers)}</div>` : ''}
+          ${g.ludopediaUrl ? `<a class="bg-meta bg-link" href="${esc(g.ludopediaUrl)}" target="_blank" rel="noopener" style="display:inline-flex; gap:4px; align-items:center; margin-top:6px;">${icon('external-link')}Ver na Ludopedia</a>` : ''}
+        </div>
+      </div>
+      <div class="bg-collection-bar">
+        <button class="${mine ? 'on' : ''}" data-bg-own="${g.id}">${icon('package')}${mine ? 'Eu tenho' : 'Tenho'}</button>
+        <button class="${my.wantPlay.includes(g.id) ? 'on' : ''}" data-bg-coll="wantPlay:${g.id}">${icon('heart')}Quero jogar</button>
+        <button class="${my.wishlist.includes(g.id) ? 'on' : ''}" data-bg-coll="wishlist:${g.id}">${icon('bookmark')}Quero ter</button>
+        <label class="bg-note">${icon('star')}Minha nota
+          <select data-bg-rate="${g.id}">
+            <option value="">—</option>
+            ${Array.from({length:11}, (_,i)=> i).map(n=> `<option value="${n}" ${myNote === n ? 'selected' : ''}>${n}</option>`).join('')}
+          </select>
+        </label>
+        ${can('bg.games.edit') ? `<button data-edit-bg-game="${g.id}">${icon('pencil')}Editar</button>` : ''}
+        ${can('bg.games.delete') ? `<button class="danger-hover" data-del-bg-game="${g.id}">${icon('trash-2')}Excluir</button>` : ''}
       </div>
     </div>
-    ${!matches.length ? `<div class="empty">Nenhuma partida registrada ainda. O ranking aparece assim que a primeira partida for registrada.</div>` : `
-    <div class="stat-row">
-      <div class="stat"><div class="label">Partidas</div><div class="value num">${matches.length}</div></div>
-      <div class="stat"><div class="label">Jogadores</div><div class="value num">${rows.length}</div></div>
-      <div class="stat"><div class="label">Maior vencedor</div><div class="value num" style="font-size:24px; margin-top:12px;">${leader ? esc(leader.username) : '—'}</div>${leader ? `<div class="sub">${leader.tie ? esc(leader.tie) + ' · ' : ''}${leader.gold} vitória${leader.gold===1?'':'s'}</div>` : ''}</div>
-      ${perGame
-        ? `<div class="stat"><div class="label">Recorde de pontos</div><div class="value num">${record ? fmtNum(record.best) : '—'}</div>${record ? `<div class="sub">${esc(record.username)}</div>` : ''}</div>`
-        : `<div class="stat"><div class="label">Jogo mais jogado</div><div class="value num" style="font-size:24px; margin-top:12px;">${mostPlayed ? esc(mostPlayed.g.name) : '—'}</div>${mostPlayed ? `<div class="sub">${mostPlayed.n} partida${mostPlayed.n===1?'':'s'}</div>` : ''}</div>`}
+
+    ${g.description ? `<div class="pm-notes-full" style="margin-bottom:8px;">${esc(g.description)}</div>` : ''}
+    ${(g.mechanics||[]).length || (g.categories||[]).length ? `
+    <div class="bg-taxo">
+      ${(g.mechanics||[]).length ? `<div><span class="bg-taxo-lbl">Mecânicas</span>${g.mechanics.map(x=> `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+      ${(g.categories||[]).length ? `<div><span class="bg-taxo-lbl">Categorias</span>${g.categories.map(x=> `<span class="chip">${esc(x)}</span>`).join('')}</div>` : ''}
+    </div>` : ''}
+
+    <div class="bg-people">
+      <div><span class="bg-taxo-lbl">${icon('package')}Quem tem</span>${(g.owners||[]).length ? g.owners.map(k=> bgPlayerLink(k)).join(', ') : '<span class="hint">ninguém marcou</span>'}</div>
+      <div><span class="bg-taxo-lbl">${icon('heart')}Quer jogar</span>${bgWanting(g.id,'wantPlay').map(k=> bgPlayerLink(k)).join(', ') || '<span class="hint">—</span>'}</div>
+      <div><span class="bg-taxo-lbl">${icon('bookmark')}Quer ter</span>${bgWanting(g.id,'wishlist').map(k=> bgPlayerLink(k)).join(', ') || '<span class="hint">—</span>'}</div>
+      <div><span class="bg-taxo-lbl">${icon('star')}Nota do grupo</span>${rating.avg != null ? `<b>${fmtNum(rating.avg)}</b> <span class="hint">(${rating.n} voto${rating.n===1?'':'s'})</span>` : '<span class="hint">sem notas</span>'}</div>
     </div>
-    <div class="table-wrap">
-    <table class="rank-table">
-      <thead><tr>
-        <th>#</th><th>Jogador</th><th>Partidas</th>
+
+    ${exps.length ? `<div class="section-title">Expansões (${exps.length})</div>
+      <div class="bg-tags">${exps.map(e=> `<a class="chip bg-link" data-bg-open="game:${e.id}">${icon('puzzle')}${esc(e.name)}</a>`).join('')}</div>` : ''}
+
+    <div class="section-title">Resumo</div>
+    ${!ms.length && !usedIn.length ? `<div class="empty" style="padding-top:0;">Ainda não jogamos ${g.type === 'expansao' ? 'com esta expansão' : 'este jogo'}.</div>` : `
+    <div class="stat-row">
+      <div class="stat"><div class="label">Partidas</div><div class="value num">${g.type === 'expansao' ? usedIn.length : ms.length}</div>${ms.length ? `<div class="sub">última em ${formatDate(bgChrono(ms).pop().date)}</div>` : ''}</div>
+      <div class="stat"><div class="label">Horas jogadas</div><div class="value num">${fmtMinutes(minutes)}</div>${timed.length ? `<div class="sub">média de ${fmtMinutes(minutes / timed.length)} por partida</div>` : ''}</div>
+      <div class="stat"><div class="label">Recorde de pontos</div><div class="value num">${best ? fmtNum(best.score) : '—'}</div>${best ? `<div class="sub">${esc(bgName(best.key, best.name))}</div>` : ''}</div>
+      <div class="stat"><div class="label">Pontuação</div><div class="value num" style="font-size:22px; margin-top:12px;">${scores.length ? `${fmtNum(scores.reduce((s,x)=> s + x.score, 0) / scores.length)}` : '—'}</div><div class="sub">${scores.length ? `média · menor ${fmtNum(worst.score)}` : 'sem pontos lançados'}</div></div>
+      ${coop.length ? `<div class="stat"><div class="label">Vitórias no coop</div><div class="value num">${pct(coop.filter(m=> m.coopWin).length / coop.length)}</div><div class="sub">${coop.filter(m=> m.coopWin).length} de ${coop.length}</div></div>` : ''}
+    </div>`}
+
+    ${ranking.length ? `
+    <div class="section-title">Quem manda neste jogo</div>
+    <div class="table-wrap"><table class="rank-table">
+      <thead><tr><th>#</th><th>Jogador</th><th>Partidas</th><th>Vitórias</th><th>Aproveitamento</th><th>ELO no jogo</th></tr></thead>
+      <tbody>${ranking.map((p,i)=> `<tr>
+        <td class="rank-pos-cell">${p.wins ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
+        <td><div class="user-cell">${bgAvatar(p.key)}${bgPlayerLink(p.key, p.name)}</div></td>
+        <td>${p.played}</td><td>${p.wins}</td><td>${pct(p.winRate)}</td><td>${p.elo != null ? Math.round(p.elo) : '—'}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : ''}
+
+    ${ms.length ? `<div class="section-title">Últimas partidas</div>
+      <div class="bgm-list">${bgChrono(ms).reverse().slice(0, 8).map(bgMatchRow).join('')}</div>` : ''}
+  `;
+}
+
+/* ---------- Jogadores ---------- */
+function renderBgPlayers(){
+  const agg = bgAggregate(state.bg_matches);
+  const elo = bgElo();
+  const ctx = bgRecords();
+  const everyone = new Map();
+  bgPlayers().forEach(p=> everyone.set(p.key, p));
+  Object.values(agg).forEach(p=> everyone.set(p.key, {key: p.key, name: p.name, guest: p.guest}));
+  const list = [...everyone.values()]
+    .filter(p=> state.bgShowGuests || !p.guest)
+    .map(p=> ({...p, s: agg[p.key], elo: elo.rating[p.key]}))
+    .sort((a,b)=> ((b.s && b.s.played) || 0) - ((a.s && a.s.played) || 0) || byName(a,b));
+  const guests = state.bg_guests.length;
+  return `
+    ${pageHead('BoardGame', 'Jogadores', 'Perfil de cada um: vitórias, jogos favoritos, rivais e conquistas.',
+      can('bg.matches.create') ? `<button class="btn-icon" id="addBgGuestBtn">${icon('user-plus')}Adicionar convidado</button>` : '')}
+    ${guests ? `<div class="toolbar"><label class="switch-row" style="margin:0; font-size:13px;"><input type="checkbox" id="bgShowGuests" ${state.bgShowGuests?'checked':''}> Mostrar convidados (${guests})</label></div>` : ''}
+    ${!list.length ? `<div class="empty">Ninguém jogou ainda.</div>` : `
+    <div class="bg-player-grid">
+      ${list.map(p=>{
+        const s = p.s;
+        const fav = s && Object.entries(s.games).sort((a,b)=> b[1].played - a[1].played)[0];
+        const badges = s ? bgBadgesOf(s, ctx).length : 0;
+        return `
+        <div class="bg-player" data-bg-open="player:${esc(p.key)}" role="button" tabindex="0">
+          <div class="bg-player-head">${bgAvatar(p.key, 'bg-av lg')}<div style="min-width:0;"><div class="bg-player-name">${esc(p.name)}</div>${p.guest ? '<span class="chip">Convidado</span>' : ''}</div></div>
+          ${s ? `
+          <div class="bg-player-stats">
+            <div><b>${s.played}</b><span>partidas</span></div>
+            <div><b>${s.wins}</b><span>vitórias</span></div>
+            <div><b>${pct(s.winRate)}</b><span>aproveit.</span></div>
+            <div><b>${p.elo != null ? Math.round(p.elo) : '—'}</b><span>ELO</span></div>
+          </div>
+          <div class="bg-meta">${fav ? `${icon('heart')} ${esc((bgGame(fav[0])||{}).name || 'Jogo removido')}` : ''}${badges ? ` · ${icon('award')} ${badges} conquista${badges===1?'':'s'}` : ''}</div>`
+          : `<div class="bg-meta">Ainda não jogou.</div>`}
+        </div>`;
+      }).join('')}
+    </div>`}
+  `;
+}
+function renderBgPlayerPage(key){
+  const info = bgPlayerInfo(key);
+  const agg = bgAggregate(state.bg_matches);
+  const s = agg[key];
+  const elo = bgElo();
+  const ctx = bgRecords();
+  const guest = isGuestKey(key) ? bgGuest(key) : null;
+  const ratingRank = Object.entries(elo.rating).sort((a,b)=> b[1]-a[1]).findIndex(([k])=> k === key);
+  const coll = !info.guest ? state.bg_collection.find(c=> c.id === key) : null;
+  const owned = state.bg_games.filter(g=> (g.owners||[]).includes(key)).sort(byName);
+  const top = (obj)=> Object.entries(obj||{}).sort((a,b)=> b[1]-a[1])[0];
+  const partner = s && top(s.partners), rival = s && top(s.beatenBy), victim = s && top(s.beat);
+  const games = s ? Object.entries(s.games).map(([id, g])=> ({id, ...g, name: (bgGame(id)||{}).name || 'Jogo removido'})).sort((a,b)=> b.played - a.played) : [];
+  const bestGame = games.filter(g=> g.played >= 3).sort((a,b)=> b.wins/b.played - a.wins/a.played)[0];
+  const kingOf = Object.entries(ctx.kings).filter(([,k])=> k.key === key).map(([gid])=> bgGame(gid)).filter(Boolean);
+  const recordOf = Object.entries(ctx.records).filter(([,r])=> r.key === key).map(([gid, r])=> ({g: bgGame(gid), score: r.score})).filter(x=> x.g);
+  // últimos 12 meses
+  const now = new Date();
+  const months = Array.from({length:12}, (_,i)=>{
+    const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    return {label: MONTHS[d.getMonth()].slice(0,3), value: (s && s.months[ym]) || 0, tip: `${capFirst(monthLabel(ym))}: ${(s && s.months[ym]) || 0} partida${((s && s.months[ym]) || 0) === 1 ? '' : 's'}`};
+  });
+  const recent = s ? bgChrono(state.bg_matches.filter(m=> (m.results||[]).some(r=> bgCanon(r.userId) === key))).reverse().slice(0, 6) : [];
+  const badge = (b, on)=> `<div class="bg-badge ${on ? 'on' : ''}" title="${esc(b.desc)}">${icon(b.icon)}<b>${b.name}</b><span>${b.desc}</span></div>`;
+  const earned = s ? new Set(bgBadgesOf(s, ctx).map(b=> b.id)) : new Set();
+  return `
+    <div class="page-head">
+      ${bgBackBtn()}
+      <div class="bg-hero">
+        ${bgAvatar(key, 'bg-av xl')}
+        <div style="min-width:0; flex:1;">
+          <div class="kicker">${info.guest ? 'Convidado' : 'Jogador'}</div>
+          <h2>${esc(info.name)}</h2>
+          <div class="bg-facts">
+            ${elo.rating[key] != null ? `<span>${icon('trending-up')}ELO ${Math.round(elo.rating[key])} · ${ratingRank + 1}º do grupo</span>` : ''}
+            ${s ? `<span>${icon('calendar-days')}Última partida em ${formatDate(s.last)}</span>` : ''}
+          </div>
+          ${kingOf.length ? `<div class="bg-tags" style="margin-top:8px;">${kingOf.map(g=> `<span class="chip king">${icon('crown')}Rei de ${esc(g.name)}</span>`).join('')}</div>` : ''}
+        </div>
+      </div>
+      ${guest && can('bg.matches.edit') ? `<div style="margin-top:14px;"><button class="btn-icon" data-edit-bg-guest="${guest.id}">${icon('pencil')}Editar convidado</button></div>` : ''}
+    </div>
+    ${!s ? `<div class="empty">Ainda não jogou nenhuma partida.</div>` : `
+    <div class="stat-row">
+      <div class="stat"><div class="label">Partidas</div><div class="value num">${s.played}</div><div class="sub">${fmtMinutes(s.minutes)} jogadas</div></div>
+      <div class="stat"><div class="label">Vitórias</div><div class="value num">${s.wins}</div><div class="sub">${pct(s.winRate)} de aproveitamento</div></div>
+      <div class="stat"><div class="label">Pódios</div><div class="value num">${s.gold + s.silver + s.bronze}</div><div class="sub">${s.gold} ouro · ${s.silver} prata · ${s.bronze} bronze</div></div>
+      <div class="stat"><div class="label">Jogos diferentes</div><div class="value num">${s.distinct}</div><div class="sub" title="Jogou H jogos pelo menos H vezes cada">índice H: ${s.hIndex}</div></div>
+      <div class="stat"><div class="label">Melhor sequência</div><div class="value num">${s.bestStreak}</div><div class="sub">vitórias seguidas</div></div>
+    </div>
+
+    <div class="bg-duo">
+      <div class="bg-fact-card">${icon('handshake')}<div><span>Parceiro mais frequente</span><b>${partner ? bgPlayerLink(partner[0]) : '—'}</b>${partner ? `<em>${partner[1]} partidas juntos</em>` : ''}</div></div>
+      <div class="bg-fact-card">${icon('swords')}<div><span>Rival (quem mais te vence)</span><b>${rival ? bgPlayerLink(rival[0]) : '—'}</b>${rival ? `<em>ficou na sua frente ${rival[1]}×</em>` : ''}</div></div>
+      <div class="bg-fact-card">${icon('target')}<div><span>Freguês (quem você mais vence)</span><b>${victim ? bgPlayerLink(victim[0]) : '—'}</b>${victim ? `<em>você ficou na frente ${victim[1]}×</em>` : ''}</div></div>
+      <div class="bg-fact-card">${icon('medal')}<div><span>Melhor jogo (mín. 3 partidas)</span><b>${bestGame ? `<a class="bg-link" data-bg-open="game:${bestGame.id}">${esc(bestGame.name)}</a>` : '—'}</b>${bestGame ? `<em>${pct(bestGame.wins/bestGame.played)} de vitórias</em>` : ''}</div></div>
+    </div>
+
+    <div class="section-title">Partidas por mês</div>
+    ${barChart(months, {title: 'Partidas por mês nos últimos 12 meses'})}
+
+    <div class="section-title">Jogos mais jogados</div>
+    ${hBars(games.slice(0, 8).map(g=> ({value: g.played,
+      labelHtml: `<a class="bg-link" data-bg-open="game:${g.id}">${esc(g.name)}</a>`,
+      valueHtml: `${g.played} <span class="hint">· ${g.wins} vit.</span>`,
+      tip: `${g.name}: ${g.played} partida${g.played===1?'':'s'}, ${g.wins} vitória${g.wins===1?'':'s'}`})))}
+
+    ${recordOf.length ? `<div class="section-title">Recordes</div><div class="bg-tags">${recordOf.map(r=> `<a class="chip bg-link" data-bg-open="game:${r.g.id}">${icon('target')}${esc(r.g.name)}: ${fmtNum(r.score)} pts</a>`).join('')}</div>` : ''}
+
+    <div class="section-title">Conquistas (${earned.size} de ${BG_BADGES.length})</div>
+    <div class="bg-badges">${BG_BADGES.map(b=> badge(b, earned.has(b.id))).join('')}</div>`}
+
+    ${!info.guest ? `
+    <div class="section-title">Coleção</div>
+    <div class="bg-people">
+      <div><span class="bg-taxo-lbl">${icon('package')}Tem</span>${owned.length ? owned.map(g=> `<a class="bg-link" data-bg-open="game:${g.id}">${esc(g.name)}</a>`).join(', ') : '<span class="hint">—</span>'}</div>
+      <div><span class="bg-taxo-lbl">${icon('heart')}Quer jogar</span>${coll && (coll.wantPlay||[]).length ? coll.wantPlay.map(bgGame).filter(Boolean).map(g=> `<a class="bg-link" data-bg-open="game:${g.id}">${esc(g.name)}</a>`).join(', ') : '<span class="hint">—</span>'}</div>
+      <div><span class="bg-taxo-lbl">${icon('bookmark')}Quer ter</span>${coll && (coll.wishlist||[]).length ? coll.wishlist.map(bgGame).filter(Boolean).map(g=> `<a class="bg-link" data-bg-open="game:${g.id}">${esc(g.name)}</a>`).join(', ') : '<span class="hint">—</span>'}</div>
+    </div>` : ''}
+
+    ${recent.length ? `<div class="section-title">Últimas partidas</div><div class="bgm-list">${recent.map(bgMatchRow).join('')}</div>` : ''}
+  `;
+}
+
+/* ---------- Rankings ---------- */
+function renderBgRankings(){
+  const tab = state.bgRankTab;
+  const gameId = state.bgRankGame === 'all' ? '' : state.bgRankGame;
+  const period = state.bgRankPeriod;
+  const matches = state.bg_matches.filter(m=> (!gameId || m.gameId === gameId) && bgInPeriod(m, period));
+  const agg = Object.values(bgAggregate(matches));
+  const elo = bgElo(gameId || undefined);
+  const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort(byName);
+  const tabs = `
+    <div class="momentos-tabs">
+      <button data-bg-rank-tab="medals" class="${tab==='medals'?'active':''}">Medalhas</button>
+      <button data-bg-rank-tab="elo" class="${tab==='elo'?'active':''}">Rating ELO</button>
+      <button data-bg-rank-tab="games" class="${tab==='games'?'active':''}">Jogos</button>
+    </div>`;
+  const filters = tab === 'games' ? '' : `
+    <div class="toolbar">
+      <select id="bgRankGameSel" style="width:auto;" aria-label="Jogo">
+        <option value="all">Todos os jogos</option>
+        ${gamesPlayed.map(g=> `<option value="${g.id}" ${gameId===g.id?'selected':''}>${esc(g.name)}</option>`).join('')}
+      </select>
+      ${tab === 'medals' ? `<select id="bgRankPeriodSel" style="width:auto;" aria-label="Período">${bgPeriodOptions(state.bg_matches, period)}</select>` : ''}
+    </div>`;
+  let body = '';
+  if(tab === 'medals'){
+    const rows = agg.sort((a,b)=> b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.winRate - a.winRate || byName(a,b));
+    body = !matches.length ? `<div class="empty">Nenhuma partida nesse filtro.</div>` : `
+    <div class="table-wrap"><table class="rank-table">
+      <thead><tr><th>#</th><th>Jogador</th><th>Partidas</th>
         <th title="1º lugar"><span class="trophy gold">${icon('trophy')}</span></th>
         <th title="2º lugar"><span class="trophy silver">${icon('trophy')}</span></th>
         <th title="3º lugar"><span class="trophy bronze">${icon('trophy')}</span></th>
-        <th>Vitórias</th><th>Média de pontos</th><th>Melhor pontuação</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map((r,i)=>`
-        <tr>
-          <td class="rank-pos-cell">${i < 3 && r.gold + r.silver + r.bronze ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
-          <td><div class="user-cell"><div class="avatar">${esc(r.username.charAt(0))}</div><span>${esc(r.username)}</span></div></td>
-          <td>${r.played}</td>
-          <td class="medal">${r.gold}</td><td class="medal">${r.silver}</td><td class="medal">${r.bronze}</td>
-          <td>${pct(r.winRate)}</td>
-          <td>${fmtNum(r.avg)}</td>
-          <td>${fmtNum(r.best)}</td>
-        </tr>`).join('')}
-      </tbody>
-    </table>
+        <th>Coop</th><th>Vitórias</th><th>Aproveitamento</th></tr></thead>
+      <tbody>${rows.map((r,i)=> `<tr>
+        <td class="rank-pos-cell">${i < 3 && r.gold + r.silver + r.bronze ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
+        <td><div class="user-cell">${bgAvatar(r.key)}${bgPlayerLink(r.key, r.name)}</div></td>
+        <td>${r.played}</td><td class="medal">${r.gold}</td><td class="medal">${r.silver}</td><td class="medal">${r.bronze}</td>
+        <td>${r.coopPlayed ? `${r.coopWins}/${r.coopPlayed}` : '—'}</td>
+        <td>${r.wins}</td><td>${pct(r.winRate)}</td></tr>`).join('')}</tbody>
+    </table></div>
+    <div class="hint" style="margin-top:10px;">Ordem: mais 1º lugares, depois 2º, 3º e aproveitamento. Vitórias incluem as dos cooperativos e dos times.</div>`;
+  } else if(tab === 'elo'){
+    const rows = Object.entries(elo.rating).map(([k, r])=> ({key: k, r, n: elo.games[k]})).sort((a,b)=> b.r - a.r);
+    body = !rows.length ? `<div class="empty">Sem partidas competitivas ainda.</div>` : `
+    <div class="table-wrap"><table class="rank-table">
+      <thead><tr><th>#</th><th>Jogador</th><th>Rating</th><th>Partidas</th><th></th></tr></thead>
+      <tbody>${rows.map((x,i)=> `<tr>
+        <td class="rank-pos-cell">${i < 3 ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
+        <td><div class="user-cell">${bgAvatar(x.key)}${bgPlayerLink(x.key)}</div></td>
+        <td class="medal">${Math.round(x.r)}</td><td>${x.n}</td>
+        <td>${x.n < 5 ? '<span class="chip" title="Menos de 5 partidas: o rating ainda está se ajustando">provisório</span>' : ''}</td></tr>`).join('')}</tbody>
+    </table></div>
+    <div class="hint" style="margin-top:10px;">Todo mundo começa com ${ELO_START}. Ganhar de quem tem rating alto vale mais pontos; perder para quem tem rating baixo tira mais. Cooperativos não contam.</div>`;
+  } else {
+    const rows = state.bg_games.filter(g=> g.type !== 'expansao').map(g=> ({g, n: bgMatchesOf(g.id).length, r: bgGameRating(g.id)}));
+    const byPlays = rows.filter(x=> x.n).sort((a,b)=> b.n - a.n).slice(0, 10);
+    const byRating = rows.filter(x=> x.r.avg != null).sort((a,b)=> b.r.avg - a.r.avg || b.r.n - a.r.n).slice(0, 10);
+    body = `
+      <div class="bg-duo" style="grid-template-columns:repeat(auto-fit, minmax(300px,1fr));">
+        <div><div class="section-title" style="margin-top:0;">Mais jogados</div>
+          ${byPlays.length ? hBars(byPlays.map(x=> ({value: x.n, labelHtml: `<a class="bg-link" data-bg-open="game:${x.g.id}">${esc(x.g.name)}</a>`, valueHtml: String(x.n), tip: `${x.g.name}: ${x.n} partidas`}))) : '<div class="empty">—</div>'}</div>
+        <div><div class="section-title" style="margin-top:0;">Favoritos do grupo (nota)</div>
+          ${byRating.length ? hBars(byRating.map(x=> ({value: x.r.avg, labelHtml: `<a class="bg-link" data-bg-open="game:${x.g.id}">${esc(x.g.name)}</a>`, valueHtml: `${fmtNum(x.r.avg)} <span class="hint">(${x.r.n})</span>`, tip: `${x.g.name}: nota ${fmtNum(x.r.avg)} com ${x.r.n} voto${x.r.n===1?'':'s'}`}))) : '<div class="empty">Ninguém deu nota ainda. Dê a sua na página de cada jogo.</div>'}</div>
+      </div>`;
+  }
+  return `${pageHead('BoardGame', 'Rankings', 'Quadro de medalhas, rating ELO e os jogos preferidos do grupo.')}${tabs}${filters}${body}`;
+}
+
+/* ---------- Retrospectiva (estilo Ludohall) ---------- */
+function renderBgRecap(){
+  const years = [...new Set(state.bg_matches.map(m=> (m.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+  const year = years.includes(state.bgRecapYear) ? state.bgRecapYear : years[0];
+  if(!year) return `${pageHead('BoardGame', 'Retrospectiva', 'O resumo do ano da mesa.')}<div class="empty">Registre partidas para ver a retrospectiva.</div>`;
+  const ms = state.bg_matches.filter(m=> (m.date||'').startsWith(year));
+  const agg = Object.values(bgAggregate(ms));
+  const minutes = ms.reduce((s,m)=> s + (Number(m.duration)||0), 0);
+  const perGame = {};
+  ms.forEach(m=> perGame[m.gameId] = (perGame[m.gameId]||0) + 1);
+  const topGame = Object.entries(perGame).sort((a,b)=> b[1]-a[1])[0];
+  const champion = [...agg].sort((a,b)=> b.wins - a.wins || b.winRate - a.winRate)[0];
+  const mostActive = [...agg].sort((a,b)=> b.played - a.played)[0];
+  const before = new Set(state.bg_matches.filter(m=> (m.date||'') < year).map(m=> m.gameId));
+  const novelties = [...new Set(ms.map(m=> m.gameId))].filter(id=> !before.has(id)).map(bgGame).filter(Boolean);
+  const perMonth = Array.from({length:12}, (_,i)=> ({label: MONTHS[i].slice(0,3), value: ms.filter(m=> Number((m.date||'').slice(5,7)) === i+1).length}));
+  perMonth.forEach((x,i)=> x.tip = `${capFirst(MONTHS[i])}: ${x.value} partida${x.value===1?'':'s'}`);
+  const bestMonth = perMonth.reduce((a,b)=> b.value > a.value ? b : a);
+  const WD = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const wd = {};
+  ms.forEach(m=>{ const d = new Date(m.date + 'T12:00:00').getDay(); wd[d] = (wd[d]||0) + 1; });
+  const topWd = Object.entries(wd).sort((a,b)=> b[1]-a[1])[0];
+  const locs = {};
+  ms.forEach(m=>{ if(m.location) locs[m.location] = (locs[m.location]||0) + 1; });
+  const topLoc = Object.entries(locs).sort((a,b)=> b[1]-a[1])[0];
+  const longest = ms.filter(m=> Number(m.duration)).sort((a,b)=> b.duration - a.duration)[0];
+  let bestScore = null;
+  ms.forEach(m=> (m.results||[]).forEach(r=>{ if(bgHasScore(r) && (!bestScore || Number(r.score) > bestScore.score)) bestScore = {score: Number(r.score), key: bgCanon(r.userId), name: r.username, m}; }));
+  const pairs = {};
+  ms.forEach(m=>{ const ks = [...new Set((m.results||[]).map(r=> bgCanon(r.userId)))].sort(); ks.forEach((a,i)=> ks.slice(i+1).forEach(b=> pairs[a+'|'+b] = (pairs[a+'|'+b]||0) + 1)); });
+  const topPair = Object.entries(pairs).sort((a,b)=> b[1]-a[1])[0];
+  const me = agg.find(p=> p.key === bgMyUid());
+  const myFav = me && Object.entries(me.games).sort((a,b)=> b[1].played - a[1].played)[0];
+  const myPartner = me && Object.entries(me.partners).sort((a,b)=> b[1]-a[1])[0];
+  const card = (ic, label, value, sub)=> `<div class="bg-recap-card">${icon(ic)}<span>${label}</span><b>${value}</b>${sub ? `<em>${sub}</em>` : ''}</div>`;
+  return `
+    ${pageHead('BoardGame', `Retrospectiva ${year}`, 'O resumo do ano da mesa, no estilo Ludohall.')}
+    ${years.length > 1 ? `<div class="toolbar"><div class="chip-filter">${years.map(y=> `<button data-bg-recap-year="${y}" class="${y===year?'active':''}">${y}</button>`).join('')}</div></div>` : ''}
+    <div class="bg-recap-hero">
+      <div><b>${ms.length}</b><span>partidas</span></div>
+      <div><b>${fmtMinutes(minutes)}</b><span>de jogo</span></div>
+      <div><b>${Object.keys(perGame).length}</b><span>jogos diferentes</span></div>
+      <div><b>${agg.length}</b><span>jogadores</span></div>
     </div>
-    <div class="hint" style="margin-top:10px;">Ordem: mais 1º lugares, depois 2º, 3º e aproveitamento (vitórias ÷ partidas).</div>`}
+    <div class="bg-recap-grid">
+      ${card('crown', 'Jogo do ano', topGame ? `<a class="bg-link" data-bg-open="game:${topGame[0]}">${esc((bgGame(topGame[0])||{}).name || '—')}</a>` : '—', topGame ? `${topGame[1]} partidas` : '')}
+      ${card('trophy', 'Campeão do ano', champion && champion.wins ? bgPlayerLink(champion.key, champion.name) : '—', champion && champion.wins ? `${champion.wins} vitórias` : '')}
+      ${card('flame', 'Mais presente', mostActive ? bgPlayerLink(mostActive.key, mostActive.name) : '—', mostActive ? `${mostActive.played} partidas` : '')}
+      ${card('handshake', 'Dupla do ano', topPair ? topPair[0].split('|').map(k=> bgPlayerLink(k)).join(' & ') : '—', topPair ? `${topPair[1]} partidas juntos` : '')}
+      ${card('calendar-days', 'Mês mais animado', bestMonth.value ? capFirst(MONTHS[perMonth.indexOf(bestMonth)]) : '—', bestMonth.value ? `${bestMonth.value} partidas` : '')}
+      ${card('calendar-heart', 'Dia favorito', topWd ? capFirst(WD[topWd[0]]) : '—', topWd ? `${topWd[1]} partidas` : '')}
+      ${card('map-pin', 'Onde mais jogamos', topLoc ? esc(topLoc[0]) : '—', topLoc ? `${topLoc[1]} partidas` : '')}
+      ${card('hourglass', 'Partida mais longa', longest ? `<a class="bg-link" data-bg-open="match:${longest.id}">${esc(bgGameName(longest))}</a>` : '—', longest ? fmtMinutes(longest.duration) : '')}
+      ${card('target', 'Maior pontuação', bestScore ? fmtNum(bestScore.score) : '—', bestScore ? `${esc(bgName(bestScore.key, bestScore.name))} em ${esc(bgGameName(bestScore.m))}` : '')}
+    </div>
+    ${novelties.length ? `<div class="section-title">Novidades na mesa (${novelties.length})</div>
+      <div class="bg-tags">${novelties.map(g=> `<a class="chip bg-link" data-bg-open="game:${g.id}">${icon('sparkles')}${esc(g.name)}</a>`).join('')}</div>` : ''}
+    <div class="section-title">Partidas por mês</div>
+    ${barChart(perMonth, {title: `Partidas por mês em ${year}`})}
+    ${me ? `
+    <div class="section-title">Sua retrospectiva</div>
+    <div class="bg-recap-grid">
+      ${card('dices', 'Suas partidas', me.played, fmtMinutes(me.minutes) + ' de jogo')}
+      ${card('trophy', 'Suas vitórias', me.wins, pct(me.winRate) + ' de aproveitamento')}
+      ${card('heart', 'Seu jogo do ano', myFav ? `<a class="bg-link" data-bg-open="game:${myFav[0]}">${esc((bgGame(myFav[0])||{}).name || '—')}</a>` : '—', myFav ? `${myFav[1].played} partidas` : '')}
+      ${card('handshake', 'Seu parceiro de mesa', myPartner ? bgPlayerLink(myPartner[0]) : '—', myPartner ? `${myPartner[1]} partidas juntos` : '')}
+    </div>` : ''}
   `;
 }
 
@@ -2265,16 +3039,265 @@ function renderBgMedia(){
   `;
 }
 
+/* ---------- Modais: jogo, partida, convidado, sorteador ---------- */
+function renderBgGameModal(game){
+  const isEdit = !!game;
+  const g = game || {};
+  const counts = new Set((g.players || []).map(Number));
+  const owners = new Set(g.owners || []);
+  const people = bgPlayers();
+  (g.owners||[]).forEach(k=>{ if(!people.some(p=> p.key === k)) people.push({key: k, name: bgName(k)}); });
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal wide">
+      <h3>${isEdit ? 'Editar jogo' : 'Cadastrar jogo'}</h3>
+      <form id="bgGameForm" autocomplete="off">
+        <div class="field bg-ludo">
+          <label>${icon('search')} Buscar ficha na Ludopedia</label>
+          <div style="display:flex; gap:8px;"><input id="ludoQuery" placeholder="Nome do jogo" value="${esc(g.name || '')}"><button type="button" class="btn-icon" id="ludoSearchBtn">${icon('search')}Buscar</button></div>
+          <div id="ludoResults"></div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <div class="photo-pick bg-photo-pick" id="bgGamePhotoPick">
+              ${g.photo ? `<img src="${g.photo}" id="bgGamePhotoPreview">` : `<div id="bgGamePhotoPreview">${icon('image-plus')}<div>Foto da caixa</div></div>`}
+            </div>
+            <input type="file" accept="image/*" id="bgGamePhotoInput" style="display:none;">
+            ${g.photo ? `<button type="button" class="ghost" id="bgGamePhotoRemove" style="padding:4px 0; font-size:12px;">Remover foto</button>` : ''}
+          </div>
+          <div>
+            <div class="field"><label>Nome do jogo</label><input name="name" required maxlength="80" value="${esc(g.name || '')}" placeholder="ex: Catan"></div>
+            <div class="form-row">
+              <div class="field"><label>Tipo</label>
+                <select name="type" id="bgGameType"><option value="base">Jogo base</option><option value="expansao" ${g.type==='expansao'?'selected':''}>Expansão</option></select>
+              </div>
+              <div class="field" id="bgGameBaseField" ${g.type==='expansao' ? '' : 'hidden'}><label>Expansão de</label>
+                <select name="baseId"><option value="">Selecione</option>${bgBaseGames().filter(x=> x.id !== g.id).map(x=> `<option value="${x.id}" ${g.baseId===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select>
+              </div>
+            </div>
+            <div class="field"><label>Editora / produtora</label><input name="publisher" maxlength="80" value="${esc(g.publisher || '')}" placeholder="ex: Devir"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Ano</label><input name="year" type="number" min="1900" max="2100" value="${g.year || ''}"></div>
+          <div class="field"><label>Idade mínima</label><input name="minAge" type="number" min="0" max="21" value="${g.minAge || ''}"></div>
+          <div class="field"><label>Tempo (min)</label><input name="time" type="number" min="1" max="1440" value="${g.time || ''}"></div>
+          <div class="field"><label>Peso</label>
+            <select name="weight"><option value="">—</option>${[1,2,3,4,5].map(n=> `<option value="${n}" ${Number(g.weight)===n?'selected':''}>${n} · ${BG_WEIGHTS[n]}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Quantas pessoas suporta</label>
+          <div class="count-pills">
+            ${Array.from({length: MAX_BG_PLAYERS}, (_, i)=> i+1).map(n=>`
+              <label class="count-pill"><input type="checkbox" name="players" value="${n}" ${counts.has(n)?'checked':''}><span>${n}${n===MAX_BG_PLAYERS?'+':''}</span></label>`).join('')}
+          </div>
+        </div>
+        <div class="field"><label>Designer(s)</label><input name="designers" maxlength="160" value="${esc(g.designers || '')}" placeholder="ex: Klaus Teuber"></div>
+        <div class="form-row">
+          <div class="field"><label>Mecânicas</label><input name="mechanics" maxlength="300" value="${esc((g.mechanics||[]).join(', '))}" placeholder="Separe por vírgula"></div>
+          <div class="field"><label>Categorias</label><input name="categories" maxlength="300" value="${esc((g.categories||[]).join(', '))}" placeholder="Separe por vírgula"></div>
+        </div>
+        <div class="field"><label>Descrição curta (opcional)</label><textarea name="description" rows="2" maxlength="600">${esc(g.description || '')}</textarea></div>
+        <div class="field"><label>Dono(s)</label>
+          ${people.length ? `<div class="check-pills">${people.map(p=> `<label class="check-pill"><input type="checkbox" name="owners" value="${esc(p.key)}" ${owners.has(p.key)?'checked':''}>${esc(p.name)}</label>`).join('')}</div>` : '<div class="hint">Nenhum jogador ainda.</div>'}
+        </div>
+        <div class="field"><label>Link da Ludopedia</label><input name="ludopediaUrl" type="url" maxlength="300" value="${esc(g.ludopediaUrl || '')}" placeholder="https://ludopedia.com.br/jogo/..."></div>
+        <input type="hidden" name="ludopediaId" value="${esc(g.ludopediaId || '')}">
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Cadastrar'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderBgMatchModal(match){
+  const isEdit = !!match;
+  const m = match || {};
+  const today = localToday();
+  const games = bgBaseGames();
+  const locations = [...new Set(state.bg_matches.map(x=> x.location).filter(Boolean))];
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal wide">
+      <h3>${isEdit ? 'Editar partida' : 'Nova partida'}</h3>
+      ${!games.length ? `<div class="notice">${icon('info')}<div>Nenhum jogo cadastrado ainda. Cadastre o jogo primeiro em Jogos.</div></div>` : ''}
+      <form id="bgMatchForm" autocomplete="off">
+        <div class="form-row">
+          <div class="field" style="flex:2;"><label>Jogo</label>
+            <select name="gameId" id="bgMatchGame" required>
+              <option value="">Selecione o jogo</option>
+              ${games.map(g=>`<option value="${g.id}" ${m.gameId===g.id ? 'selected' : ''}>${esc(g.name)}</option>`).join('')}
+            </select>
+            <div class="hint" id="bgMatchGameHint"></div>
+          </div>
+          <div class="field"><label>Data</label><input name="date" type="date" required value="${m.date || today}" max="${today}"></div>
+          <div class="field"><label>Início</label><input name="time" type="time" value="${m.time || ''}"></div>
+        </div>
+        <div class="field" id="bgExpField" hidden><label>Expansões usadas</label><div class="check-pills" id="bgExpPills"></div></div>
+        <div class="form-row">
+          <div class="field"><label>Duração (min)</label><input name="duration" type="number" min="1" max="1440" value="${m.duration || ''}" placeholder="ex: 90"></div>
+          <div class="field" style="flex:2;"><label>Local</label><input name="location" maxlength="60" list="bgLocations" value="${esc(m.location || '')}" placeholder="ex: Casa do Victor"><datalist id="bgLocations">${locations.map(l=> `<option value="${esc(l)}">`).join('')}</datalist></div>
+        </div>
+        <div class="field"><label>Tipo de partida</label>
+          <div class="seg" id="bgModeSeg">
+            ${Object.entries(BG_MODES).map(([k,l])=> `<label><input type="radio" name="mode" value="${k}" ${(m.mode || 'comp') === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}
+          </div>
+        </div>
+        <div class="field" id="bgCoopField" hidden><label>Resultado do grupo</label>
+          <div class="seg">
+            <label><input type="radio" name="coopWin" value="1" ${m.coopWin === true ? 'checked' : ''}><span>${icon('party-popper')}Vitória</span></label>
+            <label><input type="radio" name="coopWin" value="0" ${m.coopWin === false ? 'checked' : ''}><span>${icon('shield')}Derrota</span></label>
+          </div>
+        </div>
+
+        <div class="form-section">Quem jogou <span class="links"><button type="button" id="bgAddGuestInline">+ Convidado</button></span></div>
+        <div id="bgGuestInline" hidden style="display:flex; gap:8px; margin-bottom:10px;">
+          <input id="bgGuestName" maxlength="40" placeholder="Nome do convidado"><button type="button" id="bgGuestAdd">Adicionar</button>
+        </div>
+        <div class="check-pills" id="bgMatchPlayers"></div>
+
+        <div class="form-section">Resultado <span class="links"><button type="button" id="bgSortByScore">Ordenar pela pontuação</button></span></div>
+        <div id="bgResultRows"></div>
+
+        ${can('bg.photos.create') ? `
+        <div class="field" style="margin-top:14px;"><label>Fotos</label>
+          <div class="pm-thumbs" id="bgPhotoThumbs"><button type="button" class="pm-thumb pm-thumb-add" id="bgPhotoPick">${icon('image-plus')}<span>Adicionar</span></button></div>
+          <input type="file" accept="image/*" multiple id="bgPhotoInput" style="display:none;">
+          <div class="hint">Escolha na pasta ou arraste as fotos para cá.</div>
+        </div>` : ''}
+        <div class="field" style="margin-top:14px;"><label>Observações</label><textarea name="notes" rows="2" maxlength="600" placeholder="ex: primeira vez com a expansão, empate decidido no desempate...">${esc(m.notes || '')}</textarea></div>
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">${isEdit ? 'Salvar' : 'Registrar partida'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderBgGuestModal(guest){
+  const users = state.directory.filter(d=> d.active).sort((a,b)=> fullName(a).localeCompare(fullName(b)));
+  const n = guest ? state.bg_matches.filter(m=> (m.results||[]).some(r=> r.userId === GUEST + guest.id)).length : 0;
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>${guest ? 'Editar convidado' : 'Adicionar convidado'}</h3>
+      <form id="bgGuestForm" autocomplete="off">
+        <div class="field"><label>Nome</label><input name="name" required maxlength="40" value="${guest ? esc(guest.name) : ''}" placeholder="ex: Primo do Victor"></div>
+        ${guest ? `<div class="field"><label>Ligar a uma conta do site</label>
+          <select name="linkedUserId"><option value="">Não ligar</option>${users.map(u=> `<option value="${u.id}" ${guest.linkedUserId===u.id?'selected':''}>${esc(fullName(u))}</option>`).join('')}</select>
+          <div class="hint">Quando o convidado cria conta, ligue aqui: as ${n} partida${n===1?'':'s'} dele passam a contar para a conta.</div></div>` : ''}
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          ${guest && !n && can('bg.matches.delete') ? `<button type="button" class="danger" id="bgGuestDelete">Excluir</button><span class="spacer"></span>` : ''}
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+function renderBgRandomModal(){
+  const r = state.modal.data || {};
+  const pick = r.pickId && bgGame(r.pickId);
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>O que jogar hoje?</h3>
+      <form id="bgRandomForm">
+        <div class="form-row">
+          <div class="field"><label>Quantas pessoas</label><input name="n" type="number" min="1" max="${MAX_BG_PLAYERS}" value="${r.n || ''}" placeholder="qualquer"></div>
+          <div class="field"><label>Tempo máximo</label>
+            <select name="time"><option value="">Qualquer</option>${[30,45,60,90,120,180].map(t=> `<option value="${t}" ${Number(r.time)===t?'selected':''}>até ${fmtMinutes(t)}</option>`).join('')}</select>
+          </div>
+        </div>
+        <label class="switch-row" style="font-size:13px;"><input type="checkbox" name="owned" ${r.owned !== false ? 'checked' : ''}> Só jogos que alguém do grupo tem</label>
+        <label class="switch-row" style="font-size:13px;"><input type="checkbox" name="boost" ${r.boost ? 'checked' : ''}> Dar preferência aos "quero jogar" e aos menos jogados</label>
+        <div id="bgRandomOut" class="bg-random-out">
+          ${pick ? `${gameThumb(pick, 'bg-thumb')}<div><b>${esc(pick.name)}</b><div class="bg-meta">${[fmtPlayerCounts(pick.players), pick.time ? pick.time + ' min' : ''].filter(Boolean).join(' · ')}</div></div>
+            <button type="button" class="btn-icon" data-bg-open="game:${pick.id}">${icon('external-link')}Ver</button>`
+            : r.none ? `<span class="hint">Nenhum jogo com esses filtros.</span>` : `<span class="hint">Escolha os filtros e sorteie.</span>`}
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Fechar</button>
+          <button type="submit" class="primary btn-icon" id="formSubmit">${icon('shuffle')}${pick ? 'Sortear de novo' : 'Sortear'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+
+/* ---------- placar para compartilhar (imagem) ---------- */
+async function bgShareScoreboard(m){
+  const rs = [...(m.results||[])].sort((a,b)=> (a.position||99) - (b.position||99));
+  const W = 1080, rowH = 86, H = Math.max(1080, 420 + rs.length * rowH + 120);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#141210'; x.fillRect(0,0,W,H);
+  x.fillStyle = '#C9A227'; x.fillRect(0,0,W,12);
+  const g = bgGame(m.gameId);
+  let top = 90;
+  if(g && g.photo && g.photo.startsWith('data:')){
+    const img = await new Promise(res=>{ const i = new Image(); i.onload = ()=> res(i); i.onerror = ()=> res(null); i.src = g.photo; });
+    if(img){ const r = Math.min(220 / img.width, 220 / img.height); x.drawImage(img, 80, top, img.width * r, img.height * r); }
+  }
+  x.fillStyle = '#C9A227'; x.font = '600 30px Oswald, sans-serif'; x.fillText('CAVERNOSOS · BOARDGAME', 330, top + 36);
+  x.fillStyle = '#F2EEE6'; x.font = '700 64px Oswald, sans-serif'; x.fillText(bgGameName(m).slice(0, 26), 330, top + 112);
+  x.fillStyle = '#A79C87'; x.font = '32px Inter, sans-serif';
+  x.fillText([formatFullDate(m.date), m.duration ? fmtMinutes(m.duration) : '', m.location || ''].filter(Boolean).join(' · ').slice(0, 48), 330, top + 166);
+  top = 400;
+  if(m.mode === 'coop'){
+    x.fillStyle = m.coopWin ? '#4CBF7A' : '#E0645A'; x.font = '700 54px Oswald, sans-serif';
+    x.fillText(m.coopWin ? 'VITÓRIA DO GRUPO!' : 'DERROTA PARA O JOGO', 80, top); top += 50;
+  }
+  const medal = ['#D4A017','#9AA3AE','#B87333'];
+  rs.forEach((r,i)=>{
+    const y = top + i * rowH;
+    x.fillStyle = i % 2 ? '#1B1814' : '#211D18'; x.fillRect(60, y, W - 120, rowH - 8);
+    x.fillStyle = m.mode !== 'coop' && r.position <= 3 ? medal[r.position-1] : '#A79C87';
+    x.font = '700 44px Oswald, sans-serif';
+    x.fillText(m.mode === 'coop' ? '•' : `${r.position}º`, 90, y + 56);
+    x.fillStyle = '#F2EEE6'; x.font = '600 40px Inter, sans-serif';
+    x.fillText(bgName(bgCanon(r.userId), r.username).slice(0, 26) + (m.mode === 'teams' && r.team ? `  (Time ${r.team})` : ''), 200, y + 54);
+    if(bgHasScore(r)){ x.fillStyle = '#C9A227'; x.font = '700 42px Oswald, sans-serif'; x.textAlign = 'right'; x.fillText(`${fmtNum(Number(r.score))} pts`, W - 90, y + 56); x.textAlign = 'left'; }
+  });
+  const blob = await new Promise(res=> c.toBlob(res, 'image/png'));
+  const file = new File([blob], `placar-${(bgGameName(m)).replace(/[^\w]+/g,'-').toLowerCase()}-${m.date}.png`, {type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title: `Placar: ${bgGameName(m)}`}); return; }catch(e){ if(e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 5000);
+  toast('Imagem do placar baixada.');
+}
+
+/* ---------- Ludopedia (via função da Vercel) ---------- */
+async function ludopediaApi(params){
+  const token = await auth.currentUser.getIdToken();
+  const r = await fetch('/api/ludopedia?' + new URLSearchParams(params), {headers: {Authorization: 'Bearer ' + token}});
+  const data = await r.json().catch(()=> ({}));
+  if(!r.ok) throw new Error(data.error || 'Falha ao consultar a Ludopedia.');
+  return data;
+}
+
 /* ---------- eventos ---------- */
 function bindOtherEnvEvents(){
   document.querySelectorAll('[data-add-video]').forEach(b=>{
     b.onclick = ()=>{ state.modal = {type:'video', data:{collection: b.dataset.addVideo}}; render(); };
   });
   document.querySelectorAll('[data-add-photo]').forEach(b=>{
-    b.onclick = ()=>{ state.modal = {type:'photo', data:{collection: b.dataset.addPhoto}}; render(); };
+    b.onclick = ()=>{ state.modal = {type:'photo', data:{collection: b.dataset.addPhoto, matchId: b.dataset.photoMatch || ''}}; render(); };
   });
   document.querySelectorAll('[data-del-item]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = async e=>{
+      e.stopPropagation();
       const [col, id] = b.dataset.delItem.split(':');
       const label = b.dataset.delLabel || 'item';
       if(!confirm(`Excluir ${label === 'foto' ? 'esta' : 'este'} ${label}?`)) return;
@@ -2310,36 +3333,104 @@ function bindOtherEnvEvents(){
   document.querySelectorAll('[data-bg-media-tab]').forEach(b=>{
     b.onclick = ()=>{ state.bgMediaTab = b.dataset.bgMediaTab; render(); };
   });
-  document.querySelectorAll('[data-bg-rank-game]').forEach(b=>{
-    b.onclick = ()=>{ state.bgRankGame = b.dataset.bgRankGame; render(); };
+
+  // navegação para partida / jogo / jogador
+  document.querySelectorAll('[data-bg-open]').forEach(el=>{
+    const open = e=>{
+      e.stopPropagation();
+      const [kind, ...rest] = el.dataset.bgOpen.split(':');
+      const id = rest.join(':');
+      if(state.bgOpen) state.bgStack.push(state.bgOpen);
+      state.bgOpen = {kind, id};
+      state.modal = null;
+      if(!state.view.startsWith('bg-')) state.view = 'bg-matches';
+      render(); window.scrollTo(0,0);
+    };
+    el.onclick = open;
+    if(el.getAttribute('role') === 'button') el.onkeydown = e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(e); } };
   });
-  document.querySelectorAll('[data-bg-match-game]').forEach(b=>{
-    b.onclick = ()=>{ state.bgMatchGame = b.dataset.bgMatchGame; render(); };
+  document.querySelectorAll('[data-bg-back]').forEach(b=>{
+    b.onclick = ()=>{ state.bgOpen = state.bgStack.pop() || null; render(); window.scrollTo(0,0); };
+  });
+
+  // filtros
+  document.querySelectorAll('[data-bg-mfilter]').forEach(s=>{
+    s.onchange = ()=>{ state.bgMatchFilter[s.dataset.bgMfilter] = s.value; render(); };
+  });
+  const mClear = document.getElementById('bgMatchFilterClear');
+  if(mClear) mClear.onclick = ()=>{ state.bgMatchFilter = {game:'', player:'', period:''}; render(); };
+  document.querySelectorAll('[data-bg-lfilter]').forEach(s=>{
+    s.onchange = ()=>{ state.bgLibFilter[s.dataset.bgLfilter] = s.type === 'checkbox' ? s.checked : s.value; render(); };
   });
   const libSearch = document.getElementById('bgLibSearch');
   if(libSearch) libSearch.oninput = ()=>{
-    state.bgLibSearch = libSearch.value;
+    state.bgLibFilter.q = libSearch.value;
     render();
     const el = document.getElementById('bgLibSearch');
     if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
   };
+  document.querySelectorAll('[data-bg-rank-tab]').forEach(b=>{ b.onclick = ()=>{ state.bgRankTab = b.dataset.bgRankTab; render(); }; });
+  const rg = document.getElementById('bgRankGameSel');
+  if(rg) rg.onchange = ()=>{ state.bgRankGame = rg.value; render(); };
+  const rp = document.getElementById('bgRankPeriodSel');
+  if(rp) rp.onchange = ()=>{ state.bgRankPeriod = rp.value; render(); };
+  document.querySelectorAll('[data-bg-recap-year]').forEach(b=>{ b.onclick = ()=>{ state.bgRecapYear = b.dataset.bgRecapYear; render(); }; });
+  const sg = document.getElementById('bgShowGuests');
+  if(sg) sg.onchange = ()=>{ state.bgShowGuests = sg.checked; render(); };
 
+  // tooltips dos gráficos
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.onmouseenter = ()=> showTip(el);
+    el.onmouseleave = hideTip;
+  });
+
+  // jogos
   const addGame = document.getElementById('addBgGameBtn');
   if(addGame) addGame.onclick = ()=>{ state.modal = {type:'bgGame', data:null}; render(); };
+  const randomBtn = document.getElementById('bgRandomBtn');
+  if(randomBtn) randomBtn.onclick = ()=>{ state.modal = {type:'bgRandom', data:{owned: state.bg_games.some(g=> (g.owners||[]).length)}}; render(); };
   document.querySelectorAll('[data-edit-bg-game]').forEach(b=>{
-    b.onclick = ()=>{ state.modal = {type:'bgGame', data: bgGame(b.dataset.editBgGame)}; render(); };
+    b.onclick = e=>{ e.stopPropagation(); state.modal = {type:'bgGame', data: bgGame(b.dataset.editBgGame)}; render(); };
   });
   document.querySelectorAll('[data-del-bg-game]').forEach(b=>{
-    b.onclick = async ()=>{
+    b.onclick = async e=>{
+      e.stopPropagation();
       const g = bgGame(b.dataset.delBgGame);
       const n = bgMatchesOf(g.id).length;
       if(n){ toast(`"${g.name}" tem ${n} partida${n===1?'':'s'} registrada${n===1?'':'s'}. Exclua as partidas antes para não bagunçar o ranking.`, 'error'); return; }
-      if(!confirm(`Excluir "${g.name}" da biblioteca?`)) return;
+      if(bgExpansionsOf(g.id).length){ toast(`"${g.name}" tem expansões cadastradas. Exclua ou mude as expansões antes.`, 'error'); return; }
+      if(!confirm(`Excluir "${g.name}"?`)) return;
       state.bg_games = state.bg_games.filter(x=> x.id !== g.id);
-      if(await sSet('bg_games', state.bg_games)){ render(); toast('Jogo excluído.'); }
+      if(await sSet('bg_games', state.bg_games)){ state.bgOpen = state.bgStack.pop() || null; render(); toast('Jogo excluído.'); }
+    };
+  });
+  document.querySelectorAll('[data-bg-own]').forEach(b=>{
+    b.onclick = async ()=>{
+      const g = bgGame(b.dataset.bgOwn), me = bgMyUid();
+      const owners = new Set(g.owners || []);
+      owners.has(me) ? owners.delete(me) : owners.add(me);
+      g.owners = [...owners];
+      if(await sSet('bg_games', state.bg_games)) render();
+    };
+  });
+  document.querySelectorAll('[data-bg-coll]').forEach(b=>{
+    b.onclick = async ()=>{
+      const [list, gameId] = b.dataset.bgColl.split(':');
+      const c = bgMyColl();
+      c[list] = c[list].includes(gameId) ? c[list].filter(x=> x !== gameId) : [...c[list], gameId];
+      if(await bgSaveMyColl(c)) render();
+    };
+  });
+  document.querySelectorAll('[data-bg-rate]').forEach(s=>{
+    s.onchange = async ()=>{
+      const c = bgMyColl();
+      c.ratings = {...c.ratings};
+      if(s.value === '') delete c.ratings[s.dataset.bgRate]; else c.ratings[s.dataset.bgRate] = clamp10(s.value);
+      if(await bgSaveMyColl(c)){ render(); toast('Nota salva.'); }
     };
   });
 
+  // partidas
   const addMatch = document.getElementById('addBgMatchBtn');
   if(addMatch) addMatch.onclick = ()=>{ state.modal = {type:'bgMatch', data:null}; render(); };
   document.querySelectorAll('[data-edit-bg-match]').forEach(b=>{
@@ -2350,13 +3441,43 @@ function bindOtherEnvEvents(){
       const m = state.bg_matches.find(x=> x.id === b.dataset.delBgMatch);
       if(!confirm(`Excluir a partida de ${bgGameName(m)} (${formatDate(m.date)})? Ela sai do ranking.`)) return;
       state.bg_matches = state.bg_matches.filter(x=> x.id !== m.id);
-      if(await sSet('bg_matches', state.bg_matches)){ render(); toast('Partida excluída.'); }
+      if(await sSet('bg_matches', state.bg_matches)){ state.bgOpen = state.bgStack.pop() || null; render(); toast('Partida excluída.'); }
     };
+  });
+  document.querySelectorAll('[data-bg-share]').forEach(b=>{
+    b.onclick = async ()=>{
+      b.disabled = true;
+      try{ await bgShareScoreboard(state.bg_matches.find(m=> m.id === b.dataset.bgShare)); }
+      catch(e){ console.error(e); toast('Não foi possível gerar a imagem.', 'error'); }
+      b.disabled = false;
+    };
+  });
+
+  // convidados
+  const addGuest = document.getElementById('addBgGuestBtn');
+  if(addGuest) addGuest.onclick = ()=>{ state.modal = {type:'bgGuest', data:null}; render(); };
+  document.querySelectorAll('[data-edit-bg-guest]').forEach(b=>{
+    b.onclick = ()=>{ state.modal = {type:'bgGuest', data: state.bg_guests.find(g=> g.id === b.dataset.editBgGuest)}; render(); };
   });
 
   bindBgGameForm();
   bindBgMatchForm();
+  bindBgGuestForm();
+  bindBgRandomForm();
 }
+
+// tooltip único para os gráficos
+function showTip(el){
+  let t = document.getElementById('chartTip');
+  if(!t){ t = document.createElement('div'); t.id = 'chartTip'; t.className = 'chart-tip'; document.body.appendChild(t); }
+  t.textContent = el.dataset.tip;
+  const r = el.getBoundingClientRect();
+  t.style.display = 'block';
+  const left = Math.min(window.innerWidth - t.offsetWidth - 8, Math.max(8, r.left + r.width/2 - t.offsetWidth/2));
+  t.style.left = left + 'px';
+  t.style.top = Math.max(8, r.top - t.offsetHeight - 8) + 'px';
+}
+function hideTip(){ const t = document.getElementById('chartTip'); if(t) t.style.display = 'none'; }
 
 function bindBgGameForm(){
   const form = document.getElementById('bgGameForm');
@@ -2365,12 +3486,13 @@ function bindBgGameForm(){
   let photo = existing ? existing.photo || null : null;
   const pick = document.getElementById('bgGamePhotoPick');
   const input = document.getElementById('bgGamePhotoInput');
+  const setPreview = src=>{ document.getElementById('bgGamePhotoPreview').outerHTML = `<img src="${src}" id="bgGamePhotoPreview">`; };
   pick.onclick = ()=> input.click();
   input.onchange = async ()=>{
     const file = input.files[0];
     if(!file) return;
     photo = await resizeImage(file, 600, 0.75);
-    document.getElementById('bgGamePhotoPreview').outerHTML = `<img src="${photo}" id="bgGamePhotoPreview">`;
+    setPreview(photo);
   };
   const remove = document.getElementById('bgGamePhotoRemove');
   if(remove) remove.onclick = ()=>{
@@ -2378,23 +3500,73 @@ function bindBgGameForm(){
     document.getElementById('bgGamePhotoPreview').outerHTML = `<div id="bgGamePhotoPreview"><div>Foto removida. Toque para escolher outra.</div></div>`;
     remove.remove();
   };
+  const typeSel = document.getElementById('bgGameType');
+  typeSel.onchange = ()=>{ document.getElementById('bgGameBaseField').hidden = typeSel.value !== 'expansao'; };
+
+  // busca na Ludopedia
+  const out = document.getElementById('ludoResults');
+  const q = document.getElementById('ludoQuery');
+  const search = async ()=>{
+    if(!q.value.trim()) return;
+    out.innerHTML = '<div class="hint">Buscando...</div>';
+    try{
+      const data = await ludopediaApi({search: q.value.trim()});
+      const games = data.jogos || [];
+      out.innerHTML = games.length ? `<div class="ludo-list">${games.slice(0, 10).map(j=> `
+        <button type="button" class="ludo-item" data-ludo-id="${j.id}">${j.thumb ? `<img src="${esc(j.thumb)}" alt="" referrerpolicy="no-referrer">` : icon('dices')}<span>${esc(j.name)}${j.year ? ` <em>(${j.year})</em>` : ''}</span></button>`).join('')}</div>`
+        : '<div class="hint">Nada encontrado com esse nome.</div>';
+      lucide.createIcons();
+      out.querySelectorAll('[data-ludo-id]').forEach(b=> b.onclick = ()=> fill(b.dataset.ludoId));
+    }catch(e){ out.innerHTML = `<div class="form-error">${esc(e.message)}</div>`; }
+  };
+  const fill = async id=>{
+    out.innerHTML = '<div class="hint">Carregando a ficha...</div>';
+    try{
+      const {jogo: j} = await ludopediaApi({id});
+      const set = (n, v)=>{ if(v != null && v !== '') form.elements[n].value = v; };
+      set('name', j.name); set('year', j.year); set('minAge', j.minAge); set('time', j.time);
+      set('publisher', j.publisher); set('designers', (j.designers||[]).join(', '));
+      set('mechanics', (j.mechanics||[]).join(', ')); set('categories', (j.categories||[]).join(', '));
+      set('ludopediaUrl', j.url); set('ludopediaId', j.id);
+      if(j.type === 'expansao'){ typeSel.value = 'expansao'; typeSel.onchange(); }
+      if(j.minPlayers){
+        const max = Math.min(j.maxPlayers || j.minPlayers, MAX_BG_PLAYERS);
+        form.querySelectorAll('input[name=players]').forEach(cb=> cb.checked = Number(cb.value) >= j.minPlayers && Number(cb.value) <= max);
+      }
+      if(j.image){
+        const blob = await (await fetch(j.image)).blob();
+        photo = await resizeImage(new File([blob], 'capa.jpg', {type: blob.type}), 600, 0.75);
+        setPreview(photo);
+      }
+      out.innerHTML = `<div class="hint" style="color:var(--accent);">Ficha preenchida com os dados da Ludopedia. Confira e salve.</div>`;
+    }catch(e){ out.innerHTML = `<div class="form-error">${esc(e.message)}</div>`; }
+  };
+  document.getElementById('ludoSearchBtn').onclick = search;
+  q.onkeydown = e=>{ if(e.key === 'Enter'){ e.preventDefault(); search(); } };
+
+  const list = v => String(v||'').split(',').map(s=> s.trim()).filter(Boolean);
+  const num = v => v === '' || v == null ? null : Number(v);
   form.onsubmit = async e=>{
     e.preventDefault();
     const fd = new FormData(form);
     const name = fd.get('name').trim();
     const players = fd.getAll('players').map(Number);
+    const type = fd.get('type');
     if(!name) return formError('Informe o nome do jogo.');
-    if(!players.length) return formError('Marque quantas pessoas o jogo suporta.');
-    if(state.bg_games.some(g=> g.name.toLowerCase() === name.toLowerCase() && (!existing || g.id !== existing.id))) return formError('Esse jogo já está na biblioteca.');
+    if(type === 'expansao' && !fd.get('baseId')) return formError('Escolha de qual jogo é a expansão.');
+    if(type !== 'expansao' && !players.length) return formError('Marque quantas pessoas o jogo suporta.');
+    if(state.bg_games.some(g=> g.name.toLowerCase() === name.toLowerCase() && (!existing || g.id !== existing.id))) return formError('Esse jogo já está cadastrado.');
     formError(''); formBusy(true);
     const now = new Date().toISOString();
-    if(existing){
-      Object.assign(bgGame(existing.id), {name, publisher: fd.get('publisher').trim(), players, photo, updatedAt: now, updatedBy: state.currentUser.username});
-    } else {
-      state.bg_games.push({id: uid(), name, publisher: fd.get('publisher').trim(), players, photo, createdAt: now, createdBy: state.currentUser.username});
-    }
+    const data = {name, type, baseId: type === 'expansao' ? fd.get('baseId') : '', publisher: fd.get('publisher').trim(), players, photo,
+      year: num(fd.get('year')), minAge: num(fd.get('minAge')), time: num(fd.get('time')), weight: num(fd.get('weight')),
+      designers: fd.get('designers').trim(), mechanics: list(fd.get('mechanics')), categories: list(fd.get('categories')),
+      description: fd.get('description').trim(), owners: fd.getAll('owners'),
+      ludopediaUrl: fd.get('ludopediaUrl').trim(), ludopediaId: fd.get('ludopediaId') || ''};
+    if(existing) Object.assign(bgGame(existing.id), data, {updatedAt: now, updatedBy: state.currentUser.username});
+    else state.bg_games.push({id: uid(), ...data, createdAt: now, createdBy: state.currentUser.username});
     state.modal = null;
-    if(await sSet('bg_games', state.bg_games)){ render(); toast(existing ? 'Jogo atualizado.' : `${name} cadastrado na biblioteca.`); }
+    if(await sSet('bg_games', state.bg_games)){ render(); toast(existing ? 'Jogo atualizado.' : `${name} cadastrado.`); }
   };
 }
 
@@ -2402,29 +3574,83 @@ function bindBgMatchForm(){
   const form = document.getElementById('bgMatchForm');
   if(!form) return;
   const existing = state.modal.data;
-  // resultado em edição: userId → {username, position, score}
-  const results = new Map((existing && existing.results || []).map(r=> [r.userId, {username: r.username, position: r.position, score: r.score ?? ''}]));
-  const rowsEl = document.getElementById('bgResultRows');
   const gameSel = document.getElementById('bgMatchGame');
+  const rowsEl = document.getElementById('bgResultRows');
+  const newGuests = [];            // convidados criados neste formulário
+  const newPhotos = [];
+  const teamPos = {};              // time → colocação
+  // jogador → {name, position, score, faction, firstTime, team}
+  const results = new Map((existing && existing.results || []).map(r=>{
+    if(existing.mode === 'teams' && r.team) teamPos[r.team] = r.position;
+    return [r.userId, {name: bgName(r.userId, r.username), position: r.position || '', score: r.score ?? '', faction: r.faction || '', firstTime: !!r.firstTime, team: r.team || ''}];
+  }));
+  const mode = ()=> form.querySelector('[name=mode]:checked').value;
 
+  // lista de jogadores: quem mais joga com você aparece primeiro (como no registro da Ludopedia)
+  function drawPlayers(){
+    const me = bgMyUid();
+    const recent = {};
+    bgChrono(state.bg_matches).slice(-30).forEach(m=>{
+      const ks = (m.results||[]).map(r=> r.userId);
+      if(ks.includes(me)) ks.forEach(k=> recent[k] = (recent[k]||0) + 1);
+    });
+    const all = [...bgPlayers(), ...newGuests.map(g=> ({key: GUEST + g.id, name: g.name, guest: true}))];
+    results.forEach((r, k)=>{ if(!all.some(p=> p.key === k)) all.push({key: k, name: r.name, guest: isGuestKey(k)}); });
+    all.sort((a,b)=> (b.key === me) - (a.key === me) || (recent[b.key]||0) - (recent[a.key]||0) || byName(a,b));
+    document.getElementById('bgMatchPlayers').innerHTML = all.map(p=> `
+      <label class="check-pill"><input type="checkbox" value="${esc(p.key)}" data-name="${esc(p.name)}" ${results.has(p.key) ? 'checked' : ''}>${esc(p.name)}${p.guest ? ' <em class="hint">(conv.)</em>' : ''}</label>`).join('');
+    document.querySelectorAll('#bgMatchPlayers input').forEach(cb=>{
+      cb.onchange = ()=>{
+        if(cb.checked) results.set(cb.value, {name: cb.dataset.name, position:'', score:'', faction:'', firstTime: isFirstTime(cb.value), team:''});
+        else results.delete(cb.value);
+        results.forEach(r=>{ if(r.position > results.size) r.position = ''; });
+        drawRows();
+      };
+    });
+  }
+  // 1ª vez: nunca jogou este jogo antes desta partida
+  function isFirstTime(key){
+    const gid = gameSel.value;
+    if(!gid) return false;
+    const date = form.elements.date.value;
+    return !state.bg_matches.some(m=> m.gameId === gid && (!existing || m.id !== existing.id) && (m.date||'') <= date && (m.results||[]).some(r=> bgCanon(r.userId) === bgCanon(key)));
+  }
+  function drawExpansions(){
+    const exps = bgExpansionsOf(gameSel.value);
+    const chosen = new Set(existing && existing.gameId === gameSel.value ? existing.expansions || [] : []);
+    document.getElementById('bgExpField').hidden = !exps.length;
+    document.getElementById('bgExpPills').innerHTML = exps.map(e=> `<label class="check-pill"><input type="checkbox" name="expansions" value="${e.id}" ${chosen.has(e.id)?'checked':''}>${esc(e.name)}</label>`).join('');
+  }
   function drawRows(){
+    const md = mode();
+    document.getElementById('bgCoopField').hidden = md !== 'coop';
+    document.getElementById('bgSortByScore').hidden = md !== 'comp';
     const n = results.size;
-    if(!n){ rowsEl.innerHTML = `<div class="hint" style="padding:4px 0 8px;">Marque quem jogou para lançar a posição e a pontuação.</div>`; updateHint(); return; }
+    if(!n){ rowsEl.innerHTML = `<div class="hint" style="padding:4px 0 8px;">Marque quem jogou para lançar o resultado.</div>`; updateHint(); return; }
+    const entries = [...results.entries()].sort((a,b)=> md === 'teams' ? (a[1].team||'Z').localeCompare(b[1].team||'Z') : (a[1].position||99) - (b[1].position||99));
+    const teamsUsed = [...new Set(entries.map(([,r])=> r.team).filter(Boolean))].sort();
     rowsEl.innerHTML = `
-      <div class="result-rows">
-        <div class="result-row head"><span>Jogador</span><span>Posição</span><span>Pontuação</span></div>
-        ${[...results.entries()].sort((a,b)=> (a[1].position||99) - (b[1].position||99)).map(([id, r])=>`
-        <div class="result-row" data-row="${id}">
-          <span class="name">${r.position ? trophy(Number(r.position)) : ''}${esc(r.username)}</span>
-          <select data-pos="${id}">
-            <option value="">—</option>
-            ${Array.from({length:n}, (_, i)=> i+1).map(p=>`<option value="${p}" ${Number(r.position)===p?'selected':''}>${p}º lugar</option>`).join('')}
-          </select>
-          <input type="number" data-score="${id}" value="${r.score}" placeholder="pts" step="any" inputmode="decimal">
+      <div class="result-rows mode-${md}">
+        <div class="result-row head"><span>Jogador</span>${md === 'comp' ? '<span>Posição</span>' : md === 'teams' ? '<span>Time</span>' : ''}<span>Pontos</span><span>Facção / personagem</span><span title="Primeira vez jogando">1ª vez</span></div>
+        ${entries.map(([id, r])=>`
+        <div class="result-row">
+          <span class="name">${md === 'comp' && r.position ? trophy(Number(r.position)) : ''}${esc(r.name)}</span>
+          ${md === 'comp' ? `<select data-f="position" data-id="${esc(id)}"><option value="">—</option>${Array.from({length:n}, (_, i)=> i+1).map(p=>`<option value="${p}" ${Number(r.position)===p?'selected':''}>${p}º lugar</option>`).join('')}</select>` : ''}
+          ${md === 'teams' ? `<select data-f="team" data-id="${esc(id)}"><option value="">—</option>${BG_TEAMS.map(t=> `<option value="${t}" ${r.team===t?'selected':''}>Time ${t}</option>`).join('')}</select>` : ''}
+          <input type="number" data-f="score" data-id="${esc(id)}" value="${r.score}" placeholder="pts" step="any" inputmode="decimal">
+          <input data-f="faction" data-id="${esc(id)}" value="${esc(r.faction)}" maxlength="40" placeholder="opcional">
+          <input type="checkbox" class="checkbox" data-f="firstTime" data-id="${esc(id)}" ${r.firstTime ? 'checked' : ''} aria-label="Primeira vez">
         </div>`).join('')}
-      </div>`;
-    rowsEl.querySelectorAll('[data-pos]').forEach(s=> s.onchange = ()=>{ results.get(s.dataset.pos).position = s.value ? Number(s.value) : ''; drawRows(); });
-    rowsEl.querySelectorAll('[data-score]').forEach(i=> i.oninput = ()=>{ results.get(i.dataset.score).score = i.value; });
+      </div>
+      ${md === 'teams' && teamsUsed.length ? `
+      <div class="bg-team-pos"><span>Colocação dos times:</span>${teamsUsed.map(t=> `<label>Time ${t}<select data-team-pos="${t}"><option value="">—</option>${teamsUsed.map((_,i)=> `<option value="${i+1}" ${Number(teamPos[t])===i+1?'selected':''}>${i+1}º</option>`).join('')}</select></label>`).join('')}</div>` : ''}`;
+    rowsEl.querySelectorAll('[data-f]').forEach(el=>{
+      const r = results.get(el.dataset.id), f = el.dataset.f;
+      if(f === 'firstTime') el.onchange = ()=>{ r.firstTime = el.checked; };
+      else if(f === 'position' || f === 'team') el.onchange = ()=>{ r[f] = f === 'position' ? (el.value ? Number(el.value) : '') : el.value; drawRows(); };
+      else el.oninput = ()=>{ r[f] = el.value; };
+    });
+    rowsEl.querySelectorAll('[data-team-pos]').forEach(s=> s.onchange = ()=>{ teamPos[s.dataset.teamPos] = s.value ? Number(s.value) : ''; });
     lucide.createIcons();
     updateHint();
   }
@@ -2434,52 +3660,182 @@ function bindBgMatchForm(){
     if(!g || !(g.players||[]).length){ hint.textContent = ''; return; }
     const n = results.size;
     const ok = !n || g.players.map(Number).includes(Math.min(n, MAX_BG_PLAYERS));
-    hint.innerHTML = ok ? `Suporta ${fmtPlayerCounts(g.players)}.` : `<span style="color:var(--danger)">Atenção: ${esc(g.name)} suporta ${fmtPlayerCounts(g.players)} e a partida tem ${n}.</span>`;
+    hint.innerHTML = ok ? `Suporta ${fmtPlayerCounts(g.players)}${g.time ? ` · cerca de ${g.time} min` : ''}.` : `<span style="color:var(--danger)">Atenção: ${esc(g.name)} suporta ${fmtPlayerCounts(g.players)} e a partida tem ${n}.</span>`;
   }
-  gameSel.onchange = updateHint;
-  form.querySelectorAll('input[name=players]').forEach(cb=>{
-    cb.onchange = ()=>{
-      if(cb.checked) results.set(cb.value, {username: cb.dataset.username, position:'', score:''});
-      else results.delete(cb.value);
-      // posições acima do número de jogadores deixam de existir
-      results.forEach(r=>{ if(r.position > results.size) r.position = ''; });
-      drawRows();
-    };
-  });
+  gameSel.onchange = ()=>{
+    drawExpansions();
+    results.forEach((r,k)=> r.firstTime = isFirstTime(k));
+    const g = bgGame(gameSel.value);
+    if(g && g.time && !form.elements.duration.value) form.elements.duration.placeholder = `ex: ${g.time}`;
+    drawRows();
+  };
+  form.querySelectorAll('[name=mode]').forEach(r=> r.onchange = drawRows);
   document.getElementById('bgSortByScore').onclick = ()=>{
     const scored = [...results.values()].filter(r=> r.score !== '' && !isNaN(r.score));
     if(!scored.length){ formError('Preencha a pontuação para ordenar.'); return; }
     formError('');
-    // maior pontuação = 1º; empates ficam com a mesma posição
     const sorted = [...scored].sort((a,b)=> Number(b.score) - Number(a.score));
     sorted.forEach((r,i)=>{ r.position = i > 0 && Number(r.score) === Number(sorted[i-1].score) ? sorted[i-1].position : i + 1; });
     drawRows();
   };
-  drawRows();
+  // convidado na hora
+  document.getElementById('bgAddGuestInline').onclick = ()=>{
+    const box = document.getElementById('bgGuestInline');
+    box.hidden = !box.hidden;
+    if(!box.hidden) document.getElementById('bgGuestName').focus();
+  };
+  const addGuest = ()=>{
+    const inp = document.getElementById('bgGuestName');
+    const name = cleanName(inp.value);
+    if(!name) return;
+    const same = [...state.bg_guests, ...newGuests].find(g=> g.name.toLowerCase() === name.toLowerCase());
+    const g = same || {id: uid(), name, createdAt: new Date().toISOString(), createdBy: state.currentUser.username};
+    if(!same) newGuests.push(g);
+    results.set(GUEST + g.id, {name: g.name, position:'', score:'', faction:'', firstTime: isFirstTime(GUEST + g.id), team:''});
+    inp.value = '';
+    drawPlayers(); drawRows();
+  };
+  document.getElementById('bgGuestAdd').onclick = addGuest;
+  document.getElementById('bgGuestName').onkeydown = e=>{ if(e.key === 'Enter'){ e.preventDefault(); addGuest(); } };
+
+  // fotos (escolher ou arrastar)
+  const photoPick = document.getElementById('bgPhotoPick');
+  if(photoPick){
+    const photoInput = document.getElementById('bgPhotoInput');
+    const addFiles = async files=>{
+      for(const file of files){
+        try{
+          const data = await resizeImage(file, 1280, 0.72), key = uid();
+          newPhotos.push({key, data});
+          const el = document.createElement('div');
+          el.className = 'pm-thumb';
+          el.innerHTML = `<img src="${data}" alt=""><button type="button" class="pm-thumb-x" aria-label="Remover foto">${icon('x')}</button>`;
+          el.querySelector('button').onclick = ()=>{ newPhotos.splice(newPhotos.findIndex(p=> p.key === key), 1); el.remove(); };
+          photoPick.before(el);
+        }catch(e){ toast(`Não consegui abrir ${file.name}.`, 'error'); }
+      }
+      lucide.createIcons();
+    };
+    photoPick.onclick = ()=> photoInput.click();
+    photoInput.onchange = ()=>{ const f = [...photoInput.files]; photoInput.value = ''; addFiles(f); };
+    const drop = document.getElementById('bgPhotoThumbs');
+    drop.ondragover = e=>{ e.preventDefault(); drop.classList.add('drag-over'); };
+    drop.ondragleave = e=>{ if(!drop.contains(e.relatedTarget)) drop.classList.remove('drag-over'); };
+    drop.ondrop = e=>{ e.preventDefault(); drop.classList.remove('drag-over'); addFiles([...e.dataTransfer.files].filter(f=> f.type.startsWith('image/'))); };
+  }
+
+  drawPlayers(); drawExpansions(); drawRows();
 
   form.onsubmit = async e=>{
     e.preventDefault();
     const fd = new FormData(form);
     const gameId = fd.get('gameId');
-    const date = fd.get('date');
+    const md = mode();
     if(!gameId) return formError('Selecione o jogo.');
     if(!results.size) return formError('Marque quem jogou.');
-    const missing = [...results.values()].filter(r=> !r.position);
-    if(missing.length) return formError(`Defina a posição de ${missing.map(r=> r.username).join(', ')}.`);
+    const rows = [...results.entries()];
+    if(md === 'comp'){
+      const missing = rows.filter(([,r])=> !r.position);
+      if(missing.length) return formError(`Defina a posição de ${missing.map(([,r])=> r.name).join(', ')}.`);
+    }
+    if(md === 'teams'){
+      const noTeam = rows.filter(([,r])=> !r.team);
+      if(noTeam.length) return formError(`Escolha o time de ${noTeam.map(([,r])=> r.name).join(', ')}.`);
+      const teams = [...new Set(rows.map(([,r])=> r.team))];
+      if(teams.length < 2) return formError('Numa partida de times, precisa de pelo menos 2 times.');
+      const unplaced = teams.filter(t=> !teamPos[t]);
+      if(unplaced.length) return formError(`Defina a colocação do${unplaced.length > 1 ? 's times' : ' time'} ${unplaced.join(', ')}.`);
+    }
+    const coopVal = fd.get('coopWin');
+    if(md === 'coop' && coopVal == null) return formError('Marque se o grupo venceu ou perdeu.');
     formError(''); formBusy(true);
+    if(newGuests.length){
+      state.bg_guests.push(...newGuests.filter(g=> [...results.keys()].includes(GUEST + g.id)));
+      if(!await sSet('bg_guests', state.bg_guests)){ formBusy(false); return; }
+    }
+    const num = v => v === '' || v == null || isNaN(v) ? null : Number(v);
     const payload = {
-      date, gameId, gameName: bgGame(gameId).name, notes: fd.get('notes').trim(),
-      results: [...results.entries()].map(([userId, r])=> ({userId, username: r.username, position: Number(r.position),
-        score: r.score === '' || isNaN(r.score) ? null : Number(r.score)})).sort((a,b)=> a.position - b.position),
+      date: fd.get('date'), time: fd.get('time') || '', gameId, gameName: bgGame(gameId).name,
+      expansions: fd.getAll('expansions'), mode: md, coopWin: md === 'coop' ? coopVal === '1' : null,
+      duration: num(fd.get('duration')), location: fd.get('location').trim(), notes: fd.get('notes').trim(),
+      results: rows.map(([userId, r])=> ({userId, username: r.name,
+        position: md === 'comp' ? Number(r.position) : md === 'teams' ? Number(teamPos[r.team]) : null,
+        team: md === 'teams' ? r.team : '', score: num(r.score), faction: r.faction.trim(), firstTime: !!r.firstTime}))
+        .sort((a,b)=> (a.position||99) - (b.position||99)),
     };
     const now = new Date().toISOString();
+    let id;
     if(existing){
-      Object.assign(state.bg_matches.find(m=> m.id === existing.id), payload, {updatedAt: now, updatedBy: state.currentUser.username});
+      id = existing.id;
+      Object.assign(state.bg_matches.find(m=> m.id === id), payload, {updatedAt: now, updatedBy: state.currentUser.username});
     } else {
-      state.bg_matches.push({id: uid(), ...payload, createdAt: now, createdBy: state.currentUser.username});
+      id = uid();
+      state.bg_matches.push({id, ...payload, createdAt: now, createdBy: state.currentUser.username});
+    }
+    if(!await sSet('bg_matches', state.bg_matches)){ formBusy(false); return; }
+    if(newPhotos.length){
+      newPhotos.forEach(p=> state.bg_photos.push({id: uid(), photo: p.data, caption: bgGame(gameId).name, author: state.currentUser.username, date: payload.date, matchId: id}));
+      await sSet('bg_photos', state.bg_photos);
     }
     state.modal = null;
-    if(await sSet('bg_matches', state.bg_matches)){ render(); toast(existing ? 'Partida atualizada.' : 'Partida registrada.'); }
+    if(state.bgOpen) state.bgStack.push(state.bgOpen);
+    state.bgOpen = {kind:'match', id};
+    render(); window.scrollTo(0,0);
+    toast(existing ? 'Partida atualizada.' : 'Partida registrada.');
+  };
+}
+
+function bindBgGuestForm(){
+  const form = document.getElementById('bgGuestForm');
+  if(!form) return;
+  const existing = state.modal.data;
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const name = cleanName(fd.get('name'));
+    if(!name) return formError('Informe o nome.');
+    if(state.bg_guests.some(g=> g.name.toLowerCase() === name.toLowerCase() && (!existing || g.id !== existing.id))) return formError('Já existe um convidado com esse nome.');
+    formBusy(true);
+    if(existing) Object.assign(state.bg_guests.find(g=> g.id === existing.id), {name, linkedUserId: fd.get('linkedUserId') || ''});
+    else state.bg_guests.push({id: uid(), name, linkedUserId: '', createdAt: new Date().toISOString(), createdBy: state.currentUser.username});
+    state.modal = null;
+    if(await sSet('bg_guests', state.bg_guests)){ render(); toast(existing ? 'Convidado atualizado.' : 'Convidado adicionado.'); }
+  };
+  const del = document.getElementById('bgGuestDelete');
+  if(del) del.onclick = async ()=>{
+    if(!confirm(`Excluir o convidado ${existing.name}?`)) return;
+    state.bg_guests = state.bg_guests.filter(g=> g.id !== existing.id);
+    state.modal = null; state.bgOpen = state.bgStack.pop() || null;
+    if(await sSet('bg_guests', state.bg_guests)){ render(); toast('Convidado excluído.'); }
+  };
+}
+
+function bindBgRandomForm(){
+  const form = document.getElementById('bgRandomForm');
+  if(!form) return;
+  form.onsubmit = e=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const n = Number(fd.get('n')) || 0, time = Number(fd.get('time')) || 0, owned = !!fd.get('owned'), boost = !!fd.get('boost');
+    const pool = state.bg_games.filter(g=> g.type !== 'expansao'
+      && (!n || (g.players||[]).map(Number).includes(Math.min(n, MAX_BG_PLAYERS)))
+      && (!time || !g.time || g.time <= time)
+      && (!owned || (g.owners||[]).length));
+    const data = {n: fd.get('n'), time: fd.get('time'), owned, boost};
+    if(!pool.length){ state.modal.data = {...data, none: true}; render(); return; }
+    // peso: "quero jogar" e jogos pouco jogados têm mais chance
+    const weights = pool.map(g=> boost ? 1 + bgWanting(g.id, 'wantPlay').length * 2 + 3 / (1 + bgMatchesOf(g.id).length) : 1);
+    const total = weights.reduce((a,b)=> a+b, 0);
+    let r = Math.random() * total, pick = pool[0];
+    for(let i = 0; i < pool.length; i++){ r -= weights[i]; if(r <= 0){ pick = pool[i]; break; } }
+    // pequena animação de "roleta"
+    const outEl = document.getElementById('bgRandomOut');
+    let spins = 0;
+    const timer = setInterval(()=>{
+      const g = pool[Math.floor(Math.random() * pool.length)];
+      outEl.innerHTML = `<div class="bg-spin">${esc(g.name)}</div>`;
+      if(++spins > 12){ clearInterval(timer); state.modal.data = {...data, pickId: pick.id}; render(); }
+    }, 70);
   };
 }
 
@@ -2590,6 +3946,8 @@ function renderModal(){
   if(m.type === 'user') return renderUserModal(m.data);
   if(m.type === 'bgGame') return renderBgGameModal(m.data);
   if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
+  if(m.type === 'bgGuest') return renderBgGuestModal(m.data);
+  if(m.type === 'bgRandom') return renderBgRandomModal();
   return '';
 }
 // valores do cadastro já na escala 0-10 (cadastros antigos eram 0-99)
@@ -3054,10 +4412,12 @@ function bindModalEvents(){
       if(!pendingMuralPhoto){ toast('Escolha uma foto.', 'error'); return; }
       const fd = new FormData(photoForm);
       const key = (state.modal.data && state.modal.data.collection) || 'mural';
-      state[key].push({
+      const photo = {
         id: uid(), photo: pendingMuralPhoto, caption: fd.get('caption')||'',
-        author: (fd.get('authorName')||'').trim() || 'Anônimo', date: new Date().toISOString().slice(0,10)
-      });
+        author: (fd.get('authorName')||'').trim() || 'Anônimo', date: localToday()
+      };
+      if(state.modal.data && state.modal.data.matchId) photo.matchId = state.modal.data.matchId;   // foto de uma partida do BoardGame
+      state[key].push(photo);
       state.modal = null;
       if(await sSet(key, state[key])){ render(); toast('Foto publicada.'); }
     };

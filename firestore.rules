@@ -61,11 +61,25 @@ service cloud.firestore {
     }
 
     // ---------- BoardGame ----------
-    match /bg_games/{id} {          // biblioteca de jogos (as partidas apontam para cá)
+    match /bg_games/{id} {          // jogos do grupo (as partidas apontam para cá)
       allow read: if isUser();
       allow create: if can('bg.games.create');
-      allow update: if can('bg.games.edit');
+      // qualquer jogador do BoardGame pode marcar/desmarcar "Tenho" (só o campo owners)
+      allow update: if can('bg.games.edit')
+                    || (can('boardgame.view') && onlyChanged(['owners', '_order']));
       allow delete: if can('bg.games.delete');
+    }
+    // convidados (quem joga sem ter conta no site)
+    match /bg_guests/{id} {
+      allow read: if isUser();
+      allow create, update: if can('bg.matches.create') || can('bg.matches.edit');
+      allow delete: if can('bg.matches.delete');
+    }
+    // coleção pessoal: quero jogar, quero ter e notas. Cada um grava só o próprio documento.
+    match /bg_collection/{uid} {
+      allow read: if isUser();
+      allow create, update: if can('boardgame.view') && request.auth.uid == uid && request.resource.data.id == uid;
+      allow delete: if isAdmin() || (isUser() && request.auth.uid == uid);
     }
     match /bg_matches/{id} {
       allow read: if isUser();

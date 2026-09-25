@@ -576,14 +576,30 @@ button .lucide{vertical-align:-4px;}
 .pm-cover img{width:100%; height:100%; object-fit:cover; display:block;}
 .pm-cover > .lucide{width:34px; height:34px; opacity:.5;}
 /* sem foto: a capa é a miniatura do vídeo e o play fica no centro; com foto: botão no canto */
-.pm-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%; border:0; padding:0;
-  display:flex; align-items:center; justify-content:center; gap:2px; color:#fff; background:rgba(0,0,0,.6); cursor:pointer; transition:background .15s, transform .15s;}
-.pm-play:hover{background:var(--accent); color:#111; transform:translate(-50%,-50%) scale(1.08);}
+/* carrossel da capa (arrasta no celular, setas no computador) */
+.pm-slides{position:absolute; inset:0; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth; scrollbar-width:none;}
+.pm-slides::-webkit-scrollbar{display:none;}
+.pm-slide{position:relative; flex:0 0 100%; scroll-snap-align:start; background:#000;}
+.pm-slide-video{cursor:pointer;}
+.pm-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:#fff; background:rgba(0,0,0,.6); transition:background .15s, transform .15s; pointer-events:none;}
+.pm-slide-video:hover .pm-play{background:var(--accent); color:#111; transform:translate(-50%,-50%) scale(1.08);}
 .pm-play .lucide{width:28px; height:28px; fill:currentColor; margin-left:3px;}
-.pm-play span{font-size:12px; font-weight:700;}
-.pm-play.corner{left:auto; top:auto; right:10px; bottom:10px; transform:none; width:auto; height:36px; padding:0 12px; border-radius:18px;}
-.pm-play.corner:hover{transform:scale(1.06);}
-.pm-play.corner .lucide{width:18px; height:18px; margin-left:0;}
+.pm-nav{position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; border:0; padding:0;
+  display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); color:#fff; opacity:0; transition:opacity .15s;}
+.pm-nav.prev{left:8px;} .pm-nav.next{right:8px;}
+.pm-nav .lucide{width:18px; height:18px;}
+.pm-card:hover .pm-nav, .pm-nav:focus-visible{opacity:1;}
+.pm-nav[disabled]{opacity:0 !important; pointer-events:none;}
+@media (hover:none){ .pm-nav{display:none;} }
+.pm-dots{position:absolute; left:0; right:0; bottom:8px; display:flex; justify-content:center; gap:5px; pointer-events:none;}
+.pm-dots span{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.45); transition:background .15s, transform .15s;}
+.pm-dots span.vid{border-radius:1px; transform:rotate(45deg) scale(.9);}
+.pm-dots span.on{background:#fff;}
+.pm-vbadge{position:absolute; top:8px; right:8px; display:flex; align-items:center; gap:5px; padding:4px 10px 4px 8px; border:0; border-radius:14px;
+  background:rgba(0,0,0,.65); color:#fff; font-size:12px; font-weight:600;}
+.pm-vbadge:hover{background:var(--accent); color:#111;}
+.pm-vbadge .lucide{width:13px; height:13px; fill:currentColor;}
 /* popup do vídeo */
 .video-pop{background:#000; width:min(960px, 94vw); position:relative;}
 .video-pop .video-embed{aspect-ratio:16/9;}
@@ -1691,13 +1707,23 @@ function renderMatches(){
 }
 function matchCard(m){
   const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
-  const cover = photos.length ? photos[0].photo : videos.length ? ytThumb(videos[0].url) : '';
   const MAX = 9;
+  // carrossel da capa: primeiro as fotos, depois os vídeos (clicar num vídeo abre o popup)
+  const slides = [
+    ...photos.slice(0, 6).map(p=> `<div class="pm-slide"><img src="${p.photo}" loading="lazy" alt=""></div>`),
+    ...videos.map((v,i)=> `<div class="pm-slide pm-slide-video" data-play-match="${m.id}" data-play-idx="${i}" title="Assistir: ${esc(v.title)}">
+        <img src="${ytThumb(v.url)}" loading="lazy" alt=""><span class="pm-play">${icon('play')}</span></div>`),
+  ];
+  const firstVideo = slides.length - videos.length;
   return `
   <div class="pm-card" data-open-match="${m.id}" role="button" tabindex="0">
     <div class="pm-cover">
-      ${cover ? `<img src="${cover}" loading="lazy" alt="">` : icon('calendar-days')}
-      ${videos.length ? `<button type="button" class="pm-play ${photos.length ? 'corner' : ''}" data-play-match="${m.id}" title="Assistir vídeo${videos.length > 1 ? 's' : ''}" aria-label="Assistir vídeo">${icon('play')}${videos.length > 1 ? `<span>${videos.length}</span>` : ''}</button>` : ''}
+      ${slides.length ? `<div class="pm-slides" data-slides>${slides.join('')}</div>` : icon('calendar-days')}
+      ${slides.length > 1 ? `
+        <button type="button" class="pm-nav prev" data-slide-nav="-1" aria-label="Anterior">${icon('chevron-left')}</button>
+        <button type="button" class="pm-nav next" data-slide-nav="1" aria-label="Próximo">${icon('chevron-right')}</button>
+        <div class="pm-dots">${slides.map((_,i)=> `<span class="${i===0?'on':''} ${i>=firstVideo?'vid':''}"></span>`).join('')}</div>` : ''}
+      ${videos.length && firstVideo > 0 ? `<button type="button" class="pm-vbadge" data-slide-to="${firstVideo}">${icon('play')}${videos.length} vídeo${videos.length===1?'':'s'}</button>` : ''}
     </div>
     <div class="pm-body">
       <div class="pm-date">${formatFullDate(m.date)}</div>
@@ -2386,10 +2412,32 @@ function bindViewEvents(){
   document.querySelectorAll('[data-play-match]').forEach(b=>{
     b.onclick = e=>{
       e.stopPropagation();   // não abre a partida, só o vídeo
-      state.modal = {type:'playVideo', data:{matchId: b.dataset.playMatch, idx: 0}};
+      state.modal = {type:'playVideo', data:{matchId: b.dataset.playMatch, idx: Number(b.dataset.playIdx) || 0}};
       render();
     };
-    b.onkeydown = e=> e.stopPropagation();
+  });
+  // carrossel das capas
+  document.querySelectorAll('[data-slides]').forEach(track=>{
+    const cover = track.parentElement;
+    const dots = [...cover.querySelectorAll('.pm-dots span')];
+    const prev = cover.querySelector('.pm-nav.prev'), next = cover.querySelector('.pm-nav.next');
+    const current = ()=> Math.round(track.scrollLeft / track.clientWidth);
+    const sync = ()=>{
+      const i = current();
+      dots.forEach((d,k)=> d.classList.toggle('on', k === i));
+      if(prev) prev.disabled = i === 0;
+      if(next) next.disabled = i === dots.length - 1;
+    };
+    const go = i=> track.scrollTo({left: i * track.clientWidth});
+    track.addEventListener('scroll', sync, {passive:true});
+    sync();
+    cover.querySelectorAll('[data-slide-nav]').forEach(b=>{
+      b.onclick = e=>{ e.stopPropagation(); go(current() + Number(b.dataset.slideNav)); };
+    });
+    cover.querySelectorAll('[data-slide-to]').forEach(b=>{
+      b.onclick = e=>{ e.stopPropagation(); go(Number(b.dataset.slideTo)); };
+    });
+    cover.querySelectorAll('button').forEach(b=> b.onkeydown = e=> e.stopPropagation());
   });
   document.querySelectorAll('[data-play-step]').forEach(b=>{
     b.onclick = ()=>{ state.modal.data.idx += Number(b.dataset.playStep); render(); };

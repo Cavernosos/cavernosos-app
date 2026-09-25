@@ -575,8 +575,21 @@ button .lucide{vertical-align:-4px;}
 .pm-cover{position:relative; aspect-ratio:16/9; background:var(--bg-elev); display:flex; align-items:center; justify-content:center; color:var(--text-faint); overflow:hidden;}
 .pm-cover img{width:100%; height:100%; object-fit:cover; display:block;}
 .pm-cover > .lucide{width:34px; height:34px; opacity:.5;}
-.pm-play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; background:rgba(0,0,0,.25);}
-.pm-play .lucide{width:40px; height:40px; fill:currentColor;}
+/* sem foto: a capa é a miniatura do vídeo e o play fica no centro; com foto: botão no canto */
+.pm-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%; border:0; padding:0;
+  display:flex; align-items:center; justify-content:center; gap:2px; color:#fff; background:rgba(0,0,0,.6); cursor:pointer; transition:background .15s, transform .15s;}
+.pm-play:hover{background:var(--accent); color:#111; transform:translate(-50%,-50%) scale(1.08);}
+.pm-play .lucide{width:28px; height:28px; fill:currentColor; margin-left:3px;}
+.pm-play span{font-size:12px; font-weight:700;}
+.pm-play.corner{left:auto; top:auto; right:10px; bottom:10px; transform:none; width:auto; height:36px; padding:0 12px; border-radius:18px;}
+.pm-play.corner:hover{transform:scale(1.06);}
+.pm-play.corner .lucide{width:18px; height:18px; margin-left:0;}
+/* popup do vídeo */
+.video-pop{background:#000; width:min(960px, 94vw); position:relative;}
+.video-pop .video-embed{aspect-ratio:16/9;}
+.video-pop-bar{display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg-elev); color:var(--text);}
+.video-pop-bar .t{flex:1; min-width:0; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.video-pop-bar .n{font-size:12px; color:var(--text-faint);}
 .pm-body{padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px;}
 .pm-date{font-family:'Oswald'; font-size:18px; color:var(--text);}
 .pm-label{font-size:13px; color:var(--text-dim); margin-top:-6px;}
@@ -1684,7 +1697,7 @@ function matchCard(m){
   <div class="pm-card" data-open-match="${m.id}" role="button" tabindex="0">
     <div class="pm-cover">
       ${cover ? `<img src="${cover}" loading="lazy" alt="">` : icon('calendar-days')}
-      ${!photos.length && videos.length ? `<span class="pm-play">${icon('play')}</span>` : ''}
+      ${videos.length ? `<button type="button" class="pm-play ${photos.length ? 'corner' : ''}" data-play-match="${m.id}" title="Assistir vídeo${videos.length > 1 ? 's' : ''}" aria-label="Assistir vídeo">${icon('play')}${videos.length > 1 ? `<span>${videos.length}</span>` : ''}</button>` : ''}
     </div>
     <div class="pm-body">
       <div class="pm-date">${formatFullDate(m.date)}</div>
@@ -1798,7 +1811,7 @@ function renderVideoGrid(cfg){
         return `
         <div class="video-card">
           <div class="video-embed">
-            ${ytid ? `<iframe src="https://www.youtube.com/embed/${ytid}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
+            ${ytid ? `<iframe src="https://www.youtube.com/embed/${ytid}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`
               : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:12.5px;">Link de vídeo inválido</div>`}
           </div>
           <div class="cap" style="display:flex; align-items:flex-start; gap:8px;">
@@ -2370,6 +2383,17 @@ function bindViewEvents(){
   // partidas
   const addMatchBtn = document.getElementById('addMatchBtn');
   if(addMatchBtn) addMatchBtn.onclick = ()=>{ state.modal = {type:'match', data:null}; render(); };
+  document.querySelectorAll('[data-play-match]').forEach(b=>{
+    b.onclick = e=>{
+      e.stopPropagation();   // não abre a partida, só o vídeo
+      state.modal = {type:'playVideo', data:{matchId: b.dataset.playMatch, idx: 0}};
+      render();
+    };
+    b.onkeydown = e=> e.stopPropagation();
+  });
+  document.querySelectorAll('[data-play-step]').forEach(b=>{
+    b.onclick = ()=>{ state.modal.data.idx += Number(b.dataset.playStep); render(); };
+  });
   document.querySelectorAll('[data-open-match]').forEach(b=>{
     const open = ()=>{ state.openMatchId = b.dataset.openMatch; render(); window.scrollTo(0,0); };
     b.onclick = open;
@@ -2415,6 +2439,7 @@ function renderModal(){
   if(m.type === 'match') return renderMatchModal();
   if(m.type === 'photo') return renderPhotoModal();
   if(m.type === 'video') return renderVideoModal();
+  if(m.type === 'playVideo') return renderVideoPlayer();
   if(m.type === 'account') return renderAccountModal();
   if(m.type === 'user') return renderUserModal(m.data);
   if(m.type === 'bgGame') return renderBgGameModal(m.data);
@@ -2493,6 +2518,30 @@ function renderPlayerModal(player){
           <button type="submit" class="primary">${isEdit ? 'Salvar' : 'Adicionar'}</button>
         </div>
       </form>
+    </div>
+  </div>`;
+}
+// popup com o vídeo tocando; com mais de um vídeo, setas para trocar
+function renderVideoPlayer(){
+  const {matchId, idx} = state.modal.data;
+  const m = state.matches.find(x=> x.id === matchId);
+  const videos = m ? matchVideos(m) : [];
+  const v = videos[idx];
+  if(!v) return '';
+  const ytid = extractYoutubeId(v.url);
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="video-pop" role="dialog" aria-label="${esc(v.title)}">
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/${ytid}?autoplay=1&rel=0" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+      <div class="video-pop-bar">
+        ${videos.length > 1 ? `<button class="icon-btn" data-play-step="-1" ${idx === 0 ? 'disabled' : ''} title="Vídeo anterior" aria-label="Vídeo anterior">${icon('chevron-left')}</button>` : ''}
+        <div class="t">${esc(v.title)}</div>
+        ${videos.length > 1 ? `<span class="n">${idx+1} de ${videos.length}</span>
+        <button class="icon-btn" data-play-step="1" ${idx === videos.length-1 ? 'disabled' : ''} title="Próximo vídeo" aria-label="Próximo vídeo">${icon('chevron-right')}</button>` : ''}
+        <button class="icon-btn" id="cancelModal" title="Fechar" aria-label="Fechar">${icon('x')}</button>
+      </div>
     </div>
   </div>`;
 }

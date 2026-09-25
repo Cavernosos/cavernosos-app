@@ -36,8 +36,8 @@ service cloud.firestore {
     match /matches/{id} {
       allow read: if isUser();
       allow create: if can('matches.create');
-      allow update: if (can('matches.score') && onlyChanged(['presence', 'goals', '_order']))
-                    || (can('matches.finalize') && onlyChanged(['finalized', '_order']))
+      // "Editar partidas": data, presentes e observações (e os gols dos registros antigos)
+      allow update: if (can('matches.score') && onlyChanged(['date', 'presence', 'notes', 'goals', '_order']))
                     || isAdmin();
       allow delete: if can('matches.delete');
     }

@@ -566,6 +566,53 @@ button .lucide{vertical-align:-4px;}
 }
 .modal h3{font-size:19px; margin-bottom:20px;}
 .modal-actions{display:flex; gap:10px; margin-top:22px; justify-content:flex-end;}
+.modal.modal-wide{max-width:640px;}
+
+/* ---------- partidas ---------- */
+.pm-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px;}
+.pm-card{background:var(--bg-card); border:1px solid var(--border-soft); cursor:pointer; display:flex; flex-direction:column; transition:border-color .15s;}
+.pm-card:hover, .pm-card:focus-visible{border-color:var(--accent-dim); outline:none;}
+.pm-cover{position:relative; aspect-ratio:16/9; background:var(--bg-elev); display:flex; align-items:center; justify-content:center; color:var(--text-faint); overflow:hidden;}
+.pm-cover img{width:100%; height:100%; object-fit:cover; display:block;}
+.pm-cover > .lucide{width:34px; height:34px; opacity:.5;}
+.pm-play{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; background:rgba(0,0,0,.25);}
+.pm-play .lucide{width:40px; height:40px; fill:currentColor;}
+.pm-body{padding:14px 16px 16px; display:flex; flex-direction:column; gap:10px;}
+.pm-date{font-family:'Oswald'; font-size:18px; color:var(--text);}
+.pm-label{font-size:13px; color:var(--text-dim); margin-top:-6px;}
+.pm-avatars{display:flex; align-items:center;}
+.pm-avatars > span{margin-right:-8px;}
+.pm-av{width:28px; height:28px; border-radius:50%; object-fit:cover; background:var(--bg-elev); border:2px solid var(--bg-card); flex-shrink:0;}
+.pm-more{margin-left:14px; font-size:12px; color:var(--text-faint);}
+.pm-meta{display:flex; gap:14px; font-size:12.5px; color:var(--text-dim); flex-wrap:wrap;}
+.pm-meta span{display:inline-flex; align-items:center; gap:5px;}
+.pm-meta .lucide{width:14px; height:14px;}
+.pm-notes{font-size:13px; color:var(--text-dim); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line;}
+.pm-notes-full{font-size:14px; line-height:1.55; white-space:pre-line; max-width:75ch;}
+.pm-present{display:flex; flex-wrap:wrap; gap:8px;}
+.pm-chip{display:flex; align-items:center; gap:8px; padding:5px 12px 5px 5px; border:1px solid var(--border-soft); background:var(--bg-card); font-size:13px;}
+.pm-chip .pm-av{border:0;}
+.pm-chip b{font-weight:600; color:var(--accent); font-size:11.5px;}
+.pm-loose{margin-top:36px; border-top:1px solid var(--border-soft); padding-top:16px;}
+.pm-loose summary{cursor:pointer; color:var(--text-dim); font-size:13.5px; display:flex; align-items:center; gap:8px;}
+.pm-loose summary .lucide{width:16px; height:16px;}
+.pm-field-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px;}
+.pm-count{display:inline-block; min-width:22px; text-align:center; padding:1px 7px; margin-left:6px; background:var(--accent-soft); color:var(--accent); font-size:11.5px;}
+.pm-mini{padding:4px 10px; font-size:12px;}
+.pm-presence{margin-top:0; grid-template-columns:repeat(auto-fill, minmax(170px,1fr)); gap:6px;}
+.pm-presence .presence-item{margin:0; cursor:pointer; padding:7px 10px; color:var(--text);}
+.pm-presence .presence-item > div:not(.pname){width:26px; height:26px; border-radius:50%; background:var(--bg-elev); flex-shrink:0;}
+.pm-presence .presence-item img{width:26px; height:26px;}
+.pm-thumbs{display:grid; grid-template-columns:repeat(auto-fill, minmax(92px,1fr)); gap:8px;}
+.pm-thumb{position:relative; aspect-ratio:1; background:var(--bg); border:1px solid var(--border-soft); overflow:hidden;}
+.pm-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+.pm-thumb-x{position:absolute; top:4px; right:4px; padding:3px; background:rgba(0,0,0,.6); color:#fff; border:0; display:flex;}
+.pm-thumb-x .lucide{width:14px; height:14px;}
+.pm-thumb-add{border:1px dashed var(--border); color:var(--text-dim); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; font-size:11.5px; background:transparent; padding:0;}
+.pm-video-row{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--border-soft); margin-bottom:6px; font-size:13px;}
+.pm-video-row > .lucide{width:16px; height:16px; color:var(--text-faint); flex-shrink:0;}
+.pm-video-title{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+textarea{width:100%; resize:vertical;}
 .photo-pick{
   border:1px dashed var(--border); padding:16px; text-align:center; font-size:12.5px;
   color:var(--text-dim); cursor:pointer; margin-bottom:6px;
@@ -722,14 +769,10 @@ const PERM_TREE = [
       {key:'players.vote', label:'Votar nas habilidades dos jogadores'},
     ]},
     {label:'Partidas', icon:'calendar-days', children:[
-      {key:'matches.view', label:'Ver partidas'},
-      {key:'matches.create', label:'Criar partidas'},
-      {key:'matches.score', label:'Marcar presença e gols'},
-      {key:'matches.finalize', label:'Encerrar e reabrir partidas'},
+      {key:'matches.view', label:'Ver partidas', note:'com as fotos e vídeos de cada uma'},
+      {key:'matches.create', label:'Registrar partidas'},
+      {key:'matches.score', label:'Editar partidas', note:'data, presentes e observações'},
       {key:'matches.delete', label:'Excluir partidas'},
-    ]},
-    {label:'Melhores Momentos', icon:'clapperboard', children:[
-      {key:'moments.view', label:'Ver melhores momentos'},
       {label:'Vídeos', children:[
         {key:'videos.create', label:'Adicionar vídeos'},
         {key:'videos.delete', label:'Excluir vídeos'},
@@ -783,7 +826,7 @@ const PERM_TREE = [
 ];
 function permLeaves(nodes){ return nodes.flatMap(n=> n.children ? permLeaves(n.children) : [n.key]); }
 const ALL_PERMS = permLeaves(PERM_TREE);
-const DEFAULT_USER_PERMS = ['dashboard.view','players.view','players.vote','matches.view','matches.score','moments.view','videos.create','photos.create',
+const DEFAULT_USER_PERMS = ['dashboard.view','players.view','players.vote','matches.view','matches.score','videos.create','photos.create',
   'boardgame.view','bg.matches.create','bg.games.create','bg.videos.create','bg.photos.create',
   'games.view','games.videos.create','outros.view','outros.videos.create'];
 
@@ -994,6 +1037,7 @@ let state = {
   bgMatchGame: 'all',
   bgLibSearch: '',
   videoFilters: {}, // por coleção: {date, q}
+  matchFilter: {date:'', q:''},
   openMatchId: null,
   modal: null // {type, data}
 };
@@ -1009,9 +1053,12 @@ function starsHtml(count, cls){
   for(let i=1;i<=5;i++){ out += `<span class="${i<=count ? 'filled' : i-0.5<=count ? 'half' : ''}">★</span>`; }
   return `<div class="${cls}" title="${String(count).replace('.',',')} estrela${count===1?'':'s'}">${out}</div>`;
 }
-// Nível em estrelas = média das 6 habilidades (0-99) convertida para 0-5, de meia em meia.
-function ovrToStars(ovr){ return Math.round(ovr / 99 * 10) / 2; }
-function playerStars(player){ return ovrToStars(computeOVR(player)); }
+// Notas vão de 0 a 10 (inteiros). Votos e cadastros antigos eram de 0 a 99 e são convertidos na leitura.
+const clamp10 = v => Math.max(0, Math.min(10, Math.round(Number(v) || 0)));
+const from99 = v => clamp10(v / 10);
+// Nível em estrelas = média das 6 habilidades (0-10) convertida para 0-5, de meia em meia.
+function ovrToStars(avg){ return Math.round(avg) / 2; }
+function playerStars(player){ return ovrToStars(attrAverage(player)); }
 const PLAYER_TYPES = ['Mensalista','Diarista','Goleiro'];
 const FIELD_ATTRS = [
   {k:'rit', abbr:'RIT', name:'Ritmo',       hint:'Aceleração e pique'},
@@ -1034,27 +1081,34 @@ function playerAttrDefs(player){ return isGK(player) ? GK_ATTRS : FIELD_ATTRS; }
 // Votos completos (os 6 campos) que o jogador recebeu, conforme o tipo atual dele.
 function playerVotes(player){
   const defs = playerAttrDefs(player);
-  return (state.votes || []).map(v=> v.ratings && v.ratings[player.id])
-    .filter(r=> r && defs.every(d=> typeof r[d.k] === 'number'));
+  return (state.votes || [])
+    .map(v=>{
+      const r = v.ratings && v.ratings[player.id];
+      if(!r || !defs.every(d=> typeof r[d.k] === 'number')) return null;
+      if(v.scale === 10) return r;
+      const out = {}; defs.forEach(d=> out[d.k] = from99(r[d.k])); return out;   // voto antigo (0-99)
+    })
+    .filter(Boolean);
 }
-// Com votos, vale a média deles; sem votos, os valores do cadastro.
+// Com votos, vale a média deles; sem votos, os valores do cadastro. Sempre inteiros de 0 a 10.
 function playerAttrValues(player){
   const defs = playerAttrDefs(player);
   const votes = playerVotes(player);
   const out = {};
   if(votes.length){
-    defs.forEach(d=> out[d.k] = Math.round(votes.reduce((s,r)=> s + r[d.k], 0) / votes.length));
+    defs.forEach(d=> out[d.k] = clamp10(votes.reduce((s,r)=> s + r[d.k], 0) / votes.length));
     return out;
   }
   const src = isGK(player) ? player.gkAttrs : player.attrs;
-  defs.forEach(d=> out[d.k] = src && src[d.k] != null ? src[d.k] : 50);
+  defs.forEach(d=> out[d.k] = src && src[d.k] != null ? (player.attrScale === 10 ? clamp10(src[d.k]) : from99(src[d.k])) : 5);
   return out;
 }
-function computeOVR(player){
+function attrAverage(player){
   const v = playerAttrValues(player);
   const keys = Object.keys(v);
-  return Math.round(keys.reduce((s,k)=> s + v[k], 0) / keys.length);
+  return keys.reduce((s,k)=> s + v[k], 0) / keys.length;
 }
+function computeOVR(player){ return clamp10(attrAverage(player)); }
 const KNOWN_ATTRS = {
   'maciel': {rit:70,fin:85,pas:80,dri:45,def:90,fis:70},
   'resende': {rit:60,fin:90,pas:78,dri:62,def:70,fis:62},
@@ -1170,7 +1224,6 @@ const ENVS = [
     {id:'players', label:'Jogadores', icon:'users', perm:'players.view'},
     {id:'votes', label:'Votação', icon:'vote', perm:'players.vote'},
     {id:'matches', label:'Partidas', icon:'calendar-days', perm:'matches.view'},
-    {id:'mural', label:'Melhores Momentos', icon:'clapperboard', perm:'moments.view'},
   ]},
   {id:'boardgame', label:'BoardGame', icon:'dices', perm:'boardgame.view', nav:[
     {id:'bg-matches', label:'Partidas', icon:'swords'},
@@ -1304,8 +1357,7 @@ function renderView(){
   if(state.view === 'dashboard') return renderDashboard();
   if(state.view === 'players') return renderPlayers();
   if(state.view === 'votes') return renderVotes();
-  if(state.view === 'matches') return renderMatches();
-  if(state.view === 'mural') return renderMural();
+  if(state.view === 'matches' || state.view === 'mural') return renderMatches();
   if(state.view === 'users') return renderUsers();
   if(state.view === 'games-videos') return renderGamesVideos();
   if(state.view === 'bg-matches') return renderBgMatches();
@@ -1462,8 +1514,14 @@ function myVotes(){
   const v = uid && state.votes.find(x=> x.id === uid);
   return (v && v.ratings) || {};
 }
+function myVotesScale(){
+  const uid = auth.currentUser ? auth.currentUser.uid : state.currentUser && state.currentUser.id;
+  const v = uid && state.votes.find(x=> x.id === uid);
+  return v && v.scale;
+}
 function renderVotes(){
   const mine = myVotes();
+  const mineScale = myVotesScale();
   const players = [...state.players].sort((a,b)=> playerName(a).localeCompare(playerName(b)));
   const done = players.filter(p=> playerAttrDefs(p).every(d=> mine[p.id] && typeof mine[p.id][d.k] === 'number')).length;
   const meId = state.currentUser && state.currentUser.id;
@@ -1472,7 +1530,7 @@ function renderVotes(){
     <div class="page-head">
       <div class="kicker">Elenco</div>
       <h2>Votação</h2>
-      <p>Dê sua nota de 0 a 99 em cada habilidade. A média dos votos de todos forma as habilidades e as estrelas dos cards.</p>
+      <p>Dê sua nota de 0 a 10 (só números inteiros) em cada habilidade. A média dos votos de todos forma as habilidades e as estrelas dos cards.</p>
     </div>
     ${players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` : `
     <details class="vote-legend">
@@ -1501,7 +1559,7 @@ function renderVotes(){
               ${playerAttrDefs(p).map(d=>`
               <label class="vote-field" title="${d.name}${d.hint ? ': '+d.hint : ''}">
                 <span>${d.abbr}</span>
-                <input type="number" min="0" max="99" inputmode="numeric" placeholder="–" name="${p.id}.${d.k}" value="${typeof r[d.k] === 'number' ? r[d.k] : ''}" aria-label="${esc(playerName(p))}: ${d.name}">
+                <input type="number" min="0" max="10" step="1" inputmode="numeric" placeholder="–" name="${p.id}.${d.k}" value="${typeof r[d.k] === 'number' ? (mineScale === 10 ? r[d.k] : from99(r[d.k])) : ''}" aria-label="${esc(playerName(p))}: ${d.name}">
               </label>`).join('')}
             </div>
           </div>`;
@@ -1529,12 +1587,12 @@ function bindVotesEvents(){
       if(vals.every(v=> v === '')) return;               // não votou nesse jogador
       if(vals.some(v=> v === '')){ incomplete.push(playerName(p)); return; }
       ratings[p.id] = {};
-      defs.forEach((d,i)=> ratings[p.id][d.k] = Math.max(0, Math.min(99, parseInt(vals[i], 10) || 0)));
+      defs.forEach((d,i)=> ratings[p.id][d.k] = clamp10(vals[i]));
     });
     if(incomplete.length) return formError(`Preencha os 6 campos de: ${incomplete.join(', ')}.`);
     formError(''); formBusy(true);
     const vid = auth.currentUser.uid;   // as regras exigem o documento com o uid do login
-    const doc = {id: vid, voter: me.username, ratings, updatedAt: new Date().toISOString()};
+    const doc = {id: vid, voter: me.username, ratings, scale: 10, updatedAt: new Date().toISOString()};
     try{
       await db.collection('votes').doc(vid).set(doc);
       state.votes = state.votes.filter(v=> v.id !== vid).concat(doc);
@@ -1550,134 +1608,128 @@ function bindVotesEvents(){
   };
 }
 
-/* ============ MATCHES ============ */
-function renderMatches(){
-  if(state.openMatchId){
-    return renderMatchDetail(state.openMatchId);
-  }
-  const sorted = [...state.matches].sort((a,b)=> b.date.localeCompare(a.date));
-  return `
-    <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
-      <div>
-        <div class="kicker">Registro</div>
-        <h2>Partidas</h2>
-        <p>Confirme presença e registre os gols de cada rodada.</p>
-      </div>
-      ${can('matches.create') ? `<button class="primary btn-icon" id="addMatchBtn">${icon('plus')}Nova partida</button>` : ''}
-    </div>
-    ${sorted.length === 0 ? `<div class="empty">Nenhuma partida registrada ainda.</div>` : `
-    <div class="match-list">
-      ${sorted.map(m=>{
-        const goals = Object.values(m.goals||{}).reduce((a,b)=>a+b,0);
-        const dateFmt = formatDate(m.date);
-        return `
-        <div class="match-row" data-open-match="${m.id}">
-          <div class="match-date">${dateFmt}</div>
-          <div class="match-info">
-            <div class="label-line">${esc(m.label || 'Pelada')}</div>
-            <div class="sub-line">${(m.presence||[]).length} presentes · ${goals} gol${goals===1?'':'s'}</div>
-          </div>
-          <div class="match-status ${m.finalized ? 'closed' : 'open'}">${m.finalized ? 'Encerrada' : 'Aberta'}</div>
-        </div>`;
-      }).join('')}
-    </div>`}
-  `;
-}
-function renderMatchDetail(matchId){
-  const m = state.matches.find(x=>x.id===matchId);
-  if(!m){ state.openMatchId = null; return renderMatches(); }
-  const presenceSet = new Set(m.presence||[]);
-  const locked = m.finalized || !can('matches.score');
-  const canFinalize = can('matches.finalize'), canDelete = can('matches.delete');
-  return `
-    <div class="page-head">
-      <button class="ghost btn-icon" id="backToMatches" style="padding:6px 0; margin-bottom:14px;">${icon('arrow-left')}Partidas</button>
-      <div class="kicker">${formatDate(m.date)}</div>
-      <h2>${esc(m.label || 'Pelada')}</h2>
-      <p>${can('matches.score') ? 'Marque quem esteve presente e registre os gols de cada um.' : 'Presenças e gols desta partida.'}</p>
-    </div>
-    <div class="presence-grid">
-      ${state.players.map(p=>{
-        const present = presenceSet.has(p.id);
-        const g = (m.goals && m.goals[p.id]) || 0;
-        return `
-        <div class="presence-item ${present?'present':''}">
-          <input type="checkbox" class="checkbox" data-presence-toggle="${p.id}" ${present?'checked':''} ${locked?'disabled':''}>
-          ${playerPhotoTag(p,'')}
-          <div class="pname">${esc(playerName(p))}</div>
-          ${present ? `
-          <div class="goal-ctrl">
-            ${locked ? '' : `<button data-goal-minus="${p.id}">&minus;</button>`}
-            <div class="gnum">${g}</div>
-            ${locked ? '' : `<button data-goal-plus="${p.id}">+</button>`}
-          </div>` : ''}
-        </div>`;
-      }).join('')}
-    </div>
-    ${canFinalize || canDelete ? `
-    <div style="margin-top:24px; display:flex; gap:10px;">
-      ${canFinalize ? `<button id="toggleFinalize">${m.finalized ? 'Reabrir partida' : 'Encerrar partida'}</button>` : ''}
-      ${canDelete ? `<button class="danger" id="deleteMatch">Excluir partida</button>` : ''}
-    </div>` : ''}
-  `;
-}
 function formatDate(iso){
   const d = new Date(iso + 'T12:00:00');
   return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}).replace('.','');
 }
 
-/* ============ MELHORES MOMENTOS ============ */
+/* ============ CANAIS ============ */
 const YT_ICON = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.2s-.2-1.5-.8-2.1c-.8-.8-1.7-.8-2.1-.9C15.9 4 12 4 12 4h0s-3.9 0-6.7.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2.1-.8 2.1S2.2 9 2.2 10.7v1.6C2.2 14 2.4 15.8 2.4 15.8s.2 1.5.8 2.1c.8.8 1.8.8 2.3.9 1.7.2 7.1.2 7.1.2s3.9 0 6.7-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2.1.8-2.1s.2-1.8.2-3.5v-1.6c0-1.7-.2-3.5-.2-3.5zM9.9 14.6V8.9l5.4 2.9-5.4 2.8z"/></svg>`;
 const IG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>`;
 
-function renderMural(){
-  const tab = state.momentosTab;
+/* ============ PARTIDAS ============ */
+// Partida: {id, date, presence[], notes, goals (registros antigos), createdBy}.
+// Fotos ficam em "mural" e vídeos em "videos", cada um no próprio documento e ligado pela matchId
+// (um documento do Firestore tem limite de 1MB, então as fotos não cabem dentro da partida).
+// Vídeos antigos sem matchId aparecem na partida da mesma data.
+const matchPhotos = m => state.mural.filter(p=> p.matchId === m.id);
+const matchVideos = m => state.videos.filter(v=> v.matchId === m.id || (!v.matchId && v.date && v.date === m.date));
+const playerById = id => state.players.find(p=> p.id === id);
+function matchPlayers(m){
+  return (m.presence||[]).map(playerById).filter(Boolean).sort((a,b)=> playerName(a).localeCompare(playerName(b)));
+}
+// fotos e vídeos que não pertencem a nenhuma partida (publicados antes, ou de partidas excluídas)
+function looseMedia(){
+  const ids = new Set(state.matches.map(m=> m.id));
+  const dates = new Set(state.matches.map(m=> m.date));
+  return {
+    videos: state.videos.filter(v=> !(v.matchId && ids.has(v.matchId)) && !(!v.matchId && v.date && dates.has(v.date))),
+    photos: state.mural.filter(p=> !(p.matchId && ids.has(p.matchId))),
+  };
+}
+function ytThumb(url){ const id = extractYoutubeId(url); return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''; }
+
+function renderMatches(){
+  if(state.openMatchId) return renderMatchDetail(state.openMatchId);
+  const f = state.matchFilter;
+  const q = f.q.trim().toLowerCase();
+  const list = [...state.matches]
+    .filter(m=> !f.date || m.date === f.date)
+    .filter(m=> !q || (m.notes||'').toLowerCase().includes(q) || (m.label||'').toLowerCase().includes(q)
+      || matchPlayers(m).some(p=> playerName(p).toLowerCase().includes(q)))
+    .sort((a,b)=> b.date.localeCompare(a.date));
+  const loose = looseMedia();
+  const looseCount = loose.videos.length + loose.photos.length;
   return `
-    <div class="page-head">
-      <div class="kicker">Galeria</div>
-      <h2>Melhores Momentos</h2>
-      <p>Vídeos e fotos das nossas peladas e amistosos.</p>
-    </div>
-    <div class="channel-row">
+    ${pageHead('Registro', 'Partidas', 'Data, presentes, fotos, vídeos e observações de cada pelada.',
+      can('matches.create') ? `<button class="primary btn-icon" id="addMatchBtn">${icon('plus')}Nova partida</button>` : '')}
+    <div class="channel-row" style="margin-top:-8px;">
       <a class="channel-link" href="https://www.youtube.com/@PeladaCavernosos" target="_blank" rel="noopener">${YT_ICON} Nosso canal</a>
       <a class="channel-link" href="https://www.instagram.com" target="_blank" rel="noopener">${IG_ICON} Nosso Insta</a>
     </div>
-    <div class="momentos-tabs">
-      <button data-momentos-tab="videos" class="${tab==='videos'?'active':''}">Vídeos</button>
-      <button data-momentos-tab="fotos" class="${tab==='fotos'?'active':''}">Fotos</button>
+    ${state.matches.length ? `
+    <div class="toolbar">
+      <div class="search-box">${icon('search')}<input id="matchSearch" placeholder="Buscar jogador ou observação" value="${esc(f.q)}" autocomplete="off"></div>
+      <input type="date" id="matchDateFilter" value="${f.date}" style="width:auto;" title="Filtrar por data" aria-label="Filtrar por data">
+      ${f.date || f.q ? `<button class="ghost btn-icon" id="matchFilterClear">${icon('x')}Limpar</button>` : ''}
+    </div>` : ''}
+    ${!state.matches.length ? `<div class="empty">Nenhuma partida registrada ainda.${can('matches.create') ? ' Clique em “Nova partida” para registrar a primeira.' : ''}</div>`
+      : !list.length ? `<div class="empty">Nenhuma partida ${f.date ? `em ${formatFullDate(f.date)}` : 'encontrada'}.</div>`
+      : `<div class="pm-grid">${list.map(matchCard).join('')}</div>`}
+    ${looseCount ? `
+    <details class="pm-loose">
+      <summary>${icon('archive')}Fotos e vídeos sem partida (${looseCount})</summary>
+      <div class="hint" style="margin:10px 0 16px;">Publicados antes das partidas terem fotos e vídeos. Os vídeos com data aparecem sozinhos na partida do mesmo dia.</div>
+      ${loose.videos.length ? `<div class="section-title">Vídeos</div>${renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', items: loose.videos, noToolbar:true})}` : ''}
+      ${loose.photos.length ? `<div class="section-title">Fotos</div>${renderPhotoGrid({collection:'mural', deletePerm:'photos.delete', items: loose.photos})}` : ''}
+    </details>` : ''}
+  `;
+}
+function matchCard(m){
+  const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
+  const cover = photos.length ? photos[0].photo : videos.length ? ytThumb(videos[0].url) : '';
+  const MAX = 9;
+  return `
+  <div class="pm-card" data-open-match="${m.id}" role="button" tabindex="0">
+    <div class="pm-cover">
+      ${cover ? `<img src="${cover}" loading="lazy" alt="">` : icon('calendar-days')}
+      ${!photos.length && videos.length ? `<span class="pm-play">${icon('play')}</span>` : ''}
     </div>
-    ${tab === 'videos' ? renderVideosTab() : renderFotosTab()}
-  `;
+    <div class="pm-body">
+      <div class="pm-date">${formatFullDate(m.date)}</div>
+      ${m.label ? `<div class="pm-label">${esc(m.label)}</div>` : ''}
+      ${players.length ? `<div class="pm-avatars">${players.slice(0,MAX).map(p=> `<span title="${esc(playerName(p))}">${playerPhotoTag(p,'pm-av')}</span>`).join('')}${players.length > MAX ? `<span class="pm-more">+${players.length-MAX}</span>` : ''}</div>` : ''}
+      <div class="pm-meta">
+        <span>${icon('users')}${players.length} presente${players.length===1?'':'s'}</span>
+        <span>${icon('image')}${photos.length}</span>
+        <span>${icon('clapperboard')}${videos.length}</span>
+      </div>
+      ${m.notes ? `<div class="pm-notes">${esc(m.notes)}</div>` : ''}
+    </div>
+  </div>`;
 }
-function renderVideosTab(){
+function renderMatchDetail(matchId){
+  const m = state.matches.find(x=> x.id === matchId);
+  if(!m){ state.openMatchId = null; return renderMatches(); }
+  const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
+  const canEdit = can('matches.score') || can('photos.create') || can('videos.create');
   return `
-    ${can('videos.create') ? `
-    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
-      <button class="primary btn-icon" id="addVideoBtn">${icon('plus')}Adicionar vídeo</button>
-    </div>` : ''}
-    ${renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', dateLabel:'Data da pelada'})}
-  `;
-}
-function renderFotosTab(){
-  const sorted = [...state.mural].sort((a,b)=> b.date.localeCompare(a.date));
-  return `
-    ${can('photos.create') ? `
-    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
-      <button class="primary btn-icon" id="addPhotoBtn">${icon('plus')}Enviar foto</button>
-    </div>` : ''}
-    ${sorted.length === 0 ? `<div class="empty">Nenhuma foto publicada ainda.</div>` : `
-    <div class="mural-grid">
-      ${sorted.map(ph=>`
-        <div class="mural-card">
-          ${can('photos.delete') ? `<button class="icon-btn danger-hover card-del" data-del-photo="${ph.id}" title="Excluir foto" aria-label="Excluir foto">${icon('trash-2')}</button>` : ''}
-          <img src="${ph.photo}" loading="lazy" alt="${esc(ph.caption)}">
-          <div class="cap">
-            ${ph.caption ? `<div class="txt">${esc(ph.caption)}</div>` : ''}
-            <div class="meta">${esc(ph.author)} · ${formatDate(ph.date)}</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>`}
+    <div class="page-head">
+      <button class="ghost btn-icon" id="backToMatches" style="padding:6px 0; margin-bottom:14px;">${icon('arrow-left')}Partidas</button>
+      <div class="kicker">Partida</div>
+      <h2>${formatFullDate(m.date)}</h2>
+      ${m.label ? `<p>${esc(m.label)}</p>` : ''}
+      ${canEdit || can('matches.delete') ? `
+      <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
+        ${canEdit ? `<button class="primary btn-icon" id="editMatch">${icon('pencil')}Editar partida</button>` : ''}
+        ${can('matches.delete') ? `<button class="danger btn-icon" id="deleteMatch">${icon('trash-2')}Excluir</button>` : ''}
+      </div>` : ''}
+    </div>
+
+    <div class="section-title">Observações</div>
+    ${m.notes ? `<div class="pm-notes-full">${esc(m.notes)}</div>` : `<div class="empty" style="padding-top:0;">Sem observações.</div>`}
+
+    <div class="section-title">Presentes (${players.length})</div>
+    ${players.length ? `<div class="pm-present">${players.map(p=>{
+      const g = (m.goals && m.goals[p.id]) || 0;
+      return `<div class="pm-chip">${playerPhotoTag(p,'pm-av')}<span>${esc(playerName(p))}</span>${g ? `<b>${g} gol${g===1?'':'s'}</b>` : ''}</div>`;
+    }).join('')}</div>` : `<div class="empty" style="padding-top:0;">Ninguém marcado.</div>`}
+
+    <div class="section-title">Fotos (${photos.length})</div>
+    ${photos.length ? renderPhotoGrid({collection:'mural', deletePerm:'photos.delete', items: photos}) : `<div class="empty" style="padding-top:0;">Nenhuma foto.</div>`}
+
+    <div class="section-title">Vídeos (${videos.length})</div>
+    ${videos.length ? renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', items: videos, noToolbar:true}) : `<div class="empty" style="padding-top:0;">Nenhum vídeo.</div>`}
   `;
 }
 
@@ -1705,17 +1757,18 @@ function renderComingSoon(kicker, title, iconName, desc){
 /* ---------- vídeos e fotos (genéricos, usados por vários ambientes) ---------- */
 function formatFullDate(iso){
   const d = new Date(iso + 'T12:00:00');
-  return d.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}).replace(/\./g,'');
+  const s = d.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}).replace(/\./g,'');
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 // quem publicou pode corrigir o próprio vídeo; quem pode excluir pode editar qualquer um
 const canEditVideo = (cfg, v)=> can(cfg.deletePerm) || (can(cfg.createPerm) && state.currentUser && v.addedBy === state.currentUser.username);
 const videoFilter = col=> state.videoFilters[col] || (state.videoFilters[col] = {date:'', q:''});
 
-// cfg: {collection, createPerm, deletePerm, dateLabel}
+// cfg: {collection, createPerm, deletePerm, items (opcional: só estes), noToolbar}
 function renderVideoGrid(cfg){
-  const all = state[cfg.collection];
+  const all = cfg.items || state[cfg.collection];
   if(!all.length) return `<div class="empty">Nenhum vídeo publicado ainda.</div>`;
-  const f = videoFilter(cfg.collection);
+  const f = cfg.noToolbar ? {date:'', q:''} : videoFilter(cfg.collection);
   const q = f.q.trim().toLowerCase();
   // datas distintas, mais recentes primeiro, com a contagem de vídeos
   const counts = {};
@@ -1727,7 +1780,7 @@ function renderVideoGrid(cfg){
     .sort((a,b)=> (b.date||'').localeCompare(a.date||''));
   const col = cfg.collection;
   return `
-    <div class="toolbar">
+    ${cfg.noToolbar ? '' : `<div class="toolbar">
       <div class="search-box">${icon('search')}<input data-video-search="${col}" placeholder="Buscar pelo título" value="${esc(f.q)}" autocomplete="off"></div>
       <select data-video-date="${col}" style="width:auto; min-width:200px;" aria-label="Filtrar por data">
         <option value="">Todas as datas (${all.length})</option>
@@ -1736,7 +1789,7 @@ function renderVideoGrid(cfg){
       </select>
       <input type="date" data-video-date-pick="${col}" value="${f.date && f.date !== 'none' ? f.date : ''}" style="width:auto;" title="Escolher uma data no calendário" aria-label="Escolher data">
       ${f.date || f.q ? `<button class="ghost btn-icon" data-video-clear="${col}">${icon('x')}Limpar</button>` : ''}
-    </div>
+    </div>`}
     ${!list.length ? `<div class="empty">Nenhum vídeo ${f.date && f.date !== 'none' ? `em ${formatFullDate(f.date)}` : 'encontrado'}.</div>` : `
     <div class="video-grid">
       ${list.map(v=>{
@@ -1760,7 +1813,7 @@ function renderVideoGrid(cfg){
     </div>`}`;
 }
 function renderPhotoGrid(cfg){
-  const list = [...state[cfg.collection]].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  const list = [...(cfg.items || state[cfg.collection])].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
   if(!list.length) return `<div class="empty">Nenhuma foto publicada ainda.</div>`;
   return `
     <div class="mural-grid">
@@ -2313,76 +2366,45 @@ function bindViewEvents(){
     };
   });
 
-  // matches
+  // partidas
   const addMatchBtn = document.getElementById('addMatchBtn');
   if(addMatchBtn) addMatchBtn.onclick = ()=>{ state.modal = {type:'match', data:null}; render(); };
   document.querySelectorAll('[data-open-match]').forEach(b=>{
-    b.onclick = ()=>{ state.openMatchId = b.dataset.openMatch; render(); };
+    const open = ()=>{ state.openMatchId = b.dataset.openMatch; render(); window.scrollTo(0,0); };
+    b.onclick = open;
+    b.onkeydown = e=>{ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); } };
   });
   const backBtn = document.getElementById('backToMatches');
   if(backBtn) backBtn.onclick = ()=>{ state.openMatchId = null; render(); };
-
-  document.querySelectorAll('[data-presence-toggle]').forEach(cb=>{
-    cb.onchange = async ()=>{
-      const m = state.matches.find(x=>x.id===state.openMatchId);
-      const pid = cb.dataset.presenceToggle;
-      m.presence = m.presence || [];
-      if(cb.checked){ if(!m.presence.includes(pid)) m.presence.push(pid); }
-      else { m.presence = m.presence.filter(x=>x!==pid); if(m.goals) delete m.goals[pid]; }
-      await saveMatches();
-      render();
-    };
-  });
-  document.querySelectorAll('[data-goal-plus]').forEach(b=>{
-    b.onclick = async ()=>{
-      const m = state.matches.find(x=>x.id===state.openMatchId);
-      m.goals = m.goals || {};
-      const pid = b.dataset.goalPlus;
-      m.goals[pid] = (m.goals[pid]||0) + 1;
-      await saveMatches();
-      render();
-    };
-  });
-  document.querySelectorAll('[data-goal-minus]').forEach(b=>{
-    b.onclick = async ()=>{
-      const m = state.matches.find(x=>x.id===state.openMatchId);
-      const pid = b.dataset.goalMinus;
-      if(m.goals && m.goals[pid]) m.goals[pid] = Math.max(0, m.goals[pid]-1);
-      await saveMatches();
-      render();
-    };
-  });
-  const toggleFinalize = document.getElementById('toggleFinalize');
-  if(toggleFinalize) toggleFinalize.onclick = async ()=>{
-    const m = state.matches.find(x=>x.id===state.openMatchId);
-    m.finalized = !m.finalized;
-    await saveMatches();
-    render();
-  };
+  const editMatch = document.getElementById('editMatch');
+  if(editMatch) editMatch.onclick = ()=>{ state.modal = {type:'match', data:{id: state.openMatchId}}; render(); };
   const deleteMatch = document.getElementById('deleteMatch');
   if(deleteMatch) deleteMatch.onclick = async ()=>{
-    if(!confirm('Excluir esta partida?')) return;
-    state.matches = state.matches.filter(x=>x.id !== state.openMatchId);
+    const m = state.matches.find(x=> x.id === state.openMatchId);
+    const photos = state.mural.filter(p=> p.matchId === m.id);
+    const videos = state.videos.filter(v=> v.matchId === m.id);
+    const dropPhotos = photos.length && can('photos.delete'), dropVideos = videos.length && can('videos.delete');
+    const extra = [dropPhotos ? `${photos.length} foto${photos.length===1?'':'s'}` : '', dropVideos ? `${videos.length} vídeo${videos.length===1?'':'s'}` : ''].filter(Boolean);
+    if(!confirm(`Excluir a partida de ${formatFullDate(m.date)}${extra.length ? ` junto com ${extra.join(' e ')}` : ''}?`)) return;
+    state.matches = state.matches.filter(x=> x.id !== m.id);
+    if(!await saveMatches()){ render(); return; }
+    if(dropPhotos){ state.mural = state.mural.filter(p=> p.matchId !== m.id); await saveMural(); }
+    if(dropVideos){ state.videos = state.videos.filter(v=> v.matchId !== m.id); await saveVideos(); }
     state.openMatchId = null;
-    await saveMatches();
     render();
+    toast('Partida excluída.');
   };
-
-  // mural
-  const addPhotoBtn = document.getElementById('addPhotoBtn');
-  if(addPhotoBtn) addPhotoBtn.onclick = ()=>{ state.modal = {type:'photo', data:null}; render(); };
-  const addVideoBtn = document.getElementById('addVideoBtn');
-  if(addVideoBtn) addVideoBtn.onclick = ()=>{ state.modal = {type:'video', data:null}; render(); };
-  document.querySelectorAll('[data-momentos-tab]').forEach(b=>{
-    b.onclick = ()=>{ state.momentosTab = b.dataset.momentosTab; render(); };
-  });
-  document.querySelectorAll('[data-del-photo]').forEach(b=>{
-    b.onclick = async ()=>{
-      if(!confirm('Excluir esta foto?')) return;
-      state.mural = state.mural.filter(p=> p.id !== b.dataset.delPhoto);
-      if(await saveMural()){ render(); toast('Foto excluída.'); }
-    };
-  });
+  const matchSearch = document.getElementById('matchSearch');
+  if(matchSearch) matchSearch.oninput = ()=>{
+    state.matchFilter.q = matchSearch.value;
+    render();
+    const el = document.getElementById('matchSearch');
+    if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+  };
+  const matchDateFilter = document.getElementById('matchDateFilter');
+  if(matchDateFilter) matchDateFilter.onchange = ()=>{ state.matchFilter.date = matchDateFilter.value; render(); };
+  const matchFilterClear = document.getElementById('matchFilterClear');
+  if(matchFilterClear) matchFilterClear.onclick = ()=>{ state.matchFilter = {date:'', q:''}; render(); };
 }
 
 /* ============ MODALS ============ */
@@ -2398,6 +2420,14 @@ function renderModal(){
   if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
   return '';
 }
+// valores do cadastro já na escala 0-10 (cadastros antigos eram 0-99)
+function storedAttrs10(player, key){
+  const src = player && player[key];
+  if(!src) return null;
+  const out = {};
+  Object.keys(src).forEach(k=> out[k] = player.attrScale === 10 ? clamp10(src[k]) : from99(src[k]));
+  return out;
+}
 function attrInputs(defs, values, prefix){
   return `<div class="attr-list">${defs.map(d=>`
     <div class="attr-row">
@@ -2405,7 +2435,7 @@ function attrInputs(defs, values, prefix){
         <div class="attr-name"><span class="abbr">${d.abbr}</span>${d.name}</div>
         ${d.hint ? `<div class="attr-hint">${d.hint}</div>` : ''}
       </div>
-      <input name="${prefix}${d.k}" type="number" min="0" max="99" value="${values && values[d.k] != null ? values[d.k] : 50}" aria-label="${d.name}">
+      <input name="${prefix}${d.k}" type="number" min="0" max="10" step="1" inputmode="numeric" value="${values && values[d.k] != null ? values[d.k] : 5}" aria-label="${d.name}">
     </div>`).join('')}</div>`;
 }
 function renderPlayerModal(player){
@@ -2444,17 +2474,17 @@ function renderPlayerModal(player){
         <div class="field"><label>Número da camisa</label><input name="number" type="number" min="0" max="99" value="${player && player.number ? player.number : ''}"></div>
         <div class="field">
           <label>Nível (estrelas)</label>
-          <div id="starsPreview">${starsHtml(player ? playerStars(player) : ovrToStars(50), 'star-picker')}</div>
+          <div id="starsPreview">${starsHtml(player ? playerStars(player) : ovrToStars(5), 'star-picker')}</div>
           <div class="hint">Calculado automaticamente: média das 6 habilidades.</div>
         </div>
         ${player && playerVotes(player).length ? `<div class="notice">${icon('vote')}<div>Este jogador já tem ${playerVotes(player).length} voto${playerVotes(player).length===1?'':'s'}: o card usa a média da Votação. Os valores abaixo só valem enquanto não houver votos.</div></div>` : ''}
         <div class="field" id="fieldAttrs" ${isGK(player) ? 'hidden' : ''}>
-          <label>Habilidades de linha (0-99, estilo FIFA)</label>
-          ${attrInputs(FIELD_ATTRS, player && player.attrs, '')}
+          <label>Habilidades de linha (notas inteiras de 0 a 10)</label>
+          ${attrInputs(FIELD_ATTRS, storedAttrs10(player, 'attrs'), '')}
         </div>
         <div class="field" id="gkAttrs" ${isGK(player) ? '' : 'hidden'}>
-          <label>Habilidades de goleiro (0-99, estilo FIFA)</label>
-          ${attrInputs(GK_ATTRS, player && player.gkAttrs, 'gk_')}
+          <label>Habilidades de goleiro (notas inteiras de 0 a 10)</label>
+          ${attrInputs(GK_ATTRS, storedAttrs10(player, 'gkAttrs'), 'gk_')}
         </div>
 
         <div class="modal-actions">
@@ -2465,18 +2495,76 @@ function renderPlayerModal(player){
     </div>
   </div>`;
 }
+function localToday(){
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+}
 function renderMatchModal(){
-  const today = new Date().toISOString().slice(0,10);
+  const d = state.modal.data;
+  const m = d && d.id ? state.matches.find(x=> x.id === d.id) : null;
+  const today = localToday();
+  const canInfo = m ? can('matches.score') : can('matches.create');   // data, presentes e observações
+  const presence = new Set(m ? (m.presence||[]) : []);
+  const players = [...state.players].sort((a,b)=> playerName(a).localeCompare(playerName(b)));
+  const photos = m ? matchPhotos(m) : [], videos = m ? matchVideos(m) : [];
+  const dis = canInfo ? '' : 'disabled';
   return `
   <div class="overlay" id="modalOverlay">
-    <div class="modal">
-      <h3>Nova partida</h3>
-      <form id="matchForm">
-        <div class="field"><label>Data</label><input name="date" type="date" value="${today}" required></div>
-        <div class="field"><label>Nome (opcional)</label><input name="label" placeholder="Pelada de sexta"></div>
+    <div class="modal modal-wide">
+      <h3>${m ? 'Editar partida' : 'Nova partida'}</h3>
+      <form id="matchForm" autocomplete="off">
+        <div class="field"><label>Data</label><input name="date" type="date" value="${m ? m.date : today}" max="${today}" required ${dis}></div>
+
+        <div class="field">
+          <div class="pm-field-head">
+            <label style="margin:0;">Presentes <span id="presenceCount" class="pm-count">${presence.size}</span></label>
+            ${canInfo && players.length ? `<div style="display:flex; gap:6px;">
+              <button type="button" class="ghost pm-mini" data-presence-all="1">Marcar todos</button>
+              <button type="button" class="ghost pm-mini" data-presence-all="0">Limpar</button>
+            </div>` : ''}
+          </div>
+          ${players.length ? `<div class="presence-grid pm-presence">
+            ${players.map(p=>`
+            <label class="presence-item ${presence.has(p.id)?'present':''}">
+              <input type="checkbox" class="checkbox" name="presence" value="${p.id}" ${presence.has(p.id)?'checked':''} ${dis}>
+              ${playerPhotoTag(p,'')}
+              <div class="pname">${esc(playerName(p))}</div>
+            </label>`).join('')}
+          </div>` : `<div class="hint">Nenhum jogador cadastrado ainda.</div>`}
+        </div>
+
+        ${can('photos.create') || photos.length ? `
+        <div class="field">
+          <label>Fotos</label>
+          <div class="pm-thumbs" id="matchPhotoThumbs">
+            ${photos.map(p=>`<div class="pm-thumb" data-existing-photo="${p.id}"><img src="${p.photo}" alt="">${can('photos.delete') ? `<button type="button" class="pm-thumb-x" data-remove-existing-photo="${p.id}" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>` : ''}</div>`).join('')}
+            ${can('photos.create') ? `<button type="button" class="pm-thumb pm-thumb-add" id="matchPhotoPick">${icon('image-plus')}<span>Adicionar</span></button>` : ''}
+          </div>
+          <input type="file" accept="image/*" multiple id="matchPhotoInput" style="display:none;">
+        </div>` : ''}
+
+        ${can('videos.create') || videos.length ? `
+        <div class="field">
+          <label>Vídeos (links do YouTube)</label>
+          ${videos.map(v=>`
+          <div class="pm-video-row" data-existing-video="${v.id}">
+            ${icon('play')}<span class="pm-video-title">${esc(v.title)}</span>
+            ${can('videos.delete') ? `<button type="button" class="icon-btn danger-hover" data-remove-existing-video="${v.id}" title="Remover vídeo" aria-label="Remover vídeo">${icon('x')}</button>` : ''}
+          </div>`).join('')}
+          ${can('videos.create') ? `
+          <div id="matchVideoInputs"><input name="videoUrl" placeholder="https://www.youtube.com/watch?v=..." inputmode="url"></div>
+          <button type="button" class="ghost btn-icon pm-mini" id="addVideoInput" style="margin-top:8px;">${icon('plus')}Outro vídeo</button>` : ''}
+        </div>` : ''}
+
+        <div class="field"><label>Observações</label>
+          <textarea name="notes" rows="4" maxlength="2000" placeholder="Placar, destaques, resenha do dia..." ${dis}>${m ? esc(m.notes||'') : ''}</textarea>
+        </div>
+        ${!canInfo ? `<div class="hint" style="margin-top:-6px;">Você pode adicionar fotos e vídeos; data, presentes e observações só com permissão de editar partidas.</div>` : ''}
+
+        <div class="form-error" id="formError"></div>
         <div class="modal-actions">
           <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary">Criar</button>
+          <button type="submit" class="primary" id="formSubmit">${m ? 'Salvar' : 'Registrar partida'}</button>
         </div>
       </form>
     </div>
@@ -2568,9 +2656,9 @@ function bindModalEvents(){
     // prévia das estrelas enquanto as habilidades são digitadas
     const updateStars = ()=>{
       const gk = typeSelect.value === 'Goleiro';
-      const vals = (gk ? GK_ATTRS : FIELD_ATTRS).map(d=> Math.max(0, Math.min(99, parseInt(playerForm.elements[(gk ? 'gk_' : '') + d.k].value || '0', 10) || 0)));
-      const ovr = Math.round(vals.reduce((s,v)=> s + v, 0) / vals.length);
-      document.getElementById('starsPreview').innerHTML = starsHtml(ovrToStars(ovr), 'star-picker');
+      const vals = (gk ? GK_ATTRS : FIELD_ATTRS).map(d=> clamp10(playerForm.elements[(gk ? 'gk_' : '') + d.k].value));
+      const avg = vals.reduce((s,v)=> s + v, 0) / vals.length;
+      document.getElementById('starsPreview').innerHTML = starsHtml(ovrToStars(avg), 'star-picker');
     };
     playerForm.querySelectorAll('.attr-row input').forEach(i=> i.addEventListener('input', updateStars));
     typeSelect.addEventListener('change', updateStars);
@@ -2579,10 +2667,9 @@ function bindModalEvents(){
       const fd = new FormData(playerForm);
       const name = fd.get('name').trim();
       if(!name) return;
-      const clamp99 = v => Math.max(0, Math.min(99, parseInt(v||'0',10)));
       const attrs = {}, gkAttrs = {};
-      FIELD_ATTRS.forEach(d=> attrs[d.k] = clamp99(fd.get(d.k)));
-      GK_ATTRS.forEach(d=> gkAttrs[d.k] = clamp99(fd.get('gk_'+d.k)));
+      FIELD_ATTRS.forEach(d=> attrs[d.k] = clamp10(fd.get(d.k)));
+      GK_ATTRS.forEach(d=> gkAttrs[d.k] = clamp10(fd.get('gk_'+d.k)));
       const type = fd.get('type');
       const userId = fd.get('userId') || '';
       const existing = state.modal.data;
@@ -2597,8 +2684,9 @@ function bindModalEvents(){
         player.photo = pendingPhoto;
         player.attrs = attrs;
         player.gkAttrs = gkAttrs;
+        player.attrScale = 10;
       } else {
-        player = {id: uid(), name, userId, type, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, attrs, gkAttrs};
+        player = {id: uid(), name, userId, type, position: fd.get('position'), number: fd.get('number')||'', photo: pendingPhoto, attrs, gkAttrs, attrScale: 10};
         state.players.push(player);
       }
       await savePlayers();
@@ -2610,15 +2698,103 @@ function bindModalEvents(){
   // match modal
   const matchForm = document.getElementById('matchForm');
   if(matchForm){
+    const editId = state.modal.data && state.modal.data.id;
+    const newPhotos = [];                       // {key, data}
+    const removedPhotos = new Set(), removedVideos = new Set();
+    const refreshCount = ()=>{
+      const c = document.getElementById('presenceCount');
+      if(c) c.textContent = matchForm.querySelectorAll('[name=presence]:checked').length;
+    };
+    matchForm.querySelectorAll('[name=presence]').forEach(cb=>{
+      cb.onchange = ()=>{ cb.closest('.presence-item').classList.toggle('present', cb.checked); refreshCount(); };
+    });
+    matchForm.querySelectorAll('[data-presence-all]').forEach(b=>{
+      b.onclick = ()=>{
+        const on = b.dataset.presenceAll === '1';
+        matchForm.querySelectorAll('[name=presence]').forEach(cb=>{ cb.checked = on; cb.closest('.presence-item').classList.toggle('present', on); });
+        refreshCount();
+      };
+    });
+    const photoPick = document.getElementById('matchPhotoPick');
+    const photoInput = document.getElementById('matchPhotoInput');
+    if(photoPick){
+      photoPick.onclick = ()=> photoInput.click();
+      photoInput.onchange = async ()=>{
+        const files = [...photoInput.files];
+        photoInput.value = '';
+        for(const file of files){
+          try{
+            const data = await resizeImage(file, 1280, 0.72);
+            const key = uid();
+            newPhotos.push({key, data});
+            const el = document.createElement('div');
+            el.className = 'pm-thumb';
+            el.innerHTML = `<img src="${data}" alt=""><button type="button" class="pm-thumb-x" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>`;
+            el.querySelector('button').onclick = ()=>{ newPhotos.splice(newPhotos.findIndex(p=> p.key === key), 1); el.remove(); };
+            photoPick.before(el);
+          }catch(err){ toast(`Não consegui abrir ${file.name}.`, 'error'); }
+        }
+        if(window.lucide) lucide.createIcons();
+      };
+    }
+    matchForm.querySelectorAll('[data-remove-existing-photo]').forEach(b=>{
+      b.onclick = ()=>{ removedPhotos.add(b.dataset.removeExistingPhoto); b.closest('.pm-thumb').remove(); };
+    });
+    matchForm.querySelectorAll('[data-remove-existing-video]').forEach(b=>{
+      b.onclick = ()=>{ removedVideos.add(b.dataset.removeExistingVideo); b.closest('.pm-video-row').remove(); };
+    });
+    const addVideoInput = document.getElementById('addVideoInput');
+    if(addVideoInput) addVideoInput.onclick = ()=>{
+      const inp = document.createElement('input');
+      inp.name = 'videoUrl'; inp.placeholder = 'https://www.youtube.com/watch?v=...'; inp.inputMode = 'url';
+      inp.style.marginTop = '8px';
+      document.getElementById('matchVideoInputs').appendChild(inp);
+      inp.focus();
+    };
+
     matchForm.onsubmit = async (e)=>{
       e.preventDefault();
+      const existing = editId ? state.matches.find(x=> x.id === editId) : null;
+      const canInfo = existing ? can('matches.score') : can('matches.create');
       const fd = new FormData(matchForm);
-      const match = {id: uid(), date: fd.get('date'), label: fd.get('label')||'', presence: [], goals: {}, finalized:false};
-      state.matches.push(match);
-      await saveMatches();
+      const date = canInfo ? fd.get('date') : existing.date;
+      const urls = [...matchForm.querySelectorAll('[name=videoUrl]')].map(i=> i.value.trim()).filter(Boolean);
+      const bad = urls.filter(u=> !extractYoutubeId(u));
+      if(bad.length) return formError('Não reconheci este link do YouTube: ' + bad[0]);
+      if(!existing && state.matches.some(x=> x.date === date)
+         && !confirm(`Já existe uma partida em ${formatFullDate(date)}. Registrar outra no mesmo dia?`)) return;
+      formError(''); formBusy(true);
+      const me = state.currentUser ? state.currentUser.username : '';
+
+      let match = existing;
+      if(canInfo){
+        const presence = [...matchForm.querySelectorAll('[name=presence]:checked')].map(i=> i.value);
+        const notes = (fd.get('notes')||'').trim();
+        if(existing){
+          existing.date = date; existing.presence = presence; existing.notes = notes;
+          if(existing.goals) Object.keys(existing.goals).forEach(pid=>{ if(!presence.includes(pid)) delete existing.goals[pid]; });
+        } else {
+          match = {id: uid(), date, presence, notes, goals: {}, createdBy: me, createdAt: new Date().toISOString()};
+          state.matches.push(match);
+        }
+        if(!await saveMatches()){ formBusy(false); return; }
+      }
+
+      let ok = true;
+      if(newPhotos.length || removedPhotos.size){
+        state.mural = state.mural.filter(p=> !removedPhotos.has(p.id));
+        newPhotos.forEach(p=> state.mural.push({id: uid(), photo: p.data, caption: '', author: me || 'Anônimo', date, matchId: match.id}));
+        ok = await saveMural() && ok;
+      }
+      if(urls.length || removedVideos.size){
+        state.videos = state.videos.filter(v=> !removedVideos.has(v.id));
+        urls.forEach(url=> state.videos.push({id: uid(), title: `Pelada de ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR')}`, url, date, matchId: match.id, addedBy: me}));
+        ok = await saveVideos() && ok;
+      }
       state.modal = null;
       state.openMatchId = match.id;
       render();
+      if(ok) toast(existing ? 'Partida atualizada.' : 'Partida registrada.');
     };
   }
 

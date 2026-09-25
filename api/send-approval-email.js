@@ -69,6 +69,9 @@ export default async function handler(req, res){
 
     // 4. Envia o e-mail
     const approver = user.approvedBy || caller.username;
+    const howToEnter = user.authProvider === 'google'
+      ? 'Já pode entrar com sua conta Google (botão "Entrar com Google")'
+      : 'Já pode entrar com seu usuário e senha';
     const origin = req.headers.origin || `https://${req.headers.host}`;
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -78,7 +81,7 @@ export default async function handler(req, res){
       from: `"Cavernosos" <${process.env.GMAIL_USER}>`,
       to: user.email,
       subject: 'Seu cadastro no site dos Cavernosos foi aprovado',
-      text: `Olá, ${user.username}!\n\n${approver} (admin) aprovou seu cadastro no site dos Cavernosos.\n\nJá pode entrar com seu usuário e senha: ${origin}\n\nToda quinta, 21h às 22h30 · Sargento Wolf, Afogados`,
+      text: `Olá, ${user.username}!\n\n${approver} (admin) aprovou seu cadastro no site dos Cavernosos.\n\n${howToEnter}: ${origin}\n\nToda quinta, 21h às 22h30 · Sargento Wolf, Afogados`,
       html: `
         <div style="font-family:Arial,sans-serif; background:#12100D; padding:32px 16px;">
           <div style="max-width:480px; margin:0 auto; background:#1B1712; border:1px solid #372C1B; padding:28px; color:#EDEAE3;">
@@ -86,7 +89,7 @@ export default async function handler(req, res){
             <h1 style="margin:4px 0 20px; font-size:24px; letter-spacing:1px; text-transform:uppercase;">Cavernosos</h1>
             <p style="font-size:15px; line-height:1.5;">Olá, <b>${escapeHtml(user.username)}</b>!</p>
             <p style="font-size:15px; line-height:1.5;"><b>${escapeHtml(approver)}</b> (admin) aprovou seu cadastro no site dos Cavernosos.</p>
-            <p style="font-size:15px; line-height:1.5;">Já pode entrar com seu usuário e senha.</p>
+            <p style="font-size:15px; line-height:1.5;">${escapeHtml(howToEnter)}.</p>
             <p style="margin:24px 0;"><a href="${escapeHtml(origin)}" style="background:#F2B705; color:#191305; padding:12px 20px; text-decoration:none; font-weight:bold;">Entrar no site</a></p>
             <p style="font-size:12px; color:#A79C87;">Quinta-feira, 21h às 22h30 · Sargento Wolf, Afogados</p>
           </div>

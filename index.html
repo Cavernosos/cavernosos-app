@@ -375,6 +375,12 @@ button .lucide{vertical-align:-4px;}
 .login-brand .kicker{color:var(--accent); font-size:11px; letter-spacing:.18em; font-family:'Oswald'; text-transform:uppercase;}
 .login-brand h1{font-size:30px; letter-spacing:.04em; margin-top:2px;}
 .login-submit{width:100%; justify-content:center; padding:12px 16px; font-size:15px;}
+.google-btn{width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:11px 16px; font-size:14.5px; font-weight:600;
+  background:#fff; color:#1f1f1f; border:1px solid #dadce0;}
+.google-btn:hover{background:#f3f4f6; color:#1f1f1f; border-color:#c6c9ce;}
+.google-btn:disabled{opacity:.6; cursor:wait;}
+.login-or{display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--text-faint); font-size:12px;}
+.login-or::before, .login-or::after{content:''; flex:1; height:1px; background:var(--border-soft);}
 .login-foot{font-size:12px; color:var(--text-faint); text-align:center;}
 .login-card .form-error{margin:0 0 12px 0; min-height:0;}
 .toast-wrap{position:fixed; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; max-width:calc(100vw - 40px);}
@@ -896,7 +902,11 @@ function authErrorMsg(e){
   if(c === 'auth/weak-password' || c === 'auth/password-does-not-meet-requirements') return 'A senha não atende às regras: 6 a 30 caracteres, maiúscula, minúscula, número e caractere especial.';
   if(c === 'auth/requires-recent-login') return 'Por segurança, saia e entre de novo antes de trocar a senha.';
   if(c === 'auth/network-request-failed') return 'Sem conexão. Verifique a internet.';
-  if(c === 'auth/operation-not-allowed') return 'O login por senha não está ativado no Firebase.';
+  if(c === 'auth/operation-not-allowed') return 'Esse tipo de login não está ativado no Firebase.';
+  if(c === 'auth/unauthorized-domain') return 'Este endereço do site não está autorizado no Firebase para login com Google.';
+  if(c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return 'Login com Google cancelado.';
+  if(c === 'auth/credential-already-in-use' || c === 'auth/account-exists-with-different-credential') return 'Essa conta Google já está ligada a outro usuário do site.';
+  if(c === 'auth/provider-already-linked') return 'Sua conta já está vinculada a um Google.';
   if(c === 'permission-denied') return 'Sem permissão no banco de dados. Confira as regras do Firestore.';
   return 'Algo deu errado. Tente de novo.';
 }
@@ -977,7 +987,23 @@ async function resolveCurrentUser(fbUser){
   if(!fbUser) return;
   try{
     const doc = await db.collection('users').doc(fbUser.uid).get();
-    const u = doc.exists ? doc.data() : null;
+    let u = doc.exists ? doc.data() : null;
+    // primeiro acesso com Google: cria o cadastro "aguardando aprovação" com os dados da conta
+    if(!u && isGoogleUser(fbUser) && state.appInitialized){
+      try{ u = await registerGoogleUser(fbUser); }
+      catch(err){
+        console.error('google register failed', err);
+        await auth.signOut();
+        state.justLoggedIn = false;
+        state.loginNotice = 'Não foi possível criar seu cadastro com o Google. Tente de novo ou fale com um administrador.';
+        return;
+      }
+      await auth.signOut();
+      state.justLoggedIn = false;
+      state.authMode = 'registered';
+      state.registeredEmail = u.email;
+      return;
+    }
     if(!u || u.active === false){
       await auth.signOut();
       state.justLoggedIn = false;
@@ -994,6 +1020,60 @@ async function resolveCurrentUser(fbUser){
     await auth.signOut();
   }
 }
+/* ---------- login com Google ---------- */
+const isGoogleUser = fbUser=> !!fbUser && fbUser.providerData.some(p=> p.providerId === 'google.com');
+const hasPassword = fbUser=> !!fbUser && fbUser.providerData.some(p=> p.providerId === 'password');
+function googleProvider(){
+  const p = new firebase.auth.GoogleAuthProvider();
+  p.setCustomParameters({prompt: 'select_account'});
+  return p;
+}
+async function signInWithGoogle(keep){
+  lsSet('cavernosos:keep', keep ? '1' : '0');
+  await auth.setPersistence(keep ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
+  state.justLoggedIn = true;
+  try{
+    await auth.signInWithPopup(googleProvider());
+  }catch(err){
+    // navegador bloqueou o popup (comum no celular): vai pela página do Google e volta
+    if(err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment'){
+      return auth.signInWithRedirect(googleProvider());
+    }
+    state.justLoggedIn = false;
+    throw err;
+  }
+}
+// Nome de usuário a partir do e-mail (joao.silva@gmail.com → joao.silva); se já existir, joao.silva2, 3...
+async function freeUsernameFrom(email){
+  let base = normUsername(email.split('@')[0]).normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\+.*$/, '').replace(/[^a-z0-9._-]/g, '').slice(0, 26);
+  if(base.length < 3) base = (base + 'user').slice(0, 26);
+  for(let i = 1; i < 50; i++){
+    const name = i === 1 ? base : base + i;
+    const doc = await db.collection('logins').doc(name).get();
+    if(!doc.exists) return name;
+  }
+  return base + Math.random().toString(36).slice(2, 6);
+}
+async function registerGoogleUser(fbUser){
+  const g = fbUser.providerData.find(p=> p.providerId === 'google.com') || fbUser;
+  const email = normEmail(g.email || fbUser.email || '');
+  const parts = cleanName(g.displayName || fbUser.displayName || '').split(' ');
+  const firstName = parts[0] || email.split('@')[0];
+  const lastName = parts.slice(1).join(' ');
+  const username = await freeUsernameFrom(email);
+  const now = new Date().toISOString();
+  const user = {id: fbUser.uid, username, firstName, lastName, email, role:'user', profiles:[], perms:[],
+                active:false, status:'pending', selfRegistered:true, authProvider:'google',
+                photoURL: g.photoURL || '', createdAt: now, createdBy: username};
+  const batch = db.batch();
+  batch.set(db.collection('users').doc(user.id), user);
+  // reserva o nome de usuário (quem entra com Google não usa senha)
+  batch.set(db.collection('logins').doc(username), {uid: user.id, email, google: true});
+  await batch.commit();
+  return user;
+}
+
 // Status do cadastro: pending (aguardando aprovação), active ou inactive.
 const STATUS_LABELS = {pending:'Aguardando aprovação', active:'Ativo', inactive:'Inativo'};
 function userStatus(u){ return u.status || (u.active === false ? 'inactive' : 'active'); }
@@ -3042,7 +3122,7 @@ function renderUsersList(){
           const st = userStatus(u);
           return `
         <tr class="${st === 'inactive' ? 'inactive' : ''} ${st === 'pending' ? 'pending-row' : ''}">
-          <td><div class="user-cell"><div class="avatar">${esc(u.username.charAt(0))}</div><div><span>${esc(fullName(u))}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${fullName(u) !== u.username ? `<div class="hint" style="margin-top:2px;">@${esc(u.username)}</div>` : ''}${u.email ? `<div class="hint" style="margin-top:2px;">${esc(u.email)}</div>` : ''}</div></div></td>
+          <td><div class="user-cell">${u.photoURL ? `<img class="avatar" src="${esc(u.photoURL)}" alt="" referrerpolicy="no-referrer" style="object-fit:cover;">` : `<div class="avatar">${esc(u.username.charAt(0))}</div>`}<div><span>${esc(fullName(u))}</span>${u.id === meId ? '<span class="you">você</span>' : ''}${fullName(u) !== u.username ? `<div class="hint" style="margin-top:2px;">@${esc(u.username)}</div>` : ''}${u.email ? `<div class="hint" style="margin-top:2px; display:flex; align-items:center; gap:5px;">${u.authProvider === 'google' ? `<span title="Entra com Google" style="display:inline-flex;">${GOOGLE_G.replace(/width="18" height="18"/, 'width="12" height="12"')}</span>` : ''}${esc(u.email)}</div>` : ''}</div></div></td>
           <td>${roleBadge(u.role)}</td>
           <td><div class="chips">${(u.profiles||[]).length ? u.profiles.map(p=>`<span class="chip">${esc(p)}</span>`).join('') : '<span class="hint" style="margin:0">Sem perfil</span>'}</div></td>
           <td>${statusBadge(u)}${st === 'active' && u.approvedBy ? `<div class="hint" style="margin-top:4px;">aprovado por ${esc(u.approvedBy)}</div>` : ''}</td>
@@ -3119,6 +3199,8 @@ function newPwInput(name, attrs){
     <ul class="pw-rules">${PASSWORD_RULES.map((r,i)=>`<li data-rule="${i}">${icon('circle')}${icon('circle-check')}${r.label}</li>`).join('')}</ul>`;
 }
 // Tela de entrada: o site inteiro fica atrás dela até a pessoa fazer login.
+const GOOGLE_G = `<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>`;
+const googleButton = label=> `<button type="button" class="google-btn" data-google-login>${GOOGLE_G}<span>${label}</span></button>`;
 function renderLoginScreen(){
   const setup = !state.appInitialized;
   return `
@@ -3152,6 +3234,9 @@ function renderLoginScreen(){
       </div>` : state.authMode === 'register' ? `
       <form id="registerForm" autocomplete="off">
         <div style="font-family:'Oswald'; font-size:15px; letter-spacing:.06em; text-transform:uppercase; margin-bottom:16px;">Cadastre-se agora</div>
+        ${googleButton('Cadastrar com Google')}
+        <div class="hint" style="margin-top:8px; text-align:center;">Seu nome e e-mail vêm da conta Google. É só aguardar a aprovação.</div>
+        <div class="login-or"><span>ou preencha</span></div>
         <div class="form-row">
           <div class="field"><label>Nome</label><input name="firstName" required maxlength="40" autocomplete="given-name" placeholder="ex: João" autofocus></div>
           <div class="field"><label>Sobrenome</label><input name="lastName" required maxlength="40" autocomplete="family-name" placeholder="ex: Silva"></div>
@@ -3171,6 +3256,8 @@ function renderLoginScreen(){
         <label class="switch-row" style="margin-bottom:16px; font-size:13px; color:var(--text-dim);"><input type="checkbox" name="keep" ${lsGet('cavernosos:keep') === '0' ? '' : 'checked'}> Manter conectado neste aparelho</label>
         <div class="form-error" id="formError"></div>
         <button type="submit" class="primary login-submit btn-icon" id="formSubmit">${icon('log-in')}Entrar</button>
+        <div class="login-or"><span>ou</span></div>
+        ${googleButton('Entrar com Google')}
         <div class="hint" style="margin-top:16px; text-align:center;">Esqueceu a senha? Peça para um administrador definir uma nova.</div>
         <div class="login-switch">Ainda não tem conta? <button type="button" class="link-btn" data-auth-mode="register">Cadastre-se agora</button></div>
       </form>`}
@@ -3192,6 +3279,13 @@ function renderAccountModal(){
           <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">${roleBadge(u.role)}${(u.profiles||[]).map(p=>`<span class="chip">${esc(p)}</span>`).join('')}</div>
         </div>
       </div>
+      <div class="form-section">Login com Google</div>
+      ${isGoogleUser(auth.currentUser)
+        ? `<div class="notice">${GOOGLE_G}<div>Vinculado a <b>${esc((auth.currentUser.providerData.find(p=> p.providerId === 'google.com')||{}).email || '')}</b>. Você pode entrar com o botão “Entrar com Google”.</div></div>`
+        : `<div class="hint" style="margin:-4px 0 10px;">Vincule sua conta Google para entrar com um clique, sem digitar senha.</div>
+           ${googleButton('Vincular conta Google').replace('data-google-login', 'id="linkGoogleBtn"')}
+           <div class="form-error" id="linkGoogleError"></div>`}
+      ${hasPassword(auth.currentUser) ? `
       <form id="accountForm" autocomplete="off">
         <div class="form-section">Trocar senha</div>
         <div class="field"><label>Senha atual</label>${pwInput('current', 'required autocomplete="current-password"')}</div>
@@ -3204,7 +3298,8 @@ function renderAccountModal(){
           <button type="button" class="ghost" id="cancelModal">Fechar</button>
           <button type="submit" class="primary" id="formSubmit">Trocar senha</button>
         </div>
-      </form>
+      </form>` : `
+      <div class="modal-actions"><button type="button" class="ghost" id="cancelModal">Fechar</button></div>`}
     </div>
   </div>`;
 }
@@ -3243,6 +3338,7 @@ function renderUserModal(user){
           <div class="field">
             <label>${isEdit ? 'Nova senha' : 'Senha'}</label>
             ${newPwInput('password', `${isEdit ? '' : 'required'} placeholder="${isEdit ? 'Deixe em branco para manter' : ''}"`)}
+            ${user && user.authProvider === 'google' ? `<div class="hint">Entra com o Google. Deixe em branco: definir uma senha troca o acesso para usuário e senha.</div>` : ''}
           </div>
           <div class="field">
             <label>Poder</label>
@@ -3345,6 +3441,7 @@ function bindAuthModals(){
       if(!validUsername(username)) throw {code:'auth/invalid-credential'};
       const login = await db.collection('logins').doc(username).get();
       if(!login.exists) throw {code:'auth/invalid-credential'};
+      if(login.data().google) throw {message: 'Esse usuário entra com o Google. Use o botão “Entrar com Google”.'};
       const keep = !!fd.get('keep');
       lsSet('cavernosos:keep', keep ? '1' : '0');
       await auth.setPersistence(keep ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
@@ -3353,9 +3450,19 @@ function bindAuthModals(){
       // a tela troca sozinha quando o Firebase confirma o login (onAuthStateChanged)
     }catch(err){
       state.justLoggedIn = false;
-      formBusy(false); formError(authErrorMsg(err));
+      formBusy(false); formError(err.message && !err.code ? err.message : authErrorMsg(err));
     }
   };
+
+  document.querySelectorAll('[data-google-login]').forEach(b=>{
+    b.onclick = async ()=>{
+      const keepBox = document.querySelector('#loginForm [name=keep]');
+      formError('');
+      b.disabled = true;
+      try{ await signInWithGoogle(keepBox ? keepBox.checked : true); }
+      catch(err){ console.error(err); b.disabled = false; formError(authErrorMsg(err)); }
+    };
+  });
 
   document.querySelectorAll('[data-auth-mode]').forEach(b=>{
     b.onclick = ()=>{ state.authMode = b.dataset.authMode; state.loginNotice = ''; render(); };
@@ -3443,6 +3550,22 @@ function bindAuthModals(){
       state.settingUp = false;
       if(auth.currentUser) await auth.currentUser.delete().catch(()=> auth.signOut());
       formBusy(false); formError(authErrorMsg(err));
+    }
+  };
+
+  const linkGoogleBtn = document.getElementById('linkGoogleBtn');
+  if(linkGoogleBtn) linkGoogleBtn.onclick = async ()=>{
+    const err = document.getElementById('linkGoogleError');
+    linkGoogleBtn.disabled = true;
+    try{
+      await auth.currentUser.linkWithPopup(googleProvider());
+      await auth.currentUser.reload();
+      render();
+      toast('Conta Google vinculada. Agora você pode entrar com o Google.');
+    }catch(e){
+      console.error(e);
+      linkGoogleBtn.disabled = false;
+      if(err) err.textContent = authErrorMsg(e);
     }
   };
 
@@ -3557,13 +3680,14 @@ function bindUserForm(form, existing){
             const acc = await createAuthAccount(username, password);
             batch.delete(db.collection('users').doc(existing.id));
             updated.id = acc.uid;
+            delete updated.authProvider;   // passa a entrar com usuário e senha
             login = {uid: acc.uid, email: acc.email};
           }
         }
         if(!login) throw {message: 'Este usuário está sem login configurado. Defina uma nova senha para ele.'};
         batch.set(db.collection('users').doc(updated.id), updated);
         if(username !== existing.username) batch.delete(db.collection('logins').doc(existing.username));
-        batch.set(db.collection('logins').doc(username), {uid: updated.id, email: login.email});
+        batch.set(db.collection('logins').doc(username), {...login, uid: updated.id});   // mantém a marca "google"
         await batch.commit();
         if(self) state.currentUser = updated;
         if(approving){

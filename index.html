@@ -993,6 +993,7 @@ let state = {
   bgRankGame: 'all',
   bgMatchGame: 'all',
   bgLibSearch: '',
+  videoFilters: {}, // por coleção: {date, q}
   openMatchId: null,
   modal: null // {type, data}
 };
@@ -1654,26 +1655,7 @@ function renderVideosTab(){
     <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
       <button class="primary btn-icon" id="addVideoBtn">${icon('plus')}Adicionar vídeo</button>
     </div>` : ''}
-    ${state.videos.length === 0 ? `<div class="empty">Nenhum vídeo publicado ainda.</div>` : `
-    <div class="video-grid">
-      ${state.videos.map(v=>{
-        const ytid = extractYoutubeId(v.url);
-        return `
-        <div class="video-card">
-          <div class="video-embed">
-            ${ytid ? `<iframe src="https://www.youtube.com/embed/${ytid}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
-              : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:12.5px;padding:12px;text-align:center;">Link de vídeo inválido</div>`}
-          </div>
-          <div class="cap" style="display:flex; align-items:flex-start; gap:8px;">
-            <div style="flex:1;">
-              <div class="txt">${esc(v.title)}</div>
-              ${v.addedBy ? `<div class="meta" style="font-size:11px; color:var(--text-faint); margin-top:4px;">por ${esc(v.addedBy)}</div>` : ''}
-            </div>
-            ${can('videos.delete') ? `<button class="icon-btn danger-hover" data-del-video="${v.id}" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`}
+    ${renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', dateLabel:'Data da pelada'})}
   `;
 }
 function renderFotosTab(){
@@ -1721,11 +1703,41 @@ function renderComingSoon(kicker, title, iconName, desc){
 }
 
 /* ---------- vídeos e fotos (genéricos, usados por vários ambientes) ---------- */
-// cfg: {collection, createPerm, deletePerm}
+function formatFullDate(iso){
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('pt-BR', {weekday:'short', day:'2-digit', month:'short', year:'numeric'}).replace(/\./g,'');
+}
+// quem publicou pode corrigir o próprio vídeo; quem pode excluir pode editar qualquer um
+const canEditVideo = (cfg, v)=> can(cfg.deletePerm) || (can(cfg.createPerm) && state.currentUser && v.addedBy === state.currentUser.username);
+const videoFilter = col=> state.videoFilters[col] || (state.videoFilters[col] = {date:'', q:''});
+
+// cfg: {collection, createPerm, deletePerm, dateLabel}
 function renderVideoGrid(cfg){
-  const list = state[cfg.collection];
-  if(!list.length) return `<div class="empty">Nenhum vídeo publicado ainda.</div>`;
+  const all = state[cfg.collection];
+  if(!all.length) return `<div class="empty">Nenhum vídeo publicado ainda.</div>`;
+  const f = videoFilter(cfg.collection);
+  const q = f.q.trim().toLowerCase();
+  // datas distintas, mais recentes primeiro, com a contagem de vídeos
+  const counts = {};
+  all.forEach(v=>{ const k = v.date || 'none'; counts[k] = (counts[k]||0) + 1; });
+  const dates = Object.keys(counts).filter(k=> k !== 'none').sort((a,b)=> b.localeCompare(a));
+  const list = all
+    .filter(v=> !f.date || (f.date === 'none' ? !v.date : v.date === f.date))
+    .filter(v=> !q || v.title.toLowerCase().includes(q) || (v.addedBy||'').toLowerCase().includes(q))
+    .sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  const col = cfg.collection;
   return `
+    <div class="toolbar">
+      <div class="search-box">${icon('search')}<input data-video-search="${col}" placeholder="Buscar pelo título" value="${esc(f.q)}" autocomplete="off"></div>
+      <select data-video-date="${col}" style="width:auto; min-width:200px;" aria-label="Filtrar por data">
+        <option value="">Todas as datas (${all.length})</option>
+        ${dates.map(d=> `<option value="${d}" ${f.date===d?'selected':''}>${formatFullDate(d)} (${counts[d]})</option>`).join('')}
+        ${counts.none ? `<option value="none" ${f.date==='none'?'selected':''}>Sem data (${counts.none})</option>` : ''}
+      </select>
+      <input type="date" data-video-date-pick="${col}" value="${f.date && f.date !== 'none' ? f.date : ''}" style="width:auto;" title="Escolher uma data no calendário" aria-label="Escolher data">
+      ${f.date || f.q ? `<button class="ghost btn-icon" data-video-clear="${col}">${icon('x')}Limpar</button>` : ''}
+    </div>
+    ${!list.length ? `<div class="empty">Nenhum vídeo ${f.date && f.date !== 'none' ? `em ${formatFullDate(f.date)}` : 'encontrado'}.</div>` : `
     <div class="video-grid">
       ${list.map(v=>{
         const ytid = extractYoutubeId(v.url);
@@ -1738,13 +1750,14 @@ function renderVideoGrid(cfg){
           <div class="cap" style="display:flex; align-items:flex-start; gap:8px;">
             <div style="flex:1;">
               <div class="txt">${esc(v.title)}</div>
-              ${v.addedBy ? `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">por ${esc(v.addedBy)}</div>` : ''}
+              <div style="font-size:11px; color:var(--text-faint); margin-top:4px;">${[v.date ? formatFullDate(v.date) : 'Sem data', v.addedBy ? `por ${esc(v.addedBy)}` : ''].filter(Boolean).join(' · ')}</div>
             </div>
-            ${can(cfg.deletePerm) ? `<button class="icon-btn danger-hover" data-del-item="${cfg.collection}:${v.id}" data-del-label="vídeo" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
+            ${canEditVideo(cfg, v) ? `<button class="icon-btn" data-edit-video="${col}:${v.id}" title="Editar vídeo" aria-label="Editar vídeo">${icon('pencil')}</button>` : ''}
+            ${can(cfg.deletePerm) ? `<button class="icon-btn danger-hover" data-del-item="${col}:${v.id}" data-del-label="vídeo" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
           </div>
         </div>`;
       }).join('')}
-    </div>`;
+    </div>`}`;
 }
 function renderPhotoGrid(cfg){
   const list = [...state[cfg.collection]].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
@@ -1767,11 +1780,11 @@ const photoAddButton = (collection, perm)=> can(perm) ? `<button class="primary 
 
 function renderGamesVideos(){
   return pageHead('Games', 'Vídeos', 'Jogatinas, lances e resenhas dos games.', videoAddButton('games_videos', 'games.videos.create'))
-    + renderVideoGrid({collection:'games_videos', deletePerm:'games.videos.delete'});
+    + renderVideoGrid({collection:'games_videos', createPerm:'games.videos.create', deletePerm:'games.videos.delete'});
 }
 function renderOutrosVideos(){
   return pageHead('Outros', 'Vídeos', 'Tudo que não é pelada, tabuleiro nem videogame.', videoAddButton('outros_videos', 'outros.videos.create'))
-    + renderVideoGrid({collection:'outros_videos', deletePerm:'outros.videos.delete'});
+    + renderVideoGrid({collection:'outros_videos', createPerm:'outros.videos.create', deletePerm:'outros.videos.delete'});
 }
 
 /* ============ BOARDGAME ============ */
@@ -2056,7 +2069,7 @@ function renderBgMedia(){
       <button data-bg-media-tab="fotos" class="${tab==='fotos'?'active':''}">Fotos</button>
     </div>
     ${tab === 'videos'
-      ? renderVideoGrid({collection:'bg_videos', deletePerm:'bg.videos.delete'})
+      ? renderVideoGrid({collection:'bg_videos', createPerm:'bg.videos.create', deletePerm:'bg.videos.delete'})
       : renderPhotoGrid({collection:'bg_photos', deletePerm:'bg.photos.delete'})}
   `;
 }
@@ -2076,6 +2089,31 @@ function bindOtherEnvEvents(){
       if(!confirm(`Excluir ${label === 'foto' ? 'esta' : 'este'} ${label}?`)) return;
       state[col] = state[col].filter(x=> x.id !== id);
       if(await sSet(col, state[col])){ render(); toast(`${label[0].toUpperCase() + label.slice(1)} excluíd${label === 'foto' ? 'a' : 'o'}.`); }
+    };
+  });
+  document.querySelectorAll('[data-video-date]').forEach(s=>{
+    s.onchange = ()=>{ videoFilter(s.dataset.videoDate).date = s.value; render(); };
+  });
+  document.querySelectorAll('[data-video-date-pick]').forEach(s=>{
+    s.onchange = ()=>{ videoFilter(s.dataset.videoDatePick).date = s.value; render(); };
+  });
+  document.querySelectorAll('[data-video-clear]').forEach(b=>{
+    b.onclick = ()=>{ state.videoFilters[b.dataset.videoClear] = {date:'', q:''}; render(); };
+  });
+  document.querySelectorAll('[data-video-search]').forEach(inp=>{
+    inp.oninput = ()=>{
+      const col = inp.dataset.videoSearch;
+      videoFilter(col).q = inp.value;
+      render();
+      const el = document.querySelector(`[data-video-search="${col}"]`);
+      if(el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+    };
+  });
+  document.querySelectorAll('[data-edit-video]').forEach(b=>{
+    b.onclick = ()=>{
+      const [collection, id] = b.dataset.editVideo.split(':');
+      state.modal = {type:'video', data:{collection, id}};
+      render();
     };
   });
   document.querySelectorAll('[data-bg-media-tab]').forEach(b=>{
@@ -2338,13 +2376,6 @@ function bindViewEvents(){
   document.querySelectorAll('[data-momentos-tab]').forEach(b=>{
     b.onclick = ()=>{ state.momentosTab = b.dataset.momentosTab; render(); };
   });
-  document.querySelectorAll('[data-del-video]').forEach(b=>{
-    b.onclick = async ()=>{
-      if(!confirm('Excluir este vídeo?')) return;
-      state.videos = state.videos.filter(v=> v.id !== b.dataset.delVideo);
-      if(await saveVideos()){ render(); toast('Vídeo excluído.'); }
-    };
-  });
   document.querySelectorAll('[data-del-photo]').forEach(b=>{
     b.onclick = async ()=>{
       if(!confirm('Excluir esta foto?')) return;
@@ -2474,17 +2505,30 @@ function renderPhotoModal(){
   </div>`;
 }
 function renderVideoModal(){
-  const games = state.modal.data && state.modal.data.collection === 'games_videos';
+  const d = state.modal.data || {};
+  const col = d.collection || 'videos';
+  const games = col === 'games_videos';
+  const editing = d.id ? (state[col] || []).find(v=> v.id === d.id) : null;
+  const now = new Date();
+  const today = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  // na pelada, sugere as datas das partidas cadastradas
+  const matchDates = col === 'videos'
+    ? [...new Set(state.matches.map(m=> m.date).filter(Boolean))].sort((a,b)=> b.localeCompare(a)).slice(0,6) : [];
   return `
   <div class="overlay" id="modalOverlay">
     <div class="modal">
-      <h3>Adicionar vídeo</h3>
+      <h3>${editing ? 'Editar vídeo' : 'Adicionar vídeo'}</h3>
       <form id="videoForm">
-        <div class="field"><label>Título</label><input name="title" required maxlength="120" placeholder="${games ? 'Jogatina de FIFA - setembro' : 'Pelada - 30 de agosto de 2026'}"></div>
-        <div class="field"><label>Link do YouTube</label><input name="url" required placeholder="https://www.youtube.com/watch?v=..."></div>
+        <div class="field"><label>Título</label><input name="title" required maxlength="120" value="${editing ? esc(editing.title) : ''}" placeholder="${games ? 'Jogatina de FIFA - setembro' : 'Pelada - 30 de agosto de 2026'}"></div>
+        <div class="field"><label>Link do YouTube</label><input name="url" required value="${editing ? esc(editing.url) : ''}" placeholder="https://www.youtube.com/watch?v=..."></div>
+        <div class="field"><label>${col === 'videos' ? 'Data da pelada' : 'Data'}</label><input type="date" name="date" id="videoDate" required max="${today}" value="${editing ? (editing.date || '') : today}">
+          ${matchDates.length ? `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+            ${matchDates.map(md=> `<button type="button" class="ghost" data-pick-date="${md}" style="padding:4px 10px; font-size:12px;">${formatDate(md)}</button>`).join('')}
+          </div>` : ''}
+        </div>
         <div class="modal-actions">
           <button type="button" class="ghost" id="cancelModal">Cancelar</button>
-          <button type="submit" class="primary">Publicar</button>
+          <button type="submit" class="primary">${editing ? 'Salvar' : 'Publicar'}</button>
         </div>
       </form>
     </div>
@@ -2586,13 +2630,23 @@ function bindModalEvents(){
       const fd = new FormData(videoForm);
       const url = fd.get('url').trim();
       if(!extractYoutubeId(url)){ toast('Não consegui reconhecer esse link do YouTube. Confira e tente de novo.', 'error'); return; }
-      const video = {id: uid(), title: fd.get('title').trim(), url};
-      if(state.currentUser) video.addedBy = state.currentUser.username;
+      const date = fd.get('date') || '';
       const key = (state.modal.data && state.modal.data.collection) || 'videos';
-      state[key].push(video);
+      const editId = state.modal.data && state.modal.data.id;
+      const existing = editId && state[key].find(v=> v.id === editId);
+      if(existing){
+        Object.assign(existing, {title: fd.get('title').trim(), url, date});
+      } else {
+        const video = {id: uid(), title: fd.get('title').trim(), url, date};
+        if(state.currentUser) video.addedBy = state.currentUser.username;
+        state[key].push(video);
+      }
       state.modal = null;
-      if(await sSet(key, state[key])){ render(); toast('Vídeo publicado.'); }
+      if(await sSet(key, state[key])){ render(); toast(existing ? 'Vídeo atualizado.' : 'Vídeo publicado.'); }
     };
+    document.querySelectorAll('[data-pick-date]').forEach(b=>{
+      b.onclick = ()=>{ document.getElementById('videoDate').value = b.dataset.pickDate; };
+    });
   }
 
   // mural modal

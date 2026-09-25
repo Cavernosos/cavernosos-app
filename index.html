@@ -603,7 +603,8 @@ button .lucide{vertical-align:-4px;}
 .pm-presence .presence-item{margin:0; cursor:pointer; padding:7px 10px; color:var(--text);}
 .pm-presence .presence-item > div:not(.pname){width:26px; height:26px; border-radius:50%; background:var(--bg-elev); flex-shrink:0;}
 .pm-presence .presence-item img{width:26px; height:26px;}
-.pm-thumbs{display:grid; grid-template-columns:repeat(auto-fill, minmax(92px,1fr)); gap:8px;}
+.pm-thumbs{display:grid; grid-template-columns:repeat(auto-fill, minmax(92px,1fr)); gap:8px; padding:4px; margin:-4px; border:1px dashed transparent; transition:border-color .15s, background .15s;}
+.pm-thumbs.drag-over{border-color:var(--accent); background:var(--accent-soft);}
 .pm-thumb{position:relative; aspect-ratio:1; background:var(--bg); border:1px solid var(--border-soft); overflow:hidden;}
 .pm-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
 .pm-thumb-x{position:absolute; top:4px; right:4px; padding:3px; background:rgba(0,0,0,.6); color:#fff; border:0; display:flex;}
@@ -2540,6 +2541,7 @@ function renderMatchModal(){
             ${photos.map(p=>`<div class="pm-thumb" data-existing-photo="${p.id}"><img src="${p.photo}" alt="">${can('photos.delete') ? `<button type="button" class="pm-thumb-x" data-remove-existing-photo="${p.id}" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>` : ''}</div>`).join('')}
             ${can('photos.create') ? `<button type="button" class="pm-thumb pm-thumb-add" id="matchPhotoPick">${icon('image-plus')}<span>Adicionar</span></button>` : ''}
           </div>
+          ${can('photos.create') ? `<div class="hint">Clique em “Adicionar” para escolher na pasta (várias de uma vez) ou arraste as fotos para cá.</div>` : ''}
           <input type="file" accept="image/*" multiple id="matchPhotoInput" style="display:none;">
         </div>` : ''}
 
@@ -2719,9 +2721,20 @@ function bindModalEvents(){
     const photoInput = document.getElementById('matchPhotoInput');
     if(photoPick){
       photoPick.onclick = ()=> photoInput.click();
-      photoInput.onchange = async ()=>{
-        const files = [...photoInput.files];
-        photoInput.value = '';
+      photoInput.onchange = ()=>{ const files = [...photoInput.files]; photoInput.value = ''; addPhotoFiles(files); };
+      // arrastar e soltar fotos em cima da área das fotos
+      const drop = document.getElementById('matchPhotoThumbs');
+      drop.ondragover = e=>{ e.preventDefault(); drop.classList.add('drag-over'); };
+      drop.ondragleave = e=>{ if(!drop.contains(e.relatedTarget)) drop.classList.remove('drag-over'); };
+      drop.ondrop = e=>{
+        e.preventDefault();
+        drop.classList.remove('drag-over');
+        const files = [...e.dataTransfer.files].filter(f=> f.type.startsWith('image/'));
+        if(!files.length) return toast('Solte arquivos de imagem (JPG, PNG...).', 'error');
+        addPhotoFiles(files);
+      };
+    }
+    async function addPhotoFiles(files){
         for(const file of files){
           try{
             const data = await resizeImage(file, 1280, 0.72);
@@ -2735,7 +2748,6 @@ function bindModalEvents(){
           }catch(err){ toast(`Não consegui abrir ${file.name}.`, 'error'); }
         }
         if(window.lucide) lucide.createIcons();
-      };
     }
     matchForm.querySelectorAll('[data-remove-existing-photo]').forEach(b=>{
       b.onclick = ()=>{ removedPhotos.add(b.dataset.removeExistingPhoto); b.closest('.pm-thumb').remove(); };

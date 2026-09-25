@@ -622,6 +622,11 @@ button .lucide{vertical-align:-4px;}
 .pm-chip{display:flex; align-items:center; gap:8px; padding:5px 12px 5px 5px; border:1px solid var(--border-soft); background:var(--bg-card); font-size:13px;}
 .pm-chip .pm-av{border:0;}
 .pm-chip b{font-weight:600; color:var(--accent); font-size:11.5px;}
+.type-flag{flex-shrink:0; font-family:'Oswald'; font-size:10px; letter-spacing:.06em; text-transform:uppercase; padding:2px 7px; border:1px solid; line-height:1.4;}
+.type-flag.men{color:#5aa9e6; border-color:rgba(90,169,230,.5); background:rgba(90,169,230,.1);}
+.type-flag.dia{color:#e0a43a; border-color:rgba(224,164,58,.5); background:rgba(224,164,58,.1);}
+.type-flag.gol{color:#4cbf7a; border-color:rgba(76,191,122,.5); background:rgba(76,191,122,.1);}
+.type-summary{text-transform:none; letter-spacing:0; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--text-faint);}
 .pm-loose{margin-top:36px; border-top:1px solid var(--border-soft); padding-top:16px;}
 .pm-loose summary{cursor:pointer; color:var(--text-dim); font-size:13.5px; display:flex; align-items:center; gap:8px;}
 .pm-loose summary .lucide{width:16px; height:16px;}
@@ -1705,6 +1710,19 @@ function renderMatches(){
     </details>` : ''}
   `;
 }
+// flag do tipo do jogador (Mensalista / Diarista / Goleiro)
+const TYPE_FLAG_CLS = {Mensalista:'men', Diarista:'dia', Goleiro:'gol'};
+function typeFlag(p){
+  const t = p.type || 'Mensalista';
+  return TYPE_FLAG_CLS[t] ? `<span class="type-flag ${TYPE_FLAG_CLS[t]}">${t}</span>` : '';
+}
+function typeSummary(players){
+  const parts = PLAYER_TYPES.map(t=>{
+    const n = players.filter(p=> (p.type || 'Mensalista') === t).length;
+    return n ? `${n} ${t.toLowerCase()}${n===1?'':'s'}` : '';
+  }).filter(Boolean);
+  return parts.length ? `<span class="type-summary"> · ${parts.join(' · ')}</span>` : '';
+}
 function matchCard(m){
   const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
   const MAX = 9;
@@ -1759,10 +1777,10 @@ function renderMatchDetail(matchId){
     <div class="section-title">Observações</div>
     ${m.notes ? `<div class="pm-notes-full">${esc(m.notes)}</div>` : `<div class="empty" style="padding-top:0;">Sem observações.</div>`}
 
-    <div class="section-title">Presentes (${players.length})</div>
+    <div class="section-title">Presentes (${players.length})${typeSummary(players)}</div>
     ${players.length ? `<div class="pm-present">${players.map(p=>{
       const g = (m.goals && m.goals[p.id]) || 0;
-      return `<div class="pm-chip">${playerPhotoTag(p,'pm-av')}<span>${esc(playerName(p))}</span>${g ? `<b>${g} gol${g===1?'':'s'}</b>` : ''}</div>`;
+      return `<div class="pm-chip">${playerPhotoTag(p,'pm-av')}<span>${esc(playerName(p))}</span>${typeFlag(p)}${g ? `<b>${g} gol${g===1?'':'s'}</b>` : ''}</div>`;
     }).join('')}</div>` : `<div class="empty" style="padding-top:0;">Ninguém marcado.</div>`}
 
     <div class="section-title">Fotos (${photos.length})</div>
@@ -2627,6 +2645,7 @@ function renderMatchModal(){
               <input type="checkbox" class="checkbox" name="presence" value="${p.id}" ${presence.has(p.id)?'checked':''} ${dis}>
               ${playerPhotoTag(p,'')}
               <div class="pname">${esc(playerName(p))}</div>
+              ${typeFlag(p)}
             </label>`).join('')}
           </div>` : `<div class="hint">Nenhum jogador cadastrado ainda.</div>`}
         </div>

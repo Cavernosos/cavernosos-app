@@ -469,6 +469,28 @@ button .lucide{vertical-align:-4px;}
 .login-done .lucide{width:40px; height:40px; color:var(--accent); margin-bottom:10px;}
 .login-done h2{font-size:20px; margin-bottom:8px;}
 .login-done p{color:var(--text-dim); font-size:14px; line-height:1.5;}
+/* ---------- Coletes ---------- */
+.colete-prices{display:flex; justify-content:center; gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:22px;}
+.colete-prices > div{flex:1; background:var(--bg); padding:10px 12px; text-align:center;}
+.colete-prices .lbl{font-family:'Oswald'; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-dim);}
+.colete-prices .val{font-family:'Oswald'; font-size:22px; color:var(--accent); margin-top:2px;}
+.size-seg{display:grid; grid-template-columns:repeat(4, 1fr); width:100%; gap:1px; background:var(--border);}
+.size-seg label{display:block;}
+.size-seg span{display:flex; background:var(--bg); justify-content:center; padding:10px 6px; font-family:'Oswald'; letter-spacing:.04em; font-size:14px;}
+.colete-name-input{font-family:'Oswald'; letter-spacing:.08em; text-transform:uppercase;}
+.colete-number-input{font-family:'Oswald'; font-size:18px; letter-spacing:.1em; text-align:center; width:90px;}
+.colete-total{display:flex; justify-content:space-between; align-items:baseline; padding:12px 0; margin-bottom:14px; border-top:1px solid var(--border-soft); font-size:13.5px; color:var(--text-dim);}
+.colete-total b{font-family:'Oswald'; font-size:20px; color:var(--text); font-weight:500;}
+.colete-summary{border:1px solid var(--border-soft); background:var(--bg); padding:12px 14px; margin:16px 0 4px; text-align:left; font-size:13.5px;}
+.colete-summary div{display:flex; justify-content:space-between; gap:10px; padding:3px 0;}
+.colete-summary span{color:var(--text-dim);}
+.colete-hp{position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden;}
+.coletes-table .shirt{font-family:'Oswald'; letter-spacing:.06em;}
+.coletes-table .num-cell{font-family:'Oswald'; font-size:16px;}
+.coletes-table select{padding:6px 8px; font-size:13px; width:auto;}
+.coletes-table .obs{white-space:normal; max-width:260px; color:var(--text-dim); font-size:12.5px;}
+.badge.dup{color:var(--danger); border-color:var(--danger);}
+.size-count{display:flex; gap:6px; flex-wrap:wrap; margin:-18px 0 24px;}
 .chips{display:flex; gap:5px; flex-wrap:wrap;}
 .chip{font-size:11.5px; padding:2px 8px; background:var(--bg-elev); border:1px solid var(--border-soft); color:var(--text-dim);}
 .td-actions{text-align:right; white-space:nowrap;}
@@ -981,6 +1003,11 @@ const PERM_TREE = [
         {key:'photos.delete', label:'Excluir fotos'},
       ]},
     ]},
+    {label:'Coletes', icon:'shirt', children:[
+      {key:'coletes.view', label:'Ver pedidos de colete', note:'e copiar o link do formulário'},
+      {key:'coletes.edit', label:'Alterar status dos pedidos'},
+      {key:'coletes.delete', label:'Excluir pedidos'},
+    ]},
   ]},
   {label:'BoardGame', icon:'dices', children:[
     {key:'boardgame.view', label:'Ver ambiente BoardGame', note:'inclui Rankings e aparecer como jogador nas partidas'},
@@ -1085,7 +1112,7 @@ async function enterApp(){
   if(!loadFailed && can('players.edit')) await migratePlayers();
 }
 function clearData(){
-  Object.assign(state, {players:[], matches:[], mural:[], videos:[], users:[], modal:null, openMatchId:null});
+  Object.assign(state, {players:[], matches:[], mural:[], videos:[], users:[], coletes:[], modal:null, openMatchId:null});
   EXTRA_COLLECTIONS.forEach(k=> state[k] = []);
   Object.keys(synced).forEach(k=> delete synced[k]);
 }
@@ -1315,6 +1342,8 @@ let state = {
   bgLibFilter: {q:'', players:'', status:'', sort:'name', showExp:false},
   videoFilters: {}, // por coleção: {date, q}
   matchFilter: {date:'', q:''},
+  coletes: [],
+  coletesFilter: 'all',
   openMatchId: null,
   modal: null // {type, data}
 };
@@ -1416,6 +1445,8 @@ async function loadAll(){
   const failedBefore = loadFailed;
   const lists = await Promise.all(EXTRA_COLLECTIONS.map(k=> sGet(k)));
   EXTRA_COLLECTIONS.forEach((k,i)=> state[k] = lists[i] || []);
+  // pedidos de colete: só quem tem a permissão consegue ler
+  state.coletes = can('coletes.view') ? (await sGet('coletes')) || [] : [];
   loadFailed = failedBefore;
 }
 const EXTRA_COLLECTIONS = ['games_videos','outros_videos','bg_games','bg_matches','bg_videos','bg_photos','bg_guests','bg_collection','directory','votes'];
@@ -1477,6 +1508,8 @@ function render(){
   if(newSearch){ newSearch.focus(); newSearch.setSelectionRange(caret, caret); }
 }
 window.addEventListener('DOMContentLoaded', async ()=>{
+  // link externo do pedido de colete: abre só o formulário, sem login
+  if(IS_COLETE_PAGE){ renderColetePublic(); return; }
   await loadSettings();
   // se o Firebase não responder (rede lenta, navegador bloqueando), mostra a tela de login mesmo assim
   setTimeout(()=>{ if(!booted){ booted = true; render(); } }, 4000);
@@ -1501,6 +1534,7 @@ const ENVS = [
     {id:'players', label:'Jogadores', icon:'users', perm:'players.view'},
     {id:'votes', label:'Votação', icon:'vote', perm:'players.vote'},
     {id:'matches', label:'Partidas', icon:'calendar-days', perm:'matches.view'},
+    {id:'coletes', label:'Coletes', icon:'shirt', perm:'coletes.view'},
   ]},
   {id:'boardgame', label:'BoardGame', icon:'dices', perm:'boardgame.view', nav:[
     {id:'bg-matches', label:'Partidas', icon:'swords'},
@@ -1628,6 +1662,7 @@ function bindShell(){
   bindViewEvents();
   bindOtherEnvEvents();
   bindUsersEvents();
+  bindColetesEvents();
   bindModalEvents();
   bindAuthModals();
 }
@@ -1637,6 +1672,7 @@ function renderView(){
   if(state.view === 'players') return renderPlayers();
   if(state.view === 'votes') return renderVotes();
   if(state.view === 'matches' || state.view === 'mural') return renderMatches();
+  if(state.view === 'coletes') return renderColetes();
   if(state.view === 'users') return renderUsers();
   if(state.view === 'games-videos') return renderGamesVideos();
   if(state.bgOpen && state.view.startsWith('bg-')) return renderBgDetail();
@@ -1648,6 +1684,247 @@ function renderView(){
   if(state.view === 'bg-media') return renderBgMedia();
   if(state.view === 'outros-videos') return renderOutrosVideos();
   return '';
+}
+
+/* ============ COLETES ============ */
+// Pedido de colete: formulário público (link sem login) + aba de acompanhamento na Pelada.
+const COLETE_SIZES = ['PP','P','M','G','GG','XG','EXG','Outros'];
+const COLETE_STATUS = {pending:'Pendente', paid:'Pago', delivered:'Entregue'};
+const COLETE_NAME_MAX = 15;
+const IS_COLETE_PAGE = /^\/colete\/?$/i.test(location.pathname) || new URLSearchParams(location.search).has('colete');
+const coleteLink = ()=> location.origin + '/colete';
+// XG e EXG custam mais; "Outros" fica a combinar.
+function coletePrice(size){ return size === 'Outros' ? null : (size === 'XG' || size === 'EXG') ? 65 : 55; }
+const fmtBRL = v => v == null ? 'A combinar' : v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+// Nome no colete: só letras maiúsculas sem acento e espaços.
+function cleanShirtName(v){
+  return String(v||'').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase()
+    .replace(/[^A-Z ]/g, '').replace(/^ +/, '').replace(/ {2,}/g, ' ').slice(0, COLETE_NAME_MAX);
+}
+
+function renderColetePublic(){
+  document.documentElement.dataset.env = 'pelada';
+  document.title = 'Solicitação de Colete · Cavernosos';
+  const app = document.getElementById('app');
+  const done = state.coleteDone;
+  app.innerHTML = `
+  <div class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo"><img src="${LOGO_DATA_URI}" alt="Cavernosos"></div>
+        <div class="kicker">Cavernosos · Pelada</div>
+        <h1 style="font-size:26px;">Solicitação de Colete</h1>
+      </div>
+      ${done ? `
+      <div class="login-done">
+        ${icon('circle-check')}
+        <h2>Pedido enviado!</h2>
+        <p>Recebemos a sua solicitação. A organização da pelada vai confirmar com você.</p>
+        <div class="colete-summary">
+          <div><span>Nome</span><b>${esc(done.name)}</b></div>
+          <div><span>Nome no colete</span><b>${esc(done.shirtName)}</b></div>
+          <div><span>Número</span><b>${esc(done.number)}</b></div>
+          <div><span>Tamanho</span><b>${esc(done.size)}</b></div>
+          <div><span>Valor</span><b>${fmtBRL(coletePrice(done.size))}</b></div>
+        </div>
+        <button class="login-submit btn-icon" style="margin-top:18px;" id="coleteAgain">${icon('plus')}Fazer outro pedido</button>
+      </div>` : `
+      <div class="colete-prices">
+        <div><div class="lbl">Colete</div><div class="val">R$ 55,00</div></div>
+        <div><div class="lbl">XG e EXG</div><div class="val">R$ 65,00</div></div>
+      </div>
+      <form id="coleteForm" autocomplete="off" novalidate>
+        <div class="field"><label for="cName">Seu nome</label><input id="cName" name="name" required maxlength="60" autocomplete="name" placeholder="ex: João Silva"></div>
+        <div class="form-row" style="grid-template-columns:1fr auto;">
+          <div class="field"><label for="cShirt">Nome no colete</label><input id="cShirt" name="shirtName" class="colete-name-input" required maxlength="${COLETE_NAME_MAX}" autocapitalize="characters" spellcheck="false" placeholder="ex: JOAO"><div class="hint">Só letras maiúsculas, sem acentos ou sinais.</div></div>
+          <div class="field"><label for="cNumber">Número</label><input id="cNumber" name="number" class="colete-number-input" required inputmode="numeric" maxlength="2" placeholder="00"><div class="hint">00 a 99</div></div>
+        </div>
+        <div class="field">
+          <label>Tamanho</label>
+          <div class="seg size-seg" role="radiogroup" aria-label="Tamanho">
+            ${COLETE_SIZES.map(s=>`<label><input type="radio" name="size" value="${s}"><span>${s}</span></label>`).join('')}
+          </div>
+          <div class="hint">Para outros tamanhos, marcar Outros e colocar nas observações.</div>
+        </div>
+        <div class="field"><label for="cNotes">Observações</label><textarea id="cNotes" name="notes" rows="3" maxlength="500" placeholder="Opcional"></textarea></div>
+        <div class="colete-hp" aria-hidden="true"><input name="website" tabindex="-1" autocomplete="off"></div>
+        <div class="colete-total"><span>Valor</span><b id="coleteTotal">—</b></div>
+        <div class="form-error" id="formError"></div>
+        <button type="submit" class="primary login-submit btn-icon" id="formSubmit">${icon('send')}Enviar pedido</button>
+      </form>`}
+    </div>
+  </div>`;
+  if(window.lucide) lucide.createIcons();
+  bindColetePublic();
+}
+function bindColetePublic(){
+  const again = document.getElementById('coleteAgain');
+  if(again) again.onclick = ()=>{ state.coleteDone = null; renderColetePublic(); };
+  const form = document.getElementById('coleteForm');
+  if(!form) return;
+  const shirt = form.shirtName, number = form.number, notes = form.notes;
+  const err = document.getElementById('formError');
+  shirt.addEventListener('input', ()=>{
+    const v = cleanShirtName(shirt.value);
+    if(v !== shirt.value) shirt.value = v;
+  });
+  number.addEventListener('input', ()=>{
+    const v = number.value.replace(/\D/g, '').slice(0, 2);
+    if(v !== number.value) number.value = v;
+  });
+  form.addEventListener('change', e=>{
+    if(e.target.name !== 'size') return;
+    const size = e.target.value;
+    document.getElementById('coleteTotal').textContent = fmtBRL(coletePrice(size));
+    notes.placeholder = size === 'Outros' ? 'Informe aqui o tamanho desejado' : 'Opcional';
+    if(size === 'Outros') notes.focus();
+  });
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    err.textContent = '';
+    const data = {
+      name: cleanName(form.name.value).slice(0, 60),
+      shirtName: cleanShirtName(shirt.value).trim(),
+      number: number.value,
+      size: (form.querySelector('input[name=size]:checked') || {}).value || '',
+      notes: notes.value.trim().slice(0, 500),
+    };
+    const problem =
+      data.name.length < 2 ? ['name', 'Informe o seu nome.'] :
+      !data.shirtName ? ['shirtName', 'Informe o nome que vai no colete.'] :
+      !/^\d{2}$/.test(data.number) ? ['number', 'O número precisa ter 2 dígitos, de 00 a 99 (ex.: 07).'] :
+      !data.size ? [null, 'Escolha o tamanho.'] :
+      data.size === 'Outros' && !data.notes ? ['notes', 'Com o tamanho "Outros", diga nas observações qual tamanho você quer.'] : null;
+    if(problem){
+      err.textContent = problem[1];
+      if(problem[0]) form[problem[0]].focus();
+      return;
+    }
+    const btn = document.getElementById('formSubmit');
+    btn.disabled = true;
+    // robôs preenchem o campo escondido: finge que deu certo e não grava
+    if(form.website.value){ state.coleteDone = data; renderColetePublic(); return; }
+    try{
+      const id = uid();
+      await db.collection('coletes').doc(id).set({id, ...data, status:'pending', createdAt: new Date().toISOString()});
+      state.coleteDone = data;
+      renderColetePublic();
+    }catch(ex){
+      console.error('colete save failed', ex);
+      err.textContent = ex.code === 'permission-denied'
+        ? 'Não foi possível enviar o pedido. Confira os dados e tente de novo.'
+        : 'Não foi possível enviar. Verifique a conexão e tente de novo.';
+      btn.disabled = false;
+    }
+  };
+}
+
+// ---------- aba Coletes (logado) ----------
+function coletesSorted(){ return [...state.coletes].sort((a,b)=> (b.createdAt||'').localeCompare(a.createdAt||'')); }
+function renderColetes(){
+  const all = state.coletes;
+  const f = state.coletesFilter;
+  const list = coletesSorted().filter(c=> f === 'all' || (c.status||'pending') === f);
+  const canEdit = can('coletes.edit'), canDel = can('coletes.delete');
+  const total = all.reduce((s,c)=> s + (coletePrice(c.size) || 0), 0);
+  const paid = all.filter(c=> c.status === 'paid' || c.status === 'delivered');
+  const paidTotal = paid.reduce((s,c)=> s + (coletePrice(c.size) || 0), 0);
+  const aCombinar = all.filter(c=> coletePrice(c.size) == null).length;
+  // números repetidos ficam marcados
+  const numCount = {};
+  all.forEach(c=> numCount[c.number] = (numCount[c.number]||0) + 1);
+  const bySize = COLETE_SIZES.map(s=> [s, all.filter(c=> c.size === s).length]).filter(x=> x[1]);
+  const statusCount = k => all.filter(c=> (c.status||'pending') === k).length;
+  return `
+    ${pageHead('Uniforme', 'Coletes', 'Pedidos feitos pelo link do formulário. Mande o link no grupo: quem abrir não precisa de login.', `
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-icon" id="coleteOpenBtn">${icon('external-link')}Abrir formulário</button>
+        ${all.length ? `<button class="btn-icon" id="coletesCsvBtn">${icon('download')}Exportar CSV</button>` : ''}
+        <button class="primary btn-icon" id="coleteCopyBtn">${icon('link')}Copiar link</button>
+      </div>`)}
+    <div class="stat-row">
+      <div class="stat"><div class="label">Pedidos</div><div class="value num">${all.length}</div><div class="sub">${statusCount('pending')} pendente${statusCount('pending')===1?'':'s'}</div></div>
+      <div class="stat"><div class="label">Valor total</div><div class="value num" style="font-size:30px;">${fmtBRL(total)}</div>${aCombinar ? `<div class="sub">+ ${aCombinar} a combinar</div>` : ''}</div>
+      <div class="stat"><div class="label">Recebido</div><div class="value num" style="font-size:30px;">${fmtBRL(paidTotal)}</div><div class="sub">${paid.length} pago${paid.length===1?'':'s'}</div></div>
+    </div>
+    ${bySize.length ? `<div class="size-count">${bySize.map(([s,n])=>`<span class="chip"><b>${s}</b> × ${n}</span>`).join('')}</div>` : ''}
+    <div class="toolbar">
+      <div class="chip-filter">
+        ${[['all', `Todos (${all.length})`], ...Object.entries(COLETE_STATUS).map(([k,l])=> [k, `${l} (${statusCount(k)})`])].map(([k,l])=>
+          `<button data-coletes-filter="${k}" class="${f===k?'active':''}">${l}</button>`).join('')}
+      </div>
+    </div>
+    ${all.length === 0 ? `<div class="empty">Nenhum pedido ainda. Copie o link e mande para a galera.</div>` :
+      list.length === 0 ? `<div class="empty">Nenhum pedido com esse status.</div>` : `
+    <table class="users-table coletes-table">
+      <thead><tr><th>Pedido em</th><th>Nome</th><th>Nome no colete</th><th>Nº</th><th>Tamanho</th><th>Valor</th><th>Observações</th><th>Status</th>${canDel ? '<th></th>' : ''}</tr></thead>
+      <tbody>
+        ${list.map(c=>{
+          const st = c.status || 'pending';
+          return `
+        <tr class="${st === 'pending' ? 'pending-row' : ''}">
+          <td style="color:var(--text-dim); font-size:12.5px;">${fmtDay(c.createdAt)}</td>
+          <td>${esc(c.name)}</td>
+          <td class="shirt">${esc(c.shirtName)}</td>
+          <td class="num-cell">${esc(c.number)}${numCount[c.number] > 1 ? ` <span class="badge dup" title="Mais de um pedido com esse número">repetido</span>` : ''}</td>
+          <td><span class="chip">${esc(c.size)}</span></td>
+          <td>${fmtBRL(coletePrice(c.size))}</td>
+          <td class="obs">${c.notes ? esc(c.notes) : '<span class="hint" style="margin:0">—</span>'}</td>
+          <td>${canEdit ? `<select data-colete-status="${c.id}" aria-label="Status">${Object.entries(COLETE_STATUS).map(([k,l])=>`<option value="${k}" ${k===st?'selected':''}>${l}</option>`).join('')}</select>`
+            : `<span class="badge ${st === 'pending' ? 'pending' : 'ok'}">${COLETE_STATUS[st] || st}</span>`}</td>
+          ${canDel ? `<td class="td-actions"><button class="icon-btn danger-hover" data-colete-del="${c.id}" title="Excluir pedido" aria-label="Excluir pedido">${icon('trash-2')}</button></td>` : ''}
+        </tr>`;}).join('')}
+      </tbody>
+    </table>
+    <div class="hint" style="margin-top:10px;">Mostrando ${list.length} de ${all.length} pedido${all.length===1?'':'s'}.</div>`}
+  `;
+}
+function coletesCsv(){
+  const rows = [['Pedido em','Nome','Nome no colete','Número','Tamanho','Valor','Observações','Status']];
+  coletesSorted().forEach(c=> rows.push([fmtDay(c.createdAt), c.name, c.shirtName, c.number, c.size,
+    coletePrice(c.size) == null ? 'A combinar' : String(coletePrice(c.size)).replace('.', ','), c.notes || '', COLETE_STATUS[c.status||'pending'] || c.status]));
+  // ";" e BOM para abrir certo no Excel em português
+  const csv = '﻿' + rows.map(r=> r.map(v=> `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'coletes.csv';
+  a.click();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 1000);
+}
+function bindColetesEvents(){
+  if(state.view !== 'coletes') return;
+  const copyBtn = document.getElementById('coleteCopyBtn');
+  if(copyBtn) copyBtn.onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(coleteLink()); toast('Link copiado: ' + coleteLink()); }
+    catch(e){ prompt('Copie o link do formulário:', coleteLink()); }
+  };
+  const openBtn = document.getElementById('coleteOpenBtn');
+  if(openBtn) openBtn.onclick = ()=> window.open(coleteLink(), '_blank', 'noopener');
+  const csvBtn = document.getElementById('coletesCsvBtn');
+  if(csvBtn) csvBtn.onclick = coletesCsv;
+  document.querySelectorAll('[data-coletes-filter]').forEach(b=>{
+    b.onclick = ()=>{ state.coletesFilter = b.dataset.coletesFilter; render(); };
+  });
+  document.querySelectorAll('[data-colete-status]').forEach(sel=>{
+    sel.onchange = async ()=>{
+      const c = state.coletes.find(x=> x.id === sel.dataset.coleteStatus);
+      if(!c) return;
+      const prev = c.status;
+      c.status = sel.value;
+      try{ await db.collection('coletes').doc(c.id).update({status: c.status}); toast(`${c.shirtName} ${c.number}: ${COLETE_STATUS[c.status]}.`); }
+      catch(e){ console.error('colete status failed', e); c.status = prev; toast(e.code === 'permission-denied' ? 'Você não tem permissão para essa ação.' : 'Não foi possível salvar. Tente de novo.', 'error'); }
+      render();
+    };
+  });
+  document.querySelectorAll('[data-colete-del]').forEach(b=>{
+    b.onclick = async ()=>{
+      const c = state.coletes.find(x=> x.id === b.dataset.coleteDel);
+      if(!c || !confirm(`Excluir o pedido de ${c.name} (${c.shirtName} ${c.number}, ${c.size})?`)) return;
+      try{ await db.collection('coletes').doc(c.id).delete(); state.coletes = state.coletes.filter(x=> x.id !== c.id); toast('Pedido excluído.'); }
+      catch(e){ console.error('colete delete failed', e); toast(e.code === 'permission-denied' ? 'Você não tem permissão para essa ação.' : 'Não foi possível excluir. Tente de novo.', 'error'); }
+      render();
+    };
+  });
 }
 
 /* ============ DASHBOARD ============ */

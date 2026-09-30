@@ -109,7 +109,7 @@ service cloud.firestore {
                     && request.resource.data.shirtName.matches('^[A-ZÁÉÍÓÚÂÊÔÃÕ]+( [A-ZÁÉÍÓÚÂÊÔÃÕ]+)*$')
                     && request.resource.data.shirtName.size() <= 15
                     && request.resource.data.number is string
-                    && request.resource.data.number.matches('^[0-9]{2}$')
+                    && request.resource.data.number.matches('^[A-Z0-9]{2}$')
                     && request.resource.data.size in ['PP', 'P', 'M', 'G', 'GG', 'XG', 'EXG', 'Outros']
                     && request.resource.data.notes is string
                     && request.resource.data.notes.size() <= 500

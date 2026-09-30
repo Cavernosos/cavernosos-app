@@ -106,7 +106,7 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 60
                     && request.resource.data.shirtName is string
-                    && request.resource.data.shirtName.matches('^[A-Z]+( [A-Z]+)*$')
+                    && request.resource.data.shirtName.matches('^[A-ZÁÉÍÓÚÂÊÔÃÕ]+( [A-ZÁÉÍÓÚÂÊÔÃÕ]+)*$')
                     && request.resource.data.shirtName.size() <= 15
                     && request.resource.data.number is string
                     && request.resource.data.number.matches('^[0-9]{2}$')

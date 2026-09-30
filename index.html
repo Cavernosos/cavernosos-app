@@ -1696,10 +1696,13 @@ const coleteLink = ()=> location.origin + '/colete';
 // XG e EXG custam mais; "Outros" fica a combinar.
 function coletePrice(size){ return size === 'Outros' ? null : (size === 'XG' || size === 'EXG') ? 65 : 55; }
 const fmtBRL = v => v == null ? 'A combinar' : v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-// Nome no colete: só letras maiúsculas sem acento e espaços.
+// Nome no colete: letras maiúsculas e espaços; dos acentos, só agudo, circunflexo e til.
+const SHIRT_ACCENTS = 'ÁÉÍÓÚÂÊÔÃÕ';
 function cleanShirtName(v){
-  return String(v||'').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase()
-    .replace(/[^A-Z ]/g, '').replace(/^ +/, '').replace(/ {2,}/g, ' ').slice(0, COLETE_NAME_MAX);
+  return [...String(v||'').toUpperCase().normalize('NFC')]
+    // outros acentos (crase, trema, cedilha...) viram a letra sem sinal
+    .map(ch=> /[A-Z ]/.test(ch) || SHIRT_ACCENTS.includes(ch) ? ch : (ch.normalize('NFD')[0].match(/[A-Z]/) || [''])[0])
+    .join('').replace(/^ +/, '').replace(/ {2,}/g, ' ').slice(0, COLETE_NAME_MAX);
 }
 
 function renderColetePublic(){
@@ -1736,7 +1739,7 @@ function renderColetePublic(){
       <form id="coleteForm" autocomplete="off" novalidate>
         <div class="field"><label for="cName">Seu nome</label><input id="cName" name="name" required maxlength="60" autocomplete="name" placeholder="ex: João Silva"></div>
         <div class="form-row" style="grid-template-columns:1fr auto;">
-          <div class="field"><label for="cShirt">Nome no colete</label><input id="cShirt" name="shirtName" class="colete-name-input" required maxlength="${COLETE_NAME_MAX}" autocapitalize="characters" spellcheck="false" placeholder="ex: JOAO"><div class="hint">Só letras maiúsculas, sem acentos ou sinais.</div></div>
+          <div class="field"><label for="cShirt">Nome no colete</label><input id="cShirt" name="shirtName" class="colete-name-input" required maxlength="${COLETE_NAME_MAX}" autocapitalize="characters" spellcheck="false" placeholder="ex: JOAO"><div class="hint">Só letras maiúsculas. Acentos: só agudo, circunflexo e til (Á Ê Ã).</div></div>
           <div class="field"><label for="cNumber">Número</label><input id="cNumber" name="number" class="colete-number-input" required inputmode="numeric" maxlength="2" placeholder="00"><div class="hint">00 a 99</div></div>
         </div>
         <div class="field">

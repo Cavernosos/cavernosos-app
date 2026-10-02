@@ -673,7 +673,18 @@ button .lucide{vertical-align:-4px;}
 .vote-fields{display:grid; grid-template-columns:repeat(3,1fr); gap:8px 10px;}
 .vote-field{display:flex; align-items:center; gap:8px; margin:0; cursor:help;}
 .vote-field span{font-family:'Oswald'; font-size:12.5px; letter-spacing:.04em; color:var(--text-dim); min-width:30px;}
-.vote-field input{text-align:center; padding:7px 4px; min-width:0;}
+.vote-field input, .vote-field select{text-align:center; padding:7px 4px; min-width:0; flex:1;}
+.attr-row select{text-align:center; padding:7px 6px;}
+.vote-card.skipped{opacity:.55; border-style:dashed;}
+.vote-skip{display:inline-flex; align-items:center; gap:6px; margin-top:10px; padding:4px 0; font-size:12px; color:var(--text-faint);}
+.vote-skip .lucide{width:14px; height:14px;}
+.vote-skip:hover{color:var(--text);}
+.vote-card.skipped .vote-skip{color:var(--accent);}
+/* régua da votação: o que cada nota significa */
+.vote-ruler{display:grid; grid-template-columns:repeat(6, 1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:14px;}
+.vote-ruler span{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 4px; background:var(--bg-card); font-size:11.5px; color:var(--text-dim); text-align:center;}
+.vote-ruler b{font-family:'Oswald'; font-size:18px; color:var(--accent);}
+@media (max-width:560px){ .vote-ruler{grid-template-columns:repeat(3, 1fr);} }
 .vote-bar{position:sticky; bottom:0; z-index:5; display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:18px; padding:12px 16px; background:var(--bg-elev); border:1px solid var(--border);}
 .vote-progress{flex:1; font-size:13.5px; color:var(--text-dim);}
 .vote-progress b{color:var(--accent); font-family:'Oswald'; font-weight:500;}
@@ -1346,62 +1357,91 @@ function starsHtml(count, cls){
   for(let i=1;i<=5;i++){ out += `<span class="${i<=count ? 'filled' : i-0.5<=count ? 'half' : ''}">★</span>`; }
   return `<div class="${cls}" title="${String(count).replace('.',',')} estrela${count===1?'':'s'}">${out}</div>`;
 }
-// Notas vão de 0 a 10 (inteiros). Votos e cadastros antigos eram de 0 a 99 e são convertidos na leitura.
-const clamp10 = v => Math.max(0, Math.min(10, Math.round(Number(v) || 0)));
-const from99 = v => clamp10(v / 10);
-// Nível em estrelas = média das 6 habilidades (0-10) convertida para 0-5, de meia em meia.
-function ovrToStars(avg){ return Math.round(avg) / 2; }
-function playerStars(player){ return ovrToStars(attrAverage(player)); }
+// Notas da votação: inteiros de 5 a 10, escolhidos numa lista (para todo mundo usar a mesma régua).
+// No card, cada habilidade e o overall aparecem de 50 a 99 (nota × 10; 100 vira 99), como no FIFA.
+// Votos e cadastros antigos (0-10 ou 0-99) são convertidos na leitura.
+const VOTE_MIN = 5, VOTE_MAX = 10, VOTE_DEFAULT = 7;
+const VOTE_SCALE = [
+  {n:5, label:'Fraco'}, {n:6, label:'Regular'}, {n:7, label:'Bom'},
+  {n:8, label:'Muito bom'}, {n:9, label:'Ótimo'}, {n:10, label:'Craque da pelada'},
+];
+const clampVote = v => Math.max(VOTE_MIN, Math.min(VOTE_MAX, Math.round(Number(v) || 0)));
+const from99 = v => clampVote(v / 10);
+const toCard = n => Math.min(99, Math.round(n * 10));      // 5-10 → 50-99
+// Nível em estrelas a partir do overall (50 → 2,5 estrelas; 99 → 5), de meia em meia.
+function ovrToStars(ovr){ return Math.round(ovr / 99 * 10) / 2; }
+function playerStars(player){ return ovrToStars(computeOVR(player)); }
 const PLAYER_TYPES = ['Mensalista','Diarista','Goleiro'];
+// As chaves (rit, def, fis...) são as de antes: os votos antigos continuam valendo.
 const FIELD_ATTRS = [
-  {k:'rit', abbr:'RIT', name:'Ritmo',       hint:'Aceleração e pique'},
-  {k:'fin', abbr:'FIN', name:'Finalização', hint:'Finalização, força do chute, voleio, pênalti'},
-  {k:'pas', abbr:'PAS', name:'Passe',       hint:'Visão, cruzamento, passe curto, lançamento, curva'},
-  {k:'dri', abbr:'DRI', name:'Drible',      hint:'Agilidade, equilíbrio, reação, controle de bola, frieza'},
-  {k:'def', abbr:'DEF', name:'Defesa',      hint:'Interceptação, dividida, noção'},
-  {k:'fis', abbr:'FÍS', name:'Físico',      hint:'Impulso, fôlego, força, combatividade'},
+  {k:'rit', abbr:'VEL', name:'Velocidade',  hint:'É rápido, com e sem bola?'},
+  {k:'fin', abbr:'FIN', name:'Finalização', hint:'Quando chuta, vira gol?'},
+  {k:'pas', abbr:'PAS', name:'Passe',       hint:'Acerta o passe e enxerga o companheiro?'},
+  {k:'dri', abbr:'DRI', name:'Drible',      hint:'Ganha no 1x1 e segura a bola?'},
+  {k:'def', abbr:'MAR', name:'Marcação',    hint:'Rouba bola e volta para marcar?'},
+  {k:'fis', abbr:'FÔL', name:'Fôlego',      hint:'Aguenta o ritmo do começo ao fim?'},
 ];
 const GK_ATTRS = [
-  {k:'ela', abbr:'ELA', name:'Elasticidade'},
-  {k:'man', abbr:'MAN', name:'Manejo'},
-  {k:'chu', abbr:'CHU', name:'Chute'},
-  {k:'ref', abbr:'REF', name:'Reflexos'},
-  {k:'vel', abbr:'VEL', name:'Velocidade'},
-  {k:'pos', abbr:'POS', name:'Posicionamento'},
+  {k:'gdef', abbr:'DEF', name:'Defesa',          hint:'Pega as bolas que chegam?'},
+  {k:'ref',  abbr:'REF', name:'Reflexo',         hint:'Reage na bola de perto?'},
+  {k:'sai',  abbr:'SAÍ', name:'Saída do gol',    hint:'Sai bem no 1x1?'},
+  {k:'rep',  abbr:'REP', name:'Reposição',       hint:'Repõe bem com a mão e com o pé?'},
+  {k:'pos',  abbr:'POS', name:'Posicionamento',  hint:'Está sempre no lugar certo?'},
+  {k:'pes',  abbr:'PÉS', name:'Jogo com os pés', hint:'Joga bem quando sai como goleiro-linha?'},
 ];
 function isGK(player){ return player && player.type === 'Goleiro'; }
 function playerAttrDefs(player){ return isGK(player) ? GK_ATTRS : FIELD_ATTRS; }
-// Votos completos (os 6 campos) que o jogador recebeu, conforme o tipo atual dele.
+const normVote = (v, scale)=> scale === 10 ? clampVote(v) : from99(v);
+// Votos completos (os 6 campos) que o jogador recebeu, conforme o tipo atual dele, já de 5 a 10.
 function playerVotes(player){
   const defs = playerAttrDefs(player);
   return (state.votes || [])
     .map(v=>{
       const r = v.ratings && v.ratings[player.id];
       if(!r || !defs.every(d=> typeof r[d.k] === 'number')) return null;
-      if(v.scale === 10) return r;
-      const out = {}; defs.forEach(d=> out[d.k] = from99(r[d.k])); return out;   // voto antigo (0-99)
+      const out = {}; defs.forEach(d=> out[d.k] = normVote(r[d.k], v.scale)); return out;
     })
     .filter(Boolean);
 }
-// Com votos, vale a média deles; sem votos, os valores do cadastro. Sempre inteiros de 0 a 10.
-function playerAttrValues(player){
+// Média que ignora os extremos: com 4 votos ou mais, descarta a maior e a menor nota.
+function trimmedMean(values){
+  const s = [...values].sort((a,b)=> a-b);
+  const use = s.length >= 4 ? s.slice(1, -1) : s;
+  return use.reduce((a,b)=> a+b, 0) / use.length;
+}
+// Média de cada habilidade (5 a 10, com decimais): votos; sem votos, os valores do cadastro.
+function playerAttrRaw(player){
   const defs = playerAttrDefs(player);
   const votes = playerVotes(player);
   const out = {};
   if(votes.length){
-    defs.forEach(d=> out[d.k] = clamp10(votes.reduce((s,r)=> s + r[d.k], 0) / votes.length));
+    defs.forEach(d=> out[d.k] = trimmedMean(votes.map(r=> r[d.k])));
     return out;
   }
   const src = isGK(player) ? player.gkAttrs : player.attrs;
-  defs.forEach(d=> out[d.k] = src && src[d.k] != null ? (player.attrScale === 10 ? clamp10(src[d.k]) : from99(src[d.k])) : 5);
+  defs.forEach(d=> out[d.k] = src && src[d.k] != null ? (player.attrScale === 10 ? clampVote(src[d.k]) : from99(src[d.k])) : VOTE_DEFAULT);
+  return out;
+}
+// Valores do card: 50 a 99.
+function playerAttrValues(player){
+  const raw = playerAttrRaw(player), out = {};
+  Object.keys(raw).forEach(k=> out[k] = toCard(raw[k]));
   return out;
 }
 function attrAverage(player){
-  const v = playerAttrValues(player);
+  const v = playerAttrRaw(player);
   const keys = Object.keys(v);
   return keys.reduce((s,k)=> s + v[k], 0) / keys.length;
 }
-function computeOVR(player){ return clamp10(attrAverage(player)); }
+function computeOVR(player){ return toCard(attrAverage(player)); }
+// lista de 5 a 10 usada na votação e no cadastro do jogador
+function voteSelect(name, value, aria, opts = {}){
+  return `<select name="${name}" aria-label="${esc(aria)}" ${opts.disabled ? 'disabled' : ''}>
+    ${opts.allowEmpty ? `<option value="">–</option>` : ''}
+    ${VOTE_SCALE.map(s=> `<option value="${s.n}" ${Number(value) === s.n ? 'selected' : ''} title="${s.label}">${s.n}</option>`).join('')}
+  </select>`;
+}
+const voteRuler = ()=> `<div class="vote-ruler">${VOTE_SCALE.map(s=> `<span><b>${s.n}</b>${s.label}</span>`).join('')}</div>`;
 const KNOWN_ATTRS = {
   'maciel': {rit:70,fin:85,pas:80,dri:45,def:90,fis:70},
   'resende': {rit:60,fin:90,pas:78,dri:62,def:70,fis:62},
@@ -2099,9 +2139,10 @@ function renderVotes(){
     <div class="page-head">
       <div class="kicker">Elenco</div>
       <h2>Votação</h2>
-      <p>Dê sua nota de 0 a 10 (só números inteiros) em cada habilidade. A média dos votos de todos forma as habilidades e as estrelas dos cards.</p>
+      <p>Dê uma nota de 5 a 10 em cada habilidade de quem você já viu jogar. No card, a média de todos vira 50 a 99, como no FIFA. Se não conhece o jogo de alguém, toque em “Não sei avaliar”.</p>
     </div>
     ${players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` : `
+    ${voteRuler()}
     <details class="vote-legend">
       <summary>${icon('info')}O que significa cada item</summary>
       <div class="vote-legend-body">${legend('Jogadores de linha', FIELD_ATTRS)}${legend('Goleiros', GK_ATTRS)}</div>
@@ -2126,11 +2167,12 @@ function renderVotes(){
             </div>
             <div class="vote-fields">
               ${playerAttrDefs(p).map(d=>`
-              <label class="vote-field" title="${d.name}${d.hint ? ': '+d.hint : ''}">
+              <label class="vote-field" title="${d.name}: ${d.hint}">
                 <span>${d.abbr}</span>
-                <input type="number" min="0" max="10" step="1" inputmode="numeric" placeholder="–" name="${p.id}.${d.k}" value="${typeof r[d.k] === 'number' ? (mineScale === 10 ? r[d.k] : from99(r[d.k])) : ''}" aria-label="${esc(playerName(p))}: ${d.name}">
+                ${voteSelect(`${p.id}.${d.k}`, typeof r[d.k] === 'number' ? normVote(r[d.k], mineScale) : '', `${playerName(p)}: ${d.name}`, {allowEmpty: true})}
               </label>`).join('')}
             </div>
+            <button type="button" class="ghost vote-skip" data-vote-skip="${p.id}">${icon('eye-off')}Não sei avaliar</button>
           </div>`;
         }).join('')}
       </div>
@@ -2145,6 +2187,22 @@ function renderVotes(){
 function bindVotesEvents(){
   const form = document.getElementById('votesForm');
   if(!form) return;
+  // "Não sei avaliar": limpa as notas desse jogador (ele fica fora do seu voto)
+  form.querySelectorAll('[data-vote-skip]').forEach(b=>{
+    b.onclick = ()=>{
+      const card = b.closest('.vote-card');
+      card.querySelectorAll('select').forEach(s=> s.value = '');
+      card.classList.remove('voted');
+      card.classList.add('skipped');
+    };
+  });
+  form.querySelectorAll('.vote-card select').forEach(s=>{
+    s.onchange = ()=>{
+      const card = s.closest('.vote-card');
+      card.classList.remove('skipped');
+      card.classList.toggle('voted', [...card.querySelectorAll('select')].every(x=> x.value));
+    };
+  });
   form.onsubmit = async e=>{
     e.preventDefault();
     const me = state.currentUser;
@@ -2156,9 +2214,9 @@ function bindVotesEvents(){
       if(vals.every(v=> v === '')) return;               // não votou nesse jogador
       if(vals.some(v=> v === '')){ incomplete.push(playerName(p)); return; }
       ratings[p.id] = {};
-      defs.forEach((d,i)=> ratings[p.id][d.k] = clamp10(vals[i]));
+      defs.forEach((d,i)=> ratings[p.id][d.k] = clampVote(vals[i]));
     });
-    if(incomplete.length) return formError(`Preencha os 6 campos de: ${incomplete.join(', ')}.`);
+    if(incomplete.length) return formError(`Preencha os 6 campos de ${incomplete.join(', ')} ou toque em “Não sei avaliar”.`);
     formError(''); formBusy(true);
     const vid = auth.currentUser.uid;   // as regras exigem o documento com o uid do login
     const doc = {id: vid, voter: me.username, ratings, scale: 10, updatedAt: new Date().toISOString()};
@@ -3763,7 +3821,7 @@ function bindOtherEnvEvents(){
     s.onchange = async ()=>{
       const c = bgMyColl();
       c.ratings = {...c.ratings};
-      if(s.value === '') delete c.ratings[s.dataset.bgRate]; else c.ratings[s.dataset.bgRate] = clamp10(s.value);
+      if(s.value === '') delete c.ratings[s.dataset.bgRate]; else c.ratings[s.dataset.bgRate] = Math.max(0, Math.min(10, Math.round(Number(s.value) || 0)));
       if(await bgSaveMyColl(c)){ render(); toast('Nota salva.'); }
     };
   });
@@ -4290,12 +4348,12 @@ function renderModal(){
   if(m.type === 'bgRandom') return renderBgRandomModal();
   return '';
 }
-// valores do cadastro já na escala 0-10 (cadastros antigos eram 0-99)
+// valores do cadastro já na escala 5-10 (cadastros antigos eram 0-10 ou 0-99)
 function storedAttrs10(player, key){
   const src = player && player[key];
   if(!src) return null;
   const out = {};
-  Object.keys(src).forEach(k=> out[k] = player.attrScale === 10 ? clamp10(src[k]) : from99(src[k]));
+  Object.keys(src).forEach(k=> out[k] = player.attrScale === 10 ? clampVote(src[k]) : from99(src[k]));
   return out;
 }
 function attrInputs(defs, values, prefix){
@@ -4305,7 +4363,7 @@ function attrInputs(defs, values, prefix){
         <div class="attr-name"><span class="abbr">${d.abbr}</span>${d.name}</div>
         ${d.hint ? `<div class="attr-hint">${d.hint}</div>` : ''}
       </div>
-      <input name="${prefix}${d.k}" type="number" min="0" max="10" step="1" inputmode="numeric" value="${values && values[d.k] != null ? values[d.k] : 5}" aria-label="${d.name}">
+      ${voteSelect(prefix + d.k, values && values[d.k] != null ? values[d.k] : VOTE_DEFAULT, d.name)}
     </div>`).join('')}</div>`;
 }
 function renderPlayerModal(player){
@@ -4344,16 +4402,16 @@ function renderPlayerModal(player){
         <div class="field"><label>Número da camisa</label><input name="number" type="number" min="0" max="99" value="${player && player.number ? player.number : ''}"></div>
         <div class="field">
           <label>Nível (estrelas)</label>
-          <div id="starsPreview">${starsHtml(player ? playerStars(player) : ovrToStars(5), 'star-picker')}</div>
+          <div id="starsPreview">${starsHtml(player ? playerStars(player) : ovrToStars(toCard(VOTE_DEFAULT)), 'star-picker')}</div>
           <div class="hint">Calculado automaticamente: média das 6 habilidades.</div>
         </div>
         ${player && playerVotes(player).length ? `<div class="notice">${icon('vote')}<div>Este jogador já tem ${playerVotes(player).length} voto${playerVotes(player).length===1?'':'s'}: o card usa a média da Votação. Os valores abaixo só valem enquanto não houver votos.</div></div>` : ''}
         <div class="field" id="fieldAttrs" ${isGK(player) ? 'hidden' : ''}>
-          <label>Habilidades de linha (notas inteiras de 0 a 10)</label>
+          <label>Habilidades de linha (notas de 5 a 10; no card viram 50 a 99)</label>
           ${attrInputs(FIELD_ATTRS, storedAttrs10(player, 'attrs'), '')}
         </div>
         <div class="field" id="gkAttrs" ${isGK(player) ? '' : 'hidden'}>
-          <label>Habilidades de goleiro (notas inteiras de 0 a 10)</label>
+          <label>Habilidades de goleiro (notas de 5 a 10; no card viram 50 a 99)</label>
           ${attrInputs(GK_ATTRS, storedAttrs10(player, 'gkAttrs'), 'gk_')}
         </div>
 
@@ -4568,11 +4626,11 @@ function bindModalEvents(){
     // prévia das estrelas enquanto as habilidades são digitadas
     const updateStars = ()=>{
       const gk = typeSelect.value === 'Goleiro';
-      const vals = (gk ? GK_ATTRS : FIELD_ATTRS).map(d=> clamp10(playerForm.elements[(gk ? 'gk_' : '') + d.k].value));
+      const vals = (gk ? GK_ATTRS : FIELD_ATTRS).map(d=> clampVote(playerForm.elements[(gk ? 'gk_' : '') + d.k].value));
       const avg = vals.reduce((s,v)=> s + v, 0) / vals.length;
-      document.getElementById('starsPreview').innerHTML = starsHtml(ovrToStars(avg), 'star-picker');
+      document.getElementById('starsPreview').innerHTML = starsHtml(ovrToStars(toCard(avg)), 'star-picker');
     };
-    playerForm.querySelectorAll('.attr-row input').forEach(i=> i.addEventListener('input', updateStars));
+    playerForm.querySelectorAll('.attr-row select').forEach(i=> i.addEventListener('change', updateStars));
     typeSelect.addEventListener('change', updateStars);
     playerForm.onsubmit = async (e)=>{
       e.preventDefault();
@@ -4580,8 +4638,8 @@ function bindModalEvents(){
       const name = fd.get('name').trim();
       if(!name) return;
       const attrs = {}, gkAttrs = {};
-      FIELD_ATTRS.forEach(d=> attrs[d.k] = clamp10(fd.get(d.k)));
-      GK_ATTRS.forEach(d=> gkAttrs[d.k] = clamp10(fd.get('gk_'+d.k)));
+      FIELD_ATTRS.forEach(d=> attrs[d.k] = clampVote(fd.get(d.k)));
+      GK_ATTRS.forEach(d=> gkAttrs[d.k] = clampVote(fd.get('gk_'+d.k)));
       const type = fd.get('type');
       const userId = fd.get('userId') || '';
       const existing = state.modal.data;

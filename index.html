@@ -768,31 +768,53 @@ button .lucide{vertical-align:-4px;}
 .pm-cover{position:relative; aspect-ratio:16/9; background:var(--bg-elev); display:flex; align-items:center; justify-content:center; color:var(--text-faint); overflow:hidden;}
 .pm-cover img{width:100%; height:100%; object-fit:cover; display:block;}
 .pm-cover > .lucide{width:34px; height:34px; opacity:.5;}
-/* sem foto: a capa é a miniatura do vídeo e o play fica no centro; com foto: botão no canto */
-/* carrossel da capa (arrasta no celular, setas no computador) */
+/* carrossel da capa: Capa → Melhores momentos → Arquivo bruto → Extras (arrasta no celular, setas sempre visíveis) */
 .pm-slides{position:absolute; inset:0; display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scroll-behavior:smooth; scrollbar-width:none;}
 .pm-slides::-webkit-scrollbar{display:none;}
 .pm-slide{position:relative; flex:0 0 100%; scroll-snap-align:start; background:#000;}
 .pm-slide-video{cursor:pointer;}
+.pm-slide-ph{position:absolute; inset:0; display:flex; align-items:flex-end; justify-content:center; padding-bottom:22px; color:#777; background:#111;}
+.pm-slide-video img{position:relative;}
+.pm-slide-ph .lucide{width:40px; height:40px;}
+.pm-slide-empty{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:0 40px; text-align:center;
+  background:repeating-linear-gradient(135deg, var(--bg-elev) 0 10px, var(--bg-card) 10px 20px); color:var(--text-faint); font-size:12.5px;}
+.pm-slide-empty > .lucide{width:30px; height:30px; opacity:.6;}
 .pm-play{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:64px; height:64px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; color:#fff; background:rgba(0,0,0,.6); transition:background .15s, transform .15s; pointer-events:none;}
 .pm-slide-video:hover .pm-play{background:var(--accent); color:#111; transform:translate(-50%,-50%) scale(1.08);}
 .pm-play .lucide{width:28px; height:28px; fill:currentColor; margin-left:3px;}
-.pm-nav{position:absolute; top:50%; transform:translateY(-50%); width:32px; height:32px; border-radius:50%; border:0; padding:0;
-  display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); color:#fff; opacity:0; transition:opacity .15s;}
+.pm-nav{position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:50%; border:1px solid rgba(255,255,255,.25); padding:0;
+  display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.6); color:#fff; transition:background .15s, transform .15s; z-index:2;}
+.pm-nav:hover{background:var(--accent); color:#111; transform:translateY(-50%) scale(1.08);}
 .pm-nav.prev{left:8px;} .pm-nav.next{right:8px;}
 .pm-nav .lucide{width:18px; height:18px;}
-.pm-card:hover .pm-nav, .pm-nav:focus-visible{opacity:1;}
-.pm-nav[disabled]{opacity:0 !important; pointer-events:none;}
-@media (hover:none){ .pm-nav{display:none;} }
-.pm-dots{position:absolute; left:0; right:0; bottom:8px; display:flex; justify-content:center; gap:5px; pointer-events:none;}
-.pm-dots span{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.45); transition:background .15s, transform .15s;}
-.pm-dots span.vid{border-radius:1px; transform:rotate(45deg) scale(.9);}
-.pm-dots span.on{background:#fff;}
-.pm-vbadge{position:absolute; top:8px; right:8px; display:flex; align-items:center; gap:5px; padding:4px 10px 4px 8px; border:0; border-radius:14px;
-  background:rgba(0,0,0,.65); color:#fff; font-size:12px; font-weight:600;}
-.pm-vbadge:hover{background:var(--accent); color:#111;}
-.pm-vbadge .lucide{width:13px; height:13px; fill:currentColor;}
+.pm-counter{position:absolute; top:8px; right:8px; padding:3px 8px; border-radius:10px; background:rgba(0,0,0,.65); color:#fff; font-size:11.5px; z-index:2; pointer-events:none;}
+.pm-dots{position:absolute; left:0; right:0; bottom:8px; display:flex; justify-content:center; gap:5px; pointer-events:none; z-index:2;}
+.pm-dots span{width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.45); transition:background .15s, width .15s;}
+.pm-dots span.on{background:#fff; width:16px; border-radius:3px;}
+/* etiqueta de cada parte (Capa / Melhores momentos / Arquivo bruto / Extras) */
+.pm-tag{position:absolute; top:8px; left:8px; z-index:2; display:inline-flex; align-items:center; gap:5px; padding:4px 9px; border-radius:12px;
+  font-size:11.5px; font-weight:700; letter-spacing:.02em; color:#fff; background:rgba(0,0,0,.72); border:1px solid rgba(255,255,255,.18);}
+.pm-tag .lucide{width:12px; height:12px;}
+.pm-tag.inline{position:static; font-family:'Inter',sans-serif; text-transform:none;}
+.pm-tag.k-cover .lucide{color:#9fd3ff;}
+.pm-tag.k-highlights .lucide{color:#f2c94c;}
+.pm-tag.k-raw .lucide{color:#c9c9c9;}
+.pm-tag.k-extra .lucide{color:#ff9f6b;}
+.pm-cover-big{max-width:760px; border:1px solid var(--border-soft); background:#000;}
+.pm-cover-big img{width:100%; max-height:480px; object-fit:contain; display:block;}
+.video-ext{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:8px; color:var(--accent); font-size:13px; text-decoration:none;}
+.video-ext .lucide{width:18px; height:18px;}
+.pm-thumb-star{position:absolute; top:4px; left:4px; padding:3px; background:rgba(0,0,0,.6); color:#fff; border:0; display:flex;}
+.pm-thumb-star .lucide{width:14px; height:14px;}
+.pm-thumb-star.on{background:var(--accent); color:#111;}
+.pm-thumb-star.on .lucide{fill:currentColor;}
+.pm-vblock{padding:12px 14px; border:1px solid var(--border-soft); background:var(--bg);}
+.pm-vblock > label{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.pm-vblock-actions{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+.pm-upload{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--border); color:var(--text-dim); text-decoration:none;}
+.pm-upload:hover{border-color:var(--accent-dim); color:var(--accent);}
+.pm-upload .lucide{width:14px; height:14px;}
 /* popup do vídeo */
 .video-pop{background:#000; width:min(960px, 94vw); position:relative;}
 .video-pop .video-embed{aspect-ratio:16/9;}
@@ -1406,9 +1428,29 @@ function saveMural(){ return sSet('mural', state.mural); }
 function saveVideos(){ return sSet('videos', state.videos); }
 
 function extractYoutubeId(url){
-  const m = (url||'').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  const m = (url||'').match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   return m ? m[1] : null;
 }
+// Google Drive (bom para o arquivo bruto, que costuma ser grande)
+function extractDriveId(url){
+  const m = (url||'').match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
+  return m ? m[1] : null;
+}
+const validVideoUrl = url => /^https?:\/\/\S+\.\S+/i.test(url || '');
+// endereço para tocar dentro do site (YouTube ou Drive); outros links abrem numa aba nova
+function videoEmbedUrl(url, autoplay){
+  const yt = extractYoutubeId(url);
+  if(yt) return `https://www.youtube.com/embed/${yt}${autoplay ? '?autoplay=1&rel=0' : ''}`;
+  const d = extractDriveId(url);
+  return d ? `https://drive.google.com/file/d/${d}/preview` : null;
+}
+function videoThumb(url){
+  const yt = extractYoutubeId(url);
+  if(yt) return `https://i.ytimg.com/vi/${yt}/hqdefault.jpg`;
+  const d = extractDriveId(url);
+  return d ? `https://drive.google.com/thumbnail?id=${d}&sz=w640` : '';
+}
+const VIDEO_IFRAME_ATTRS = 'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"';
 
 /* ============ image resize helper ============ */
 function resizeImage(file, maxDim, quality){
@@ -2148,7 +2190,32 @@ function looseMedia(){
     photos: state.mural.filter(p=> !(p.matchId && ids.has(p.matchId))),
   };
 }
-function ytThumb(url){ const id = extractYoutubeId(url); return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : ''; }
+
+// Mídia de cada pelada, sempre nesta ordem (carrossel, página da partida e formulário):
+// Capa → Melhores momentos → Arquivo bruto → Extras (fotos e vídeos da resenha)
+const MEDIA_KINDS = [
+  {key:'cover',      label:'Capa',              icon:'image',        empty:'Sem foto de capa'},
+  {key:'highlights', label:'Melhores momentos', icon:'star',         empty:'Melhores momentos ainda não enviados'},
+  {key:'raw',        label:'Arquivo bruto',     icon:'film',         empty:'Arquivo bruto ainda não enviado'},
+  {key:'extra',      label:'Extras',            icon:'party-popper', empty:'Sem fotos ou vídeos da resenha'},
+];
+const mediaLabel = k => (MEDIA_KINDS.find(x=> x.key === k) || {}).label || '';
+// vídeos antigos não têm tipo: contam como melhores momentos
+const videoKind = v => v.kind === 'raw' || v.kind === 'extra' ? v.kind : 'highlights';
+// capa = a foto escolhida; sem escolha, a primeira foto
+function matchCover(m){ const ps = matchPhotos(m); return ps.find(p=> p.id === m.coverPhotoId) || ps[0] || null; }
+function matchMedia(m){
+  const photos = matchPhotos(m), videos = matchVideos(m), cover = matchCover(m);
+  return {
+    cover,
+    highlights: videos.filter(v=> videoKind(v) === 'highlights'),
+    raw: videos.filter(v=> videoKind(v) === 'raw'),
+    extraPhotos: photos.filter(p=> p !== cover),
+    extraVideos: videos.filter(v=> videoKind(v) === 'extra'),
+  };
+}
+// vídeos na ordem do carrossel (o popup usa a mesma ordem)
+function matchVideosOrdered(m){ const x = matchMedia(m); return [...x.highlights, ...x.raw, ...x.extraVideos]; }
 
 function renderMatches(){
   if(state.openMatchId) return renderMatchDetail(state.openMatchId);
@@ -2199,25 +2266,37 @@ function typeSummary(players){
   }).filter(Boolean);
   return parts.length ? `<span class="type-summary"> · ${parts.join(' · ')}</span>` : '';
 }
+// slides do carrossel: sempre as 4 partes, na ordem; parte vazia vira um slide de aviso
+function matchSlides(m){
+  const x = matchMedia(m), vids = matchVideosOrdered(m);
+  const tag = k => `<span class="pm-tag k-${k}">${icon(MEDIA_KINDS.find(t=> t.key === k).icon)}${mediaLabel(k)}</span>`;
+  const photo = (p, k)=> `<div class="pm-slide" data-kind="${k}">${tag(k)}<img src="${p.photo}" loading="lazy" alt=""></div>`;
+  const video = (v, k)=> {
+    const th = videoThumb(v.url);
+    return `<div class="pm-slide pm-slide-video" data-kind="${k}" data-play-match="${m.id}" data-play-idx="${vids.indexOf(v)}" title="Assistir: ${esc(v.title)}">${tag(k)}
+      <div class="pm-slide-ph">${icon('film')}</div>${th ? `<img src="${th}" loading="lazy" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="pm-play">${icon('play')}</span></div>`;
+  };
+  const empty = k => `<div class="pm-slide pm-slide-empty" data-kind="${k.key}">${tag(k.key)}${icon(k.icon)}<span>${k.empty}</span></div>`;
+  const parts = {
+    cover: x.cover ? [photo(x.cover, 'cover')] : [],
+    highlights: x.highlights.map(v=> video(v, 'highlights')),
+    raw: x.raw.map(v=> video(v, 'raw')),
+    extra: [...x.extraPhotos.slice(0, 8).map(p=> photo(p, 'extra')), ...x.extraVideos.map(v=> video(v, 'extra'))],
+  };
+  return MEDIA_KINDS.flatMap(k=> parts[k.key].length ? parts[k.key] : [empty(k)]);
+}
 function matchCard(m){
   const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
   const MAX = 9;
-  // carrossel da capa: primeiro as fotos, depois os vídeos (clicar num vídeo abre o popup)
-  const slides = [
-    ...photos.slice(0, 6).map(p=> `<div class="pm-slide"><img src="${p.photo}" loading="lazy" alt=""></div>`),
-    ...videos.map((v,i)=> `<div class="pm-slide pm-slide-video" data-play-match="${m.id}" data-play-idx="${i}" title="Assistir: ${esc(v.title)}">
-        <img src="${ytThumb(v.url)}" loading="lazy" alt=""><span class="pm-play">${icon('play')}</span></div>`),
-  ];
-  const firstVideo = slides.length - videos.length;
+  const slides = matchSlides(m);
   return `
   <div class="pm-card" data-open-match="${m.id}" role="button" tabindex="0">
     <div class="pm-cover">
-      ${slides.length ? `<div class="pm-slides" data-slides>${slides.join('')}</div>` : icon('calendar-days')}
-      ${slides.length > 1 ? `
-        <button type="button" class="pm-nav prev" data-slide-nav="-1" aria-label="Anterior">${icon('chevron-left')}</button>
-        <button type="button" class="pm-nav next" data-slide-nav="1" aria-label="Próximo">${icon('chevron-right')}</button>
-        <div class="pm-dots">${slides.map((_,i)=> `<span class="${i===0?'on':''} ${i>=firstVideo?'vid':''}"></span>`).join('')}</div>` : ''}
-      ${videos.length && firstVideo > 0 ? `<button type="button" class="pm-vbadge" data-slide-to="${firstVideo}">${icon('play')}${videos.length} vídeo${videos.length===1?'':'s'}</button>` : ''}
+      <div class="pm-slides" data-slides>${slides.join('')}</div>
+      <button type="button" class="pm-nav prev" data-slide-nav="-1" aria-label="Anterior">${icon('chevron-left')}</button>
+      <button type="button" class="pm-nav next" data-slide-nav="1" aria-label="Próximo">${icon('chevron-right')}</button>
+      <span class="pm-counter"><b>1</b>/${slides.length}</span>
+      <div class="pm-dots">${slides.map((_,i)=> `<span class="${i===0?'on':''}"></span>`).join('')}</div>
     </div>
     <div class="pm-body">
       <div class="pm-date">${formatFullDate(m.date)}</div>
@@ -2235,7 +2314,7 @@ function matchCard(m){
 function renderMatchDetail(matchId){
   const m = state.matches.find(x=> x.id === matchId);
   if(!m){ state.openMatchId = null; return renderMatches(); }
-  const photos = matchPhotos(m), videos = matchVideos(m), players = matchPlayers(m);
+  const players = matchPlayers(m);
   const canEdit = can('matches.score') || can('photos.create') || can('videos.create');
   return `
     <div class="page-head">
@@ -2259,12 +2338,27 @@ function renderMatchDetail(matchId){
       return `<div class="pm-chip">${playerPhotoTag(p,'pm-av')}<span>${esc(playerName(p))}</span>${typeFlag(p)}${g ? `<b>${g} gol${g===1?'':'s'}</b>` : ''}</div>`;
     }).join('')}</div>` : `<div class="empty" style="padding-top:0;">Ninguém marcado.</div>`}
 
-    <div class="section-title">Fotos (${photos.length})</div>
-    ${photos.length ? renderPhotoGrid({collection:'mural', deletePerm:'photos.delete', items: photos}) : `<div class="empty" style="padding-top:0;">Nenhuma foto.</div>`}
-
-    <div class="section-title">Vídeos (${videos.length})</div>
-    ${videos.length ? renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', items: videos, noToolbar:true}) : `<div class="empty" style="padding-top:0;">Nenhum vídeo.</div>`}
+    ${renderMatchMediaSections(m)}
   `;
+}
+// as 4 partes da mídia da pelada, na mesma ordem do carrossel
+function renderMatchMediaSections(m){
+  const x = matchMedia(m);
+  const vgrid = items => renderVideoGrid({collection:'videos', createPerm:'videos.create', deletePerm:'videos.delete', items, noToolbar:true});
+  const none = k => `<div class="empty" style="padding-top:0;">${MEDIA_KINDS.find(t=> t.key === k).empty}.</div>`;
+  const head = (k, n)=> `<div class="section-title"><span class="pm-tag k-${k} inline">${icon(MEDIA_KINDS.find(t=> t.key === k).icon)}${mediaLabel(k)}</span>${n != null ? ` <span class="type-summary">(${n})</span>` : ''}</div>`;
+  const extras = x.extraPhotos.length + x.extraVideos.length;
+  return `
+    ${head('cover')}
+    ${x.cover ? `<div class="pm-cover-big"><img src="${x.cover.photo}" alt="Foto de capa"></div>` : none('cover')}
+    ${head('highlights', x.highlights.length)}
+    ${x.highlights.length ? vgrid(x.highlights) : none('highlights')}
+    ${head('raw', x.raw.length)}
+    ${x.raw.length ? vgrid(x.raw) : none('raw')}
+    ${head('extra', extras)}
+    ${x.extraPhotos.length ? renderPhotoGrid({collection:'mural', deletePerm:'photos.delete', items: x.extraPhotos}) : ''}
+    ${x.extraVideos.length ? `<div style="margin-top:${x.extraPhotos.length ? 14 : 0}px;">${vgrid(x.extraVideos)}</div>` : ''}
+    ${!extras ? none('extra') : ''}`;
 }
 
 /* ============ OUTROS AMBIENTES ============ */
@@ -2326,12 +2420,12 @@ function renderVideoGrid(cfg){
     ${!list.length ? `<div class="empty">Nenhum vídeo ${f.date && f.date !== 'none' ? `em ${formatFullDate(f.date)}` : 'encontrado'}.</div>` : `
     <div class="video-grid">
       ${list.map(v=>{
-        const ytid = extractYoutubeId(v.url);
+        const src = videoEmbedUrl(v.url);
         return `
         <div class="video-card">
           <div class="video-embed">
-            ${ytid ? `<iframe src="https://www.youtube.com/embed/${ytid}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`
-              : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:12.5px;">Link de vídeo inválido</div>`}
+            ${src ? `<iframe src="${src}" title="${esc(v.title)}" ${VIDEO_IFRAME_ATTRS} loading="lazy"></iframe>`
+              : `<a class="video-ext" href="${esc(v.url)}" target="_blank" rel="noopener">${icon('external-link')}Abrir vídeo</a>`}
           </div>
           <div class="cap" style="display:flex; align-items:flex-start; gap:8px;">
             <div style="flex:1;">
@@ -4094,32 +4188,34 @@ function bindViewEvents(){
   document.querySelectorAll('[data-play-match]').forEach(b=>{
     b.onclick = e=>{
       e.stopPropagation();   // não abre a partida, só o vídeo
-      state.modal = {type:'playVideo', data:{matchId: b.dataset.playMatch, idx: Number(b.dataset.playIdx) || 0}};
+      const m = state.matches.find(x=> x.id === b.dataset.playMatch);
+      const idx = Number(b.dataset.playIdx) || 0;
+      const v = m && matchVideosOrdered(m)[idx];
+      // link que não toca dentro do site (nem YouTube nem Drive): abre numa aba nova
+      if(v && !videoEmbedUrl(v.url)){ window.open(v.url, '_blank', 'noopener'); return; }
+      state.modal = {type:'playVideo', data:{matchId: b.dataset.playMatch, idx}};
       render();
     };
   });
-  // carrossel das capas
+  // carrossel das capas: setas sempre visíveis e dando a volta (do último volta ao primeiro)
   document.querySelectorAll('[data-slides]').forEach(track=>{
     const cover = track.parentElement;
     const dots = [...cover.querySelectorAll('.pm-dots span')];
-    const prev = cover.querySelector('.pm-nav.prev'), next = cover.querySelector('.pm-nav.next');
+    const counter = cover.querySelector('.pm-counter b');
+    const n = dots.length;
     const current = ()=> Math.round(track.scrollLeft / track.clientWidth);
     const sync = ()=>{
       const i = current();
       dots.forEach((d,k)=> d.classList.toggle('on', k === i));
-      if(prev) prev.disabled = i === 0;
-      if(next) next.disabled = i === dots.length - 1;
+      if(counter) counter.textContent = i + 1;
     };
-    const go = i=> track.scrollTo({left: i * track.clientWidth});
+    const go = i=> track.scrollTo({left: ((i % n) + n) % n * track.clientWidth});
     track.addEventListener('scroll', sync, {passive:true});
     sync();
     cover.querySelectorAll('[data-slide-nav]').forEach(b=>{
       b.onclick = e=>{ e.stopPropagation(); go(current() + Number(b.dataset.slideNav)); };
+      b.onkeydown = e=> e.stopPropagation();
     });
-    cover.querySelectorAll('[data-slide-to]').forEach(b=>{
-      b.onclick = e=>{ e.stopPropagation(); go(Number(b.dataset.slideTo)); };
-    });
-    cover.querySelectorAll('button').forEach(b=> b.onkeydown = e=> e.stopPropagation());
   });
   document.querySelectorAll('[data-play-step]').forEach(b=>{
     b.onclick = ()=>{ state.modal.data.idx += Number(b.dataset.playStep); render(); };
@@ -4257,18 +4353,20 @@ function renderPlayerModal(player){
 function renderVideoPlayer(){
   const {matchId, idx} = state.modal.data;
   const m = state.matches.find(x=> x.id === matchId);
-  const videos = m ? matchVideos(m) : [];
+  const videos = m ? matchVideosOrdered(m) : [];
   const v = videos[idx];
   if(!v) return '';
-  const ytid = extractYoutubeId(v.url);
+  const src = videoEmbedUrl(v.url, true);
   return `
   <div class="overlay" id="modalOverlay">
     <div class="video-pop" role="dialog" aria-label="${esc(v.title)}">
       <div class="video-embed">
-        <iframe src="https://www.youtube.com/embed/${ytid}?autoplay=1&rel=0" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        ${src ? `<iframe src="${src}" title="${esc(v.title)}" ${VIDEO_IFRAME_ATTRS}></iframe>`
+          : `<a class="video-ext" href="${esc(v.url)}" target="_blank" rel="noopener">${icon('external-link')}Este link abre fora do site</a>`}
       </div>
       <div class="video-pop-bar">
         ${videos.length > 1 ? `<button class="icon-btn" data-play-step="-1" ${idx === 0 ? 'disabled' : ''} title="Vídeo anterior" aria-label="Vídeo anterior">${icon('chevron-left')}</button>` : ''}
+        <span class="pm-tag k-${videoKind(v)} inline">${mediaLabel(videoKind(v))}</span>
         <div class="t">${esc(v.title)}</div>
         ${videos.length > 1 ? `<span class="n">${idx+1} de ${videos.length}</span>
         <button class="icon-btn" data-play-step="1" ${idx === videos.length-1 ? 'disabled' : ''} title="Próximo vídeo" aria-label="Próximo vídeo">${icon('chevron-right')}</button>` : ''}
@@ -4289,6 +4387,7 @@ function renderMatchModal(){
   const presence = new Set(m ? (m.presence||[]) : []);
   const players = [...state.players].sort((a,b)=> playerName(a).localeCompare(playerName(b)));
   const photos = m ? matchPhotos(m) : [], videos = m ? matchVideos(m) : [];
+  const cover = m ? matchCover(m) : null;
   const dis = canInfo ? '' : 'disabled';
   return `
   <div class="overlay" id="modalOverlay">
@@ -4318,27 +4417,38 @@ function renderMatchModal(){
 
         ${can('photos.create') || photos.length ? `
         <div class="field">
-          <label>Fotos</label>
+          <label>Fotos <span class="hint" style="display:inline; margin:0;">— toque na ${icon('star')} para escolher a <b>capa</b>; as outras vão para <b>Extras</b></span></label>
           <div class="pm-thumbs" id="matchPhotoThumbs">
-            ${photos.map(p=>`<div class="pm-thumb" data-existing-photo="${p.id}"><img src="${p.photo}" alt="">${can('photos.delete') ? `<button type="button" class="pm-thumb-x" data-remove-existing-photo="${p.id}" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>` : ''}</div>`).join('')}
+            ${photos.map(p=>`<div class="pm-thumb" data-existing-photo="${p.id}"><img src="${p.photo}" alt="">
+              ${canInfo ? `<button type="button" class="pm-thumb-star ${cover && cover.id === p.id ? 'on' : ''}" data-cover="e:${p.id}" title="Usar como capa" aria-label="Usar como capa">${icon('star')}</button>` : ''}
+              ${can('photos.delete') ? `<button type="button" class="pm-thumb-x" data-remove-existing-photo="${p.id}" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>` : ''}</div>`).join('')}
             ${can('photos.create') ? `<button type="button" class="pm-thumb pm-thumb-add" id="matchPhotoPick">${icon('image-plus')}<span>Adicionar</span></button>` : ''}
           </div>
-          ${can('photos.create') ? `<div class="hint">Clique em “Adicionar” para escolher na pasta (várias de uma vez) ou arraste as fotos para cá.</div>` : ''}
+          ${can('photos.create') ? `<div class="hint">Escolha na pasta (várias de uma vez) ou arraste as fotos para cá. Sem escolha, a primeira foto vira a capa.</div>` : ''}
           <input type="file" accept="image/*" multiple id="matchPhotoInput" style="display:none;">
         </div>` : ''}
 
-        ${can('videos.create') || videos.length ? `
-        <div class="field">
-          <label>Vídeos (links do YouTube)</label>
-          ${videos.map(v=>`
+        ${can('videos.create') || videos.length ? MEDIA_KINDS.filter(k=> k.key !== 'cover').map(k=>{
+          const list = videos.filter(v=> videoKind(v) === k.key);
+          return `
+        <div class="field pm-vblock">
+          <label><span class="pm-tag k-${k.key} inline">${icon(k.icon)}${k.label}</span>${k.key === 'extra' ? ' <span class="hint" style="display:inline; margin:0;">vídeos da resenha gravados pelos amigos</span>' : ''}</label>
+          ${list.map(v=>`
           <div class="pm-video-row" data-existing-video="${v.id}">
             ${icon('play')}<span class="pm-video-title">${esc(v.title)}</span>
             ${can('videos.delete') ? `<button type="button" class="icon-btn danger-hover" data-remove-existing-video="${v.id}" title="Remover vídeo" aria-label="Remover vídeo">${icon('x')}</button>` : ''}
           </div>`).join('')}
           ${can('videos.create') ? `
-          <div id="matchVideoInputs"><input name="videoUrl" placeholder="https://www.youtube.com/watch?v=..." inputmode="url"></div>
-          <button type="button" class="ghost btn-icon pm-mini" id="addVideoInput" style="margin-top:8px;">${icon('plus')}Outro vídeo</button>` : ''}
-        </div>` : ''}
+          <div data-video-inputs="${k.key}"><input name="video_${k.key}" placeholder="Link do YouTube ou do Google Drive" inputmode="url"></div>
+          <div class="pm-vblock-actions">
+            <button type="button" class="ghost btn-icon pm-mini" data-add-video-input="${k.key}">${icon('plus')}Outro link</button>
+            ${k.key === 'raw' ? `
+            <a class="pm-mini btn-icon pm-upload" href="https://www.youtube.com/upload" target="_blank" rel="noopener">${icon('upload')}Subir no YouTube</a>
+            <a class="pm-mini btn-icon pm-upload" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener">${icon('upload')}Subir no Google Drive</a>` : ''}
+          </div>
+          ${k.key === 'raw' ? `<div class="hint">O arquivo bruto é grande: suba como <b>não listado</b> no YouTube ou no Google Drive (compartilhado com “qualquer pessoa com o link”) e cole o link aqui.</div>` : ''}` : ''}
+        </div>`;
+        }).join('') : ''}
 
         <div class="field"><label>Observações</label>
           <textarea name="notes" rows="4" maxlength="2000" placeholder="Placar, destaques, resenha do dia..." ${dis}>${m ? esc(m.notes||'') : ''}</textarea>
@@ -4392,7 +4502,9 @@ function renderVideoModal(){
       <h3>${editing ? 'Editar vídeo' : 'Adicionar vídeo'}</h3>
       <form id="videoForm">
         <div class="field"><label>Título</label><input name="title" required maxlength="120" value="${editing ? esc(editing.title) : ''}" placeholder="${games ? 'Jogatina de FIFA - setembro' : 'Pelada - 30 de agosto de 2026'}"></div>
-        <div class="field"><label>Link do YouTube</label><input name="url" required value="${editing ? esc(editing.url) : ''}" placeholder="https://www.youtube.com/watch?v=..."></div>
+        <div class="field"><label>Link do vídeo</label><input name="url" required value="${editing ? esc(editing.url) : ''}" placeholder="YouTube ou Google Drive"></div>
+        ${col === 'videos' ? `<div class="field"><label>Tipo</label>
+          <select name="kind">${MEDIA_KINDS.filter(k=> k.key !== 'cover').map(k=> `<option value="${k.key}" ${editing && videoKind(editing) === k.key ? 'selected' : ''}>${k.label}</option>`).join('')}</select></div>` : ''}
         <div class="field"><label>${col === 'videos' ? 'Data da pelada' : 'Data'}</label><input type="date" name="date" id="videoDate" required max="${today}" value="${editing ? (editing.date || '') : today}">
           ${matchDates.length ? `<div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
             ${matchDates.map(md=> `<button type="button" class="ghost" data-pick-date="${md}" style="padding:4px 10px; font-size:12px;">${formatDate(md)}</button>`).join('')}
@@ -4485,6 +4597,23 @@ function bindModalEvents(){
     const editId = state.modal.data && state.modal.data.id;
     const newPhotos = [];                       // {key, data}
     const removedPhotos = new Set(), removedVideos = new Set();
+    // capa escolhida: "e:<id>" (foto já salva) ou "n:<key>" (foto nova); vazio = a primeira foto
+    const editingMatch = editId && state.matches.find(x=> x.id === editId);
+    const initialCover = editingMatch && matchCover(editingMatch);
+    let coverChoice = initialCover ? 'e:' + initialCover.id : '';
+    const markCover = ()=> matchForm.querySelectorAll('[data-cover]').forEach(b=> b.classList.toggle('on', b.dataset.cover === coverChoice));
+    const bindStar = b=> b.onclick = ()=>{ coverChoice = b.dataset.cover; markCover(); };
+    matchForm.querySelectorAll('[data-cover]').forEach(bindStar);
+    matchForm.querySelectorAll('[data-add-video-input]').forEach(b=>{
+      b.onclick = ()=>{
+        const k = b.dataset.addVideoInput;
+        const inp = document.createElement('input');
+        inp.name = 'video_' + k; inp.placeholder = 'Link do YouTube ou do Google Drive'; inp.inputMode = 'url';
+        inp.style.marginTop = '8px';
+        matchForm.querySelector(`[data-video-inputs="${k}"]`).appendChild(inp);
+        inp.focus();
+      };
+    });
     const refreshCount = ()=>{
       const c = document.getElementById('presenceCount');
       if(c) c.textContent = matchForm.querySelectorAll('[name=presence]:checked').length;
@@ -4524,27 +4653,29 @@ function bindModalEvents(){
             newPhotos.push({key, data});
             const el = document.createElement('div');
             el.className = 'pm-thumb';
-            el.innerHTML = `<img src="${data}" alt=""><button type="button" class="pm-thumb-x" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>`;
-            el.querySelector('button').onclick = ()=>{ newPhotos.splice(newPhotos.findIndex(p=> p.key === key), 1); el.remove(); };
+            el.innerHTML = `<img src="${data}" alt="">
+              <button type="button" class="pm-thumb-star" data-cover="n:${key}" title="Usar como capa" aria-label="Usar como capa">${icon('star')}</button>
+              <button type="button" class="pm-thumb-x" title="Remover foto" aria-label="Remover foto">${icon('x')}</button>`;
+            el.querySelector('.pm-thumb-x').onclick = ()=>{
+              newPhotos.splice(newPhotos.findIndex(p=> p.key === key), 1); el.remove();
+              if(coverChoice === 'n:' + key) coverChoice = '';
+            };
+            bindStar(el.querySelector('[data-cover]'));
             photoPick.before(el);
           }catch(err){ toast(`Não consegui abrir ${file.name}.`, 'error'); }
         }
+        markCover();
         if(window.lucide) lucide.createIcons();
     }
     matchForm.querySelectorAll('[data-remove-existing-photo]').forEach(b=>{
-      b.onclick = ()=>{ removedPhotos.add(b.dataset.removeExistingPhoto); b.closest('.pm-thumb').remove(); };
+      b.onclick = ()=>{
+        removedPhotos.add(b.dataset.removeExistingPhoto); b.closest('.pm-thumb').remove();
+        if(coverChoice === 'e:' + b.dataset.removeExistingPhoto) coverChoice = '';
+      };
     });
     matchForm.querySelectorAll('[data-remove-existing-video]').forEach(b=>{
       b.onclick = ()=>{ removedVideos.add(b.dataset.removeExistingVideo); b.closest('.pm-video-row').remove(); };
     });
-    const addVideoInput = document.getElementById('addVideoInput');
-    if(addVideoInput) addVideoInput.onclick = ()=>{
-      const inp = document.createElement('input');
-      inp.name = 'videoUrl'; inp.placeholder = 'https://www.youtube.com/watch?v=...'; inp.inputMode = 'url';
-      inp.style.marginTop = '8px';
-      document.getElementById('matchVideoInputs').appendChild(inp);
-      inp.focus();
-    };
 
     matchForm.onsubmit = async (e)=>{
       e.preventDefault();
@@ -4552,23 +4683,30 @@ function bindModalEvents(){
       const canInfo = existing ? can('matches.score') : can('matches.create');
       const fd = new FormData(matchForm);
       const date = canInfo ? fd.get('date') : existing.date;
-      const urls = [...matchForm.querySelectorAll('[name=videoUrl]')].map(i=> i.value.trim()).filter(Boolean);
-      const bad = urls.filter(u=> !extractYoutubeId(u));
-      if(bad.length) return formError('Não reconheci este link do YouTube: ' + bad[0]);
+      // links novos por tipo: melhores momentos, arquivo bruto e extras
+      const newVideos = MEDIA_KINDS.filter(k=> k.key !== 'cover').flatMap(k=>
+        [...matchForm.querySelectorAll(`[name=video_${k.key}]`)].map(i=> i.value.trim()).filter(Boolean).map(url=> ({url, kind: k.key})));
+      const bad = newVideos.filter(v=> !validVideoUrl(v.url));
+      if(bad.length) return formError('Esse link não parece válido: ' + bad[0].url);
       if(!existing && state.matches.some(x=> x.date === date)
          && !confirm(`Já existe uma partida em ${formatFullDate(date)}. Registrar outra no mesmo dia?`)) return;
       formError(''); formBusy(true);
       const me = state.currentUser ? state.currentUser.username : '';
+
+      // as fotos novas ganham id já aqui, para a capa poder apontar para uma delas
+      newPhotos.forEach(p=> p.id = p.id || uid());
+      const coverPhotoId = coverChoice.startsWith('n:') ? (newPhotos.find(p=> 'n:' + p.key === coverChoice) || {}).id || ''
+        : coverChoice.startsWith('e:') ? coverChoice.slice(2) : '';
 
       let match = existing;
       if(canInfo){
         const presence = [...matchForm.querySelectorAll('[name=presence]:checked')].map(i=> i.value);
         const notes = (fd.get('notes')||'').trim();
         if(existing){
-          existing.date = date; existing.presence = presence; existing.notes = notes;
+          existing.date = date; existing.presence = presence; existing.notes = notes; existing.coverPhotoId = coverPhotoId;
           if(existing.goals) Object.keys(existing.goals).forEach(pid=>{ if(!presence.includes(pid)) delete existing.goals[pid]; });
         } else {
-          match = {id: uid(), date, presence, notes, goals: {}, createdBy: me, createdAt: new Date().toISOString()};
+          match = {id: uid(), date, presence, notes, coverPhotoId, goals: {}, createdBy: me, createdAt: new Date().toISOString()};
           state.matches.push(match);
         }
         if(!await saveMatches()){ formBusy(false); return; }
@@ -4577,12 +4715,14 @@ function bindModalEvents(){
       let ok = true;
       if(newPhotos.length || removedPhotos.size){
         state.mural = state.mural.filter(p=> !removedPhotos.has(p.id));
-        newPhotos.forEach(p=> state.mural.push({id: uid(), photo: p.data, caption: '', author: me || 'Anônimo', date, matchId: match.id}));
+        newPhotos.forEach(p=> state.mural.push({id: p.id, photo: p.data, caption: '', author: me || 'Anônimo', date, matchId: match.id}));
         ok = await saveMural() && ok;
       }
-      if(urls.length || removedVideos.size){
+      if(newVideos.length || removedVideos.size){
+        const day = new Date(date + 'T12:00:00').toLocaleDateString('pt-BR');
+        const titles = {highlights: 'Melhores momentos', raw: 'Arquivo bruto', extra: 'Resenha'};
         state.videos = state.videos.filter(v=> !removedVideos.has(v.id));
-        urls.forEach(url=> state.videos.push({id: uid(), title: `Pelada de ${new Date(date + 'T12:00:00').toLocaleDateString('pt-BR')}`, url, date, matchId: match.id, addedBy: me}));
+        newVideos.forEach(v=> state.videos.push({id: uid(), title: `${titles[v.kind]} · pelada de ${day}`, url: v.url, kind: v.kind, date, matchId: match.id, addedBy: me}));
         ok = await saveVideos() && ok;
       }
       state.modal = null;
@@ -4599,15 +4739,16 @@ function bindModalEvents(){
       e.preventDefault();
       const fd = new FormData(videoForm);
       const url = fd.get('url').trim();
-      if(!extractYoutubeId(url)){ toast('Não consegui reconhecer esse link do YouTube. Confira e tente de novo.', 'error'); return; }
+      if(!validVideoUrl(url)){ toast('Esse link não parece válido. Confira e tente de novo.', 'error'); return; }
       const date = fd.get('date') || '';
       const key = (state.modal.data && state.modal.data.collection) || 'videos';
       const editId = state.modal.data && state.modal.data.id;
       const existing = editId && state[key].find(v=> v.id === editId);
+      const extra = fd.get('kind') ? {kind: fd.get('kind')} : {};
       if(existing){
-        Object.assign(existing, {title: fd.get('title').trim(), url, date});
+        Object.assign(existing, {title: fd.get('title').trim(), url, date}, extra);
       } else {
-        const video = {id: uid(), title: fd.get('title').trim(), url, date};
+        const video = {id: uid(), title: fd.get('title').trim(), url, date, ...extra};
         if(state.currentUser) video.addedBy = state.currentUser.username;
         state[key].push(video);
       }

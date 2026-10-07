@@ -658,6 +658,12 @@ button .lucide{vertical-align:-4px;}
 .news-dots{display:flex; gap:6px; justify-content:center; margin-top:10px;}
 .news-dots span{width:16px; height:2px; background:var(--border); transition:background .2s ease, width .2s ease;}
 .news-dots span.on{background:var(--accent); width:28px;}
+.news-play{position:absolute; top:50%; left:50%; transform:translate(-50%,-62%); width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,.55); border:1px solid rgba(255,255,255,.35); color:#fff; backdrop-filter:blur(4px); transition:background .2s ease, transform .2s ease;}
+.news-play .lucide{width:22px; height:22px; margin-left:3px; fill:currentColor;}
+.news-card:hover .news-play{background:var(--accent); color:var(--on-accent); border-color:var(--accent); transform:translate(-50%,-62%) scale(1.06);}
+.news-video{position:relative; aspect-ratio:16/9; margin:-4px 0 16px; background:#000;}
+.news-video iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
 .news-view img{width:100%; max-height:52vh; object-fit:cover; display:block; margin:-4px 0 16px;}
 .news-view .date{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-family:'Oswald';}
 .news-view h3{font-size:22px; margin:4px 0 12px;}
@@ -1196,6 +1202,7 @@ async function loadSettings(){
 async function enterApp(){
   loadFailed = false;
   await Promise.all([loadAll(), loadUsers()]);
+  await seedFirstNews();
   if(!loadFailed && can('players.edit')) await migratePlayers();
 }
 // Visitante (sem login): só o necessário para a página de Partidas da Pelada.
@@ -2375,6 +2382,16 @@ function renderDashboard(){
 }
 /* ---------- notícias: carrossel do Painel (só o Admin publica) ---------- */
 const newsSorted = ()=> [...state.news].sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||0) - (a.createdAt||0));
+const newsThumb = n=> n.photo || (n.video ? videoThumb(n.video) : '');
+// Primeira notícia do portal. Entra uma vez só, quando um Admin abre o site e ainda não há notícia nenhuma.
+const FIRST_NEWS = {id:'colete-cavernosos-2026', title:'Colete Cavernosos 2026', date:'2026-10-07',
+  video:'https://youtu.be/a_FV2A61AXw', text:'', link:'', photo:'', createdAt: Date.UTC(2026, 9, 7), addedBy:''};
+async function seedFirstNews(){
+  if(!isAdmin() || !synced.news || state.news.length || lsGet('cavernosos:news-seeded') === '1') return;
+  state.news = [{...FIRST_NEWS, addedBy: state.currentUser.username}];
+  if(await sSet('news', state.news)) lsSet('cavernosos:news-seeded', '1');
+  else state.news = [];
+}
 function renderNews(){
   const list = newsSorted();
   if(!list.length && !isAdmin()) return '';
@@ -2389,7 +2406,8 @@ function renderNews(){
       <div class="news-track" data-news-track>
         ${list.map(n=> `
           <button type="button" class="news-card" data-news-open="${n.id}" aria-label="${esc(n.title)}">
-            ${n.photo ? `<img src="${n.photo}" alt="" loading="lazy">` : ''}
+            ${newsThumb(n) ? `<img src="${newsThumb(n)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+            ${n.video ? `<span class="news-play">${icon('play')}</span>` : ''}
             <span class="shade"></span>
             <span class="txt">
               ${n.date ? `<span class="date">${formatFullDate(n.date)}</span>` : ''}
@@ -2450,7 +2468,9 @@ function renderNewsModal(){
   return `
   <div class="overlay" id="modalOverlay">
     <div class="modal news-view" style="max-width:560px;">
-      ${n.photo ? `<img src="${n.photo}" alt="">` : ''}
+      ${n.video && videoEmbedUrl(n.video)
+        ? `<div class="news-video"><iframe src="${videoEmbedUrl(n.video)}" title="${esc(n.title)}" ${VIDEO_IFRAME_ATTRS}></iframe></div>`
+        : newsThumb(n) ? `<img src="${newsThumb(n)}" alt="" referrerpolicy="no-referrer">` : ''}
       ${n.date ? `<div class="date">${formatFullDate(n.date)}</div>` : ''}
       <h3>${esc(n.title)}</h3>
       ${n.text ? `<div class="body">${esc(n.text)}</div>` : ''}
@@ -2482,6 +2502,7 @@ function renderNewsEditModal(){
         <div class="field"><label>Título</label><input name="title" required maxlength="90" value="${esc(n.title || '')}" placeholder="ex: Final do torneio de quinta"></div>
         <div class="field"><label>Data</label><input name="date" type="date" required value="${n.date || localToday()}"></div>
         <div class="field"><label>Texto (opcional)</label><textarea name="text" rows="4" maxlength="2000" placeholder="Aparece quando a pessoa toca na notícia">${esc(n.text || '')}</textarea></div>
+        <div class="field"><label>Vídeo (opcional)</label><input name="video" type="url" value="${esc(n.video || '')}" placeholder="Link do YouTube ou do Google Drive"><div class="hint">Com vídeo, a foto é opcional: o card usa a capa do vídeo.</div></div>
         <div class="field"><label>Link (opcional)</label><input name="link" type="url" value="${esc(n.link || '')}" placeholder="https://..."></div>
         <div class="form-error" id="formError"></div>
         <div class="modal-actions">
@@ -2520,12 +2541,14 @@ function bindNewsModals(){
     const fd = new FormData(form);
     const err = document.getElementById('formError');
     const link = (fd.get('link') || '').trim();
-    if(!photo){ err.textContent = 'Escolha uma foto.'; return; }
+    const video = (fd.get('video') || '').trim();
+    if(video && !videoEmbedUrl(video)){ err.textContent = 'O vídeo precisa ser um link do YouTube ou do Google Drive.'; return; }
+    if(!photo && !video){ err.textContent = 'Escolha uma foto ou informe um vídeo.'; return; }
     if(link && !/^https?:\/\//i.test(link)){ err.textContent = 'O link precisa começar com http:// ou https://'; return; }
     const item = {
       id: editing ? editing.id : uid(),
       title: String(fd.get('title') || '').trim().replace(/\s+/g, ' ').slice(0, 90),
-      date: fd.get('date'), text: (fd.get('text') || '').trim(), link, photo,
+      date: fd.get('date'), text: (fd.get('text') || '').trim(), link, video, photo: photo || '',
       createdAt: editing ? (editing.createdAt || Date.now()) : Date.now(),
       addedBy: editing ? (editing.addedBy || '') : state.currentUser.username,
     };

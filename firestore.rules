@@ -130,6 +130,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Notícias do carrossel do Painel: todos os usuários veem, só o Admin publica.
+    match /news/{id} {
+      allow read: if isUser();
+      allow write: if isAdmin();
+    }
+
     match /mural/{id} {
       allow read: if true;   // fotos das partidas
       allow create: if can('photos.create');

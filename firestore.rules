@@ -2,7 +2,8 @@ rules_version = '2';
 
 // Regras do Firestore do site Cavernosos.
 // Para aplicar: Firebase Console → Firestore Database → Regras → colar este arquivo → Publicar.
-// O site é fechado: sem login, nada pode ser lido nem gravado (exceto o necessário para entrar).
+// O site é fechado: sem login, nada pode ser gravado. A leitura sem login vale só para o que a
+// página de Partidas da Pelada mostra ao visitante (jogadores, partidas, fotos e vídeos da Pelada).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -19,7 +20,7 @@ service cloud.firestore {
     }
 
     match /players/{id} {
-      allow read: if isUser();
+      allow read: if true;   // visitante vê os presentes de cada partida
       allow create: if can('players.create');
       allow update: if can('players.edit');
       allow delete: if can('players.delete');
@@ -34,7 +35,7 @@ service cloud.firestore {
     }
 
     match /matches/{id} {
-      allow read: if isUser();
+      allow read: if true;   // visitante vê as partidas
       allow create: if can('matches.create');
       // "Editar partidas": data, presentes e observações (e os gols dos registros antigos)
       allow update: if (can('matches.score') && onlyChanged(['date', 'presence', 'notes', 'goals', 'coverPhotoId', '_order']))
@@ -43,7 +44,7 @@ service cloud.firestore {
     }
 
     match /videos/{id} {
-      allow read: if isUser();
+      allow read: if true;   // vídeos das partidas
       allow create: if can('videos.create');
       allow update, delete: if can('videos.delete');
     }
@@ -130,7 +131,7 @@ service cloud.firestore {
     }
 
     match /mural/{id} {
-      allow read: if isUser();
+      allow read: if true;   // fotos das partidas
       allow create: if can('photos.create');
       allow update, delete: if can('photos.delete');
     }

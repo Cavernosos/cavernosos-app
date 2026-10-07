@@ -569,6 +569,24 @@ button .lucide{vertical-align:-4px;}
 .login-or::before, .login-or::after{content:''; flex:1; height:1px; background:var(--border-soft);}
 .login-foot{font-size:12px; color:var(--text-faint); text-align:center;}
 .login-card .form-error{margin:0 0 12px 0; min-height:0;}
+.login-card{position:relative;}
+.login-close{position:absolute; top:10px; right:10px;}
+.login-pitch{margin-top:10px; font-size:13.5px; color:var(--text-dim);}
+.guest-enter{width:100%; justify-content:center; margin-top:18px; padding:11px 16px; border:1px solid var(--border);}
+.guest-banner{display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 14px; margin-bottom:22px;
+  border:1px solid var(--accent-dim); background:var(--accent-soft); font-size:13.5px; color:var(--text-dim);}
+.guest-banner > .lucide{width:18px; height:18px; color:var(--accent); flex:0 0 auto;}
+.guest-banner > div{flex:1; min-width:180px;}
+.guest-banner b{color:var(--text);}
+.exit-sheet{position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center; padding:16px; animation:toastIn .15s ease;}
+.exit-card{width:100%; max-width:380px; background:var(--bg-elev); border:1px solid var(--border); padding:22px 20px 18px; text-align:center; box-shadow:0 -10px 40px rgba(0,0,0,.5);}
+.exit-logo{width:56px; height:56px; margin:0 auto 12px; border-radius:50%; overflow:hidden; border:2px solid var(--accent-dim);}
+.exit-logo img{width:100%; height:100%; object-fit:cover; display:block;}
+.exit-card h3{font-size:18px; margin-bottom:6px;}
+.exit-card p{font-size:13px; color:var(--text-faint); margin-bottom:16px;}
+.exit-actions{display:flex; gap:10px;}
+.exit-actions button{flex:1; justify-content:center; padding:11px 12px;}
+@media (min-width:821px){ .exit-sheet{align-items:center;} }
 .toast-wrap{position:fixed; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; max-width:calc(100vw - 40px);}
 .toast{background:var(--bg-elev); border:1px solid var(--border); border-left:3px solid var(--grass); padding:11px 14px; font-size:13.5px; box-shadow:0 8px 24px rgba(0,0,0,.35); animation:toastIn .18s ease;}
 .toast.error{border-left-color:var(--danger);}
@@ -1086,6 +1104,17 @@ async function enterApp(){
   await Promise.all([loadAll(), loadUsers()]);
   if(!loadFailed && can('players.edit')) await migratePlayers();
 }
+// Visitante (sem login): só o necessário para a página de Partidas da Pelada.
+async function enterGuest(){
+  loadFailed = false;
+  const [players, matches, mural, videos] = await Promise.all([sGet('players'), sGet('matches'), sGet('mural'), sGet('videos')]);
+  Object.assign(state, {players: players || [], matches: matches || [], mural: mural || [], videos: videos || [], directory: []});
+  state.env = 'pelada'; state.view = 'matches'; state.modal = null; state.navHistory = [];
+}
+function setGuest(on){
+  state.guest = on;
+  lsSet('cavernosos:guest', on ? '1' : '0');
+}
 function clearData(){
   Object.assign(state, {players:[], matches:[], mural:[], videos:[], users:[], coletes:[], modal:null, openMatchId:null});
   EXTRA_COLLECTIONS.forEach(k=> state[k] = []);
@@ -1148,6 +1177,7 @@ function directoryEntry(u){
 // "por fulano": registros antigos guardam o nome de usuário; mostra o nome usual da conta
 function nameOfUsername(un){
   const d = un && state.directory.find(x=> x.username === un);
+  if(!state.currentUser) return d ? displayName(d) : '';   // visitante não vê nomes de usuário
   return d ? displayName(d) : (un || '');
 }
 // jogador da Pelada ligado a uma conta usa o nome usual da conta; sem conta, o nome do cadastro do jogador
@@ -1343,6 +1373,8 @@ let state = {
   coletes: [],
   coletesFilter: 'all',
   openMatchId: null,
+  guest: lsGet('cavernosos:guest') === '1',   // saiu da tela de login: vê só as partidas da Pelada
+  navHistory: [],    // páginas visitadas, para o botão voltar do celular
   modal: null // {type, data}
 };
 
@@ -1541,7 +1573,11 @@ function render(){
   const keepFocus = search && document.activeElement === search;
   const caret = keepFocus ? search.selectionStart : null;
   applyEnvTheme();
-  if(!state.currentUser){
+  trackNav();
+  if(!state.currentUser && state.guest){
+    app.innerHTML = renderGuestShell();
+    bindGuestShell();
+  } else if(!state.currentUser){
     app.innerHTML = renderLoginScreen();
     bindAuthModals();
   } else if(loadFailed){
@@ -1560,16 +1596,110 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   await loadSettings();
   // se o Firebase não responder (rede lenta, navegador bloqueando), mostra a tela de login mesmo assim
   setTimeout(()=>{ if(!booted){ booted = true; render(); } }, 4000);
+  initBackGuard();
   auth.onAuthStateChanged(async fbUser=>{
     if(state.settingUp) return; // o formulário do primeiro admin cuida do resto
     await resolveCurrentUser(fbUser);
-    if(state.currentUser) await enterApp();
-    else clearData();
+    state.navHistory = []; navKey = null;
+    if(state.currentUser){ setGuest(false); await enterApp(); }
+    else { clearData(); if(state.guest) await enterGuest(); }
     booted = true;
     render();
   });
 });
+
+/* ============ botão voltar (celular) ============ */
+// O site é uma página só: sem isto, o "voltar" do celular sai do portal.
+// Fica sempre uma entrada extra no histórico; cada "voltar" a consome, é reposta
+// na hora e o site volta uma etapa por dentro (fecha janela, sai da partida,
+// volta à página anterior). Na página inicial, pergunta se a pessoa quer sair.
+let navKey = null, leavingPortal = false, exitAskedAt = 0;
+function trackNav(){
+  const key = state.currentUser || state.guest ? `${state.env}|${state.view}` : 'login';
+  if(navKey && navKey !== key && navKey !== 'login' && key !== 'login'){
+    const [env, view] = navKey.split('|');
+    const last = state.navHistory[state.navHistory.length - 1];
+    if(!last || last.env !== env || last.view !== view) state.navHistory.push({env, view});
+    if(state.navHistory.length > 30) state.navHistory.shift();
+  }
+  navKey = key;
+}
+function initBackGuard(){
+  try{
+    history.replaceState({cav:'base'}, '');
+    history.pushState({cav:'guard'}, '');
+  }catch(e){ return; }
+  // voltou ao portal pelo "avançar" do navegador (página guardada em cache)
+  window.addEventListener('pageshow', e=>{ if(e.persisted) leavingPortal = false; });
+  window.addEventListener('popstate', ()=>{
+    if(leavingPortal) return;
+    history.pushState({cav:'guard'}, '');
+    goBackInApp();
+  });
+}
+function goBackInApp(){
+  const sheet = document.getElementById('exitSheet');
+  // segundo "voltar" com a pergunta aberta (ou logo em seguida): sai de verdade
+  if(sheet || Date.now() - exitAskedAt < 2500){ leavePortal(); return; }
+  if(state.modal){ state.modal = null; render(); return; }
+  if(state.bgOpen){ state.bgOpen = state.bgStack.pop() || null; render(); window.scrollTo(0,0); return; }
+  if(state.openMatchId){ state.openMatchId = null; render(); window.scrollTo(0,0); return; }
+  if(!state.currentUser && !state.guest){
+    if(state.authMode === 'register' || state.authMode === 'registered'){ state.authMode = 'login'; render(); return; }
+    askExit(); return;
+  }
+  const prev = state.navHistory.pop();
+  if(prev){
+    navKey = null;   // a volta não entra no histórico
+    state.env = prev.env; state.view = prev.view;
+    if(state.currentUser) lsSet('cavernosos:env', prev.env);
+    state.bgOpen = null; state.bgStack = [];
+    render(); window.scrollTo(0,0);
+    return;
+  }
+  askExit();
+}
+function askExit(){
+  exitAskedAt = Date.now();
+  closeExitSheet();
+  const el = document.createElement('div');
+  el.id = 'exitSheet';
+  el.className = 'exit-sheet';
+  el.innerHTML = `
+    <div class="exit-card" role="dialog" aria-modal="true" aria-labelledby="exitTitle">
+      <div class="exit-logo"><img src="${LOGO_DATA_URI}" alt=""></div>
+      <h3 id="exitTitle">Deseja sair do Portal Cavernosos?</h3>
+      <p>Toque em voltar de novo para sair.</p>
+      <div class="exit-actions">
+        <button type="button" class="primary" id="exitStay">Ficar</button>
+        <button type="button" class="ghost" id="exitLeave">Sair</button>
+      </div>
+    </div>`;
+  document.body.appendChild(el);
+  el.onclick = e=>{ if(e.target === el) closeExitSheet(); };
+  el.querySelector('#exitStay').onclick = closeExitSheet;
+  el.querySelector('#exitLeave').onclick = leavePortal;
+  if(window.lucide) lucide.createIcons();
+}
+function closeExitSheet(){
+  const el = document.getElementById('exitSheet');
+  if(el) el.remove();
+  exitAskedAt = 0;
+}
+function leavePortal(){
+  closeExitSheet();
+  leavingPortal = true;
+  history.go(-2);   // pula a entrada extra e a do portal
+  // aberto direto numa aba nova não há para onde voltar
+  setTimeout(()=>{
+    if(document.visibilityState === 'hidden') return;
+    leavingPortal = false;
+    try{ history.pushState({cav:'guard'}, ''); }catch(e){}
+    toast('Para sair, feche a aba do navegador.');
+  }, 700);
+}
 document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && document.getElementById('exitSheet')){ closeExitSheet(); return; }
   if(e.key === 'Escape' && state.modal){ state.modal = null; render(); }
 });
 
@@ -1675,6 +1805,53 @@ function renderNoAccess(){
       ${icon('lock')}
       <p>Seu usuário ainda não tem acesso a nenhuma área do site. Fale com um administrador.</p>
     </div>`;
+}
+// Visitante: só a página de Partidas da Pelada, sem editar nada, com o convite para entrar.
+function renderGuestShell(){
+  state.env = 'pelada'; state.view = 'matches';
+  if(state.modal && state.modal.type !== 'playVideo') state.modal = null;
+  return `
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><img src="${LOGO_DATA_URI}" alt="Cavernosos"></div>
+      <div class="brand-text"><h1>CAVERNOSOS</h1></div>
+    </div>
+    <div class="nav">
+      <button class="active" data-guest-home title="Partidas">${icon('calendar-days')}<span class="nav-label">Partidas</span></button>
+    </div>
+    <div class="sidebar-foot">
+      <div class="schedule">
+        <div class="when">Quinta-feira, 21h às 22h30</div>
+        <div class="where">Sargento Wolf, Afogados</div>
+      </div>
+      <button class="primary btn-icon login-btn" data-guest-login title="Entrar">${icon('log-in')}<span class="nav-label">Entrar</span></button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="guest-banner">
+      ${icon('lock-open')}
+      <div><b>Logue para uma experiência completa.</b> Sem login você vê só as partidas da Pelada.</div>
+      <button class="primary btn-icon" data-guest-login>${icon('log-in')}Entrar</button>
+    </div>
+    ${loadFailed
+      ? `<div class="empty">Não foi possível carregar as partidas sem login. Entre com sua conta para ver.</div>`
+      : renderMatches()}
+  </div>
+  ${state.modal ? renderModal() : ''}`;
+}
+function bindGuestShell(){
+  document.querySelectorAll('[data-guest-login]').forEach(b=>{
+    b.onclick = ()=>{
+      setGuest(false); clearData(); loadFailed = false;
+      state.authMode = 'login'; state.loginNotice = ''; state.openMatchId = null;
+      render(); window.scrollTo(0,0);
+    };
+  });
+  document.querySelectorAll('[data-guest-home]').forEach(b=>{
+    b.onclick = ()=>{ state.openMatchId = null; state.modal = null; render(); window.scrollTo(0,0); };
+  });
+  bindViewEvents();
+  bindModalEvents();
 }
 function bindShell(){
   document.querySelectorAll('[data-nav]').forEach(b=>{
@@ -2504,7 +2681,7 @@ function renderVideoGrid(cfg){
           <div class="cap" style="display:flex; align-items:flex-start; gap:8px;">
             <div style="flex:1;">
               <div class="txt">${esc(v.title)}</div>
-              <div style="font-size:11px; color:var(--text-faint); margin-top:4px;">${[v.date ? formatFullDate(v.date) : 'Sem data', v.addedBy ? `por ${esc(nameOfUsername(v.addedBy))}` : ''].filter(Boolean).join(' · ')}</div>
+              <div style="font-size:11px; color:var(--text-faint); margin-top:4px;">${[v.date ? formatFullDate(v.date) : 'Sem data', nameOfUsername(v.addedBy) ? `por ${esc(nameOfUsername(v.addedBy))}` : ''].filter(Boolean).join(' · ')}</div>
             </div>
             ${canEditVideo(cfg, v) ? `<button class="icon-btn" data-edit-video="${col}:${v.id}" title="Editar vídeo" aria-label="Editar vídeo">${icon('pencil')}</button>` : ''}
             ${can(cfg.deletePerm) ? `<button class="icon-btn danger-hover" data-del-item="${col}:${v.id}" data-del-label="vídeo" title="Excluir vídeo" aria-label="Excluir vídeo">${icon('trash-2')}</button>` : ''}
@@ -2524,7 +2701,7 @@ function renderPhotoGrid(cfg){
           <img src="${ph.photo}" loading="lazy" alt="${esc(ph.caption)}">
           <div class="cap">
             ${ph.caption ? `<div class="txt">${esc(ph.caption)}</div>` : ''}
-            <div class="meta">${esc(nameOfUsername(ph.author))} · ${formatDate(ph.date)}</div>
+            <div class="meta">${[esc(nameOfUsername(ph.author)), formatDate(ph.date)].filter(Boolean).join(' · ')}</div>
           </div>
         </div>`).join('')}
     </div>`;
@@ -5005,10 +5182,12 @@ function renderLoginScreen(){
   return `
   <div class="login-screen">
     <div class="login-card">
+      ${!setup ? `<button type="button" class="icon-btn login-close" data-guest-enter title="Sair do login" aria-label="Sair do login">${icon('x')}</button>` : ''}
       <div class="login-brand">
         <div class="login-logo"><img src="${LOGO_DATA_URI}" alt="Cavernosos"></div>
         <div class="kicker">Um ambiente pensado em você</div>
         <h1>Cavernosos</h1>
+        ${!setup ? `<div class="login-pitch">Logue para uma experiência completa</div>` : ''}
       </div>
       ${setup ? `
       <div class="notice">${icon('shield-check')}<div>Primeiro acesso: crie a conta do <b>Admin</b> principal. Ela poderá criar os demais usuários.</div></div>
@@ -5060,7 +5239,9 @@ function renderLoginScreen(){
         ${googleButton('Entrar com Google')}
         <div class="hint" style="margin-top:16px; text-align:center;">Esqueceu a senha? Peça para um administrador definir uma nova.</div>
         <div class="login-switch">Ainda não tem conta? <button type="button" class="link-btn" data-auth-mode="register">Cadastre-se agora</button></div>
-      </form>`}
+      </form>
+      <button type="button" class="ghost btn-icon guest-enter" data-guest-enter>${icon('calendar-days')}Continuar sem login</button>
+      <div class="hint" style="text-align:center; margin-top:6px;">Sem login você vê só as partidas da Pelada.</div>`}
     </div>
   </div>`;
 }
@@ -5207,6 +5388,15 @@ function bindUsersEvents(){
 }
 
 function bindAuthModals(){
+  document.querySelectorAll('[data-guest-enter]').forEach(b=>{
+    b.onclick = async ()=>{
+      b.disabled = true;
+      setGuest(true);
+      state.openMatchId = null; state.matchFilter = {date:'', q:''};
+      await enterGuest();
+      render(); window.scrollTo(0,0);
+    };
+  });
   document.querySelectorAll('[data-pw-rules]').forEach(input=>{
     const items = input.closest('.field').querySelectorAll('.pw-rules li');
     const update = ()=> items.forEach(li=> li.classList.toggle('ok', PASSWORD_RULES[li.dataset.rule].test(input.value)));

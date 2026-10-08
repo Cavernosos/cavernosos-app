@@ -2722,7 +2722,7 @@ function playerPhotoTag(player, cls){
 
 /* ============ PLAYERS ============ */
 function renderPlayers(){
-  const view = state.playersView || 'grid';
+  const view = state.playersView || 'cards';
   return `
     <div class="page-head" style="display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;">
       <div>
@@ -2733,8 +2733,8 @@ function renderPlayers(){
       ${can('players.create') ? `<button class="primary btn-icon" id="addPlayerBtn">${icon('plus')}Adicionar jogador</button>` : ''}
     </div>
     <div class="momentos-tabs">
-      <button data-players-view="grid" class="${view==='grid'?'active':''}">Lista</button>
       <button data-players-view="cards" class="${view==='cards'?'active':''}">Cards</button>
+      <button data-players-view="grid" class="${view==='grid'?'active':''}">Lista</button>
     </div>
     ${state.players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` : `
     <div class="toolbar">

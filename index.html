@@ -749,27 +749,82 @@ button .lucide{vertical-align:-4px;}
 .star-picker span.filled{color:var(--accent);}
 #starsPreview .star-picker{cursor:default;}
 
-/* fifa-style cards */
-.fifa-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:22px;}
-.fifa-card{
-  position:relative;
-  background:
-    linear-gradient(160deg, var(--accent-soft), transparent 55%),
-    var(--bg-card);
-  border:1px solid var(--accent-dim);
-  clip-path:polygon(0 0, 100% 0, 100% 88%, 50% 100%, 0 88%);
-  padding:22px 20px 34px 20px;
-  text-align:center;
+/* cards no formato FUT: preto e cinza, bandeira do Brasil, escudo dos Cavernosos.
+   Tudo em cqw (largura do card), para o card escalar inteiro com a coluna. */
+/* fila de cards empilhados: cada um cobre parte do anterior; o do mouse cresce e empurra os seguintes */
+.fut-deck{--fut-w:210px; --fut-overlap:128px; display:flex; overflow-x:auto; overflow-y:hidden; padding:46px 40px 60px;
+  scrollbar-width:thin; -webkit-overflow-scrolling:touch;}
+.fut-deck::before, .fut-deck::after{content:''; flex:1 0 0;}   /* centraliza quando sobra espaço, sem cortar quando falta */
+.fut-slot{position:relative; flex:0 0 var(--fut-w); width:var(--fut-w); outline:none;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1);}
+.fut-slot + .fut-slot{margin-left:calc(var(--fut-overlap) * -1);}
+.fut-slot .fut{transition:transform .28s cubic-bezier(.2,.8,.2,1), filter .28s; transform-origin:50% 60%;}
+.fut-slot:hover, .fut-slot:focus-within{z-index:20;}
+.fut-slot:hover .fut, .fut-slot:focus-within .fut{transform:translateY(-14px) scale(1.16); filter:drop-shadow(0 18px 26px rgba(0,0,0,.7));}
+.fut-slot:hover ~ .fut-slot, .fut-slot:focus-within ~ .fut-slot{transform:translateX(calc(var(--fut-overlap) + 18px));}
+.fut-slot:has(~ .fut-slot:hover), .fut-slot:has(~ .fut-slot:focus-within){transform:translateX(-18px);}
+.fut-edit{position:absolute; left:50%; bottom:-46px; transform:translateX(-50%); padding:5px 12px; font-size:12px;
+  opacity:0; pointer-events:none; transition:opacity .2s; white-space:nowrap;}
+.fut-slot:hover .fut-edit, .fut-slot:focus-within .fut-edit{opacity:1; pointer-events:auto;}
+@media (max-width:640px){ .fut-deck{--fut-w:180px; --fut-overlap:96px; padding:40px 24px 56px;} }
+/* lista de jogadores */
+.players-table tr.clickable{cursor:pointer;}
+.players-table tr.clickable:hover td{background:var(--bg-elev);}
+.players-table .num-cell{font-family:'Oswald'; font-size:16px;}
+.pl-who{display:flex; align-items:center; gap:10px;}
+.pl-photo{width:36px; height:36px; border-radius:50%; object-fit:cover; background:var(--bg-elev); border:1px solid var(--border); flex-shrink:0;}
+.pl-name{font-weight:600;}
+.pl-ovr{display:flex; align-items:center; gap:8px;}
+.pl-ovr b{font-family:'Oswald'; font-weight:500; font-size:17px; color:var(--accent); min-width:22px;}
+.pl-ovr .stars{margin:0; font-size:12px;}
+.players-table .badge .lucide{width:12px; height:12px;}
+.fut{
+  --fut-shape:polygon(0 8%, 9% 6.2%, 19% 4.4%, 29% 3.2%, 40% 1.6%, 50% 0, 60% 1.6%, 71% 3.2%, 81% 4.4%, 91% 6.2%, 100% 8%,
+                      100% 86%, 91% 89%, 72% 92.6%, 57% 96.4%, 50% 100%, 43% 96.4%, 28% 92.6%, 9% 89%, 0 86%);
+  container-type:inline-size; position:relative; width:100%; max-width:290px; aspect-ratio:.72;
+  clip-path:var(--fut-shape);
+  background:linear-gradient(135deg, #6f6f6f 0%, #e4e4e4 22%, #7b7b7b 45%, #d6d6d6 68%, #5f5f5f 100%);
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));
 }
-.fifa-top{display:flex; align-items:flex-start; justify-content:space-between; text-align:left;}
-.fifa-ovr{font-family:'Oswald'; font-size:34px; color:var(--accent); line-height:1;}
-.fifa-pos{font-family:'Oswald'; font-size:14px; color:var(--text-dim); margin-top:4px; letter-spacing:.04em;}
-.fifa-num{font-family:'Oswald'; font-size:13px; color:var(--text-faint); border:1px solid var(--border); padding:2px 7px; height:fit-content;}
-.fifa-photo{width:92px; height:92px; margin:6px auto 10px auto; border-radius:50%; overflow:hidden; border:2px solid var(--accent-dim); background:var(--bg-elev);}
-.fifa-photo img{width:100%; height:100%; object-fit:cover;}
-.fifa-photo-ph{width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-family:'Oswald'; font-size:34px; color:var(--text-faint);}
-.fifa-name{font-family:'Oswald'; font-size:17px; letter-spacing:.03em; text-transform:uppercase;}
-.fifa-stars{justify-content:center; display:flex; gap:2px; margin-top:6px; font-size:13px;}
+.fut-in{
+  position:absolute; inset:1.8cqw; clip-path:var(--fut-shape); overflow:hidden; color:#ececec;
+  background:
+    repeating-linear-gradient(118deg, rgba(255,255,255,.035) 0 .5cqw, transparent .5cqw 5cqw),
+    radial-gradient(120% 70% at 50% 18%, #3a3a3a 0%, #1c1c1c 55%, #0b0b0b 100%);
+}
+/* faixa cinza atrás da foto, no lugar da faixa dourada */
+.fut-band{position:absolute; left:39%; width:24%; top:0; height:60%;
+  background:linear-gradient(180deg, #8d8d8d, #4a4a4a 60%, transparent);
+  -webkit-mask-image:linear-gradient(#000 55%, transparent); mask-image:linear-gradient(#000 55%, transparent); opacity:.4;}
+/* escudo minimalista ao fundo, como marca d'água */
+.fut-mark{position:absolute; left:14%; width:72%; top:5%; color:#fff; opacity:.075; pointer-events:none;}
+.fut-mark svg{width:100%; height:auto; display:block;}
+.fut.no-photo .fut-mark{opacity:.16; left:27%; width:60%; top:8%;}   /* sem foto, o escudo ocupa o lugar dela */
+.fut-side{position:absolute; left:9%; top:13%; width:18%; display:flex; flex-direction:column; align-items:center; gap:2.2cqw; z-index:2;}
+.fut-ovr{font-family:'Oswald'; font-weight:500; font-size:15cqw; line-height:.9;
+  background:linear-gradient(180deg, #fff, #b9b9b9); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.fut-pos{font-family:'Oswald'; font-size:6.4cqw; letter-spacing:.04em; line-height:1; margin-top:-1cqw;}
+.fut-flag{width:11cqw; display:block; box-shadow:0 0 0 .3cqw rgba(255,255,255,.25);}
+.fut-crest{width:12cqw; height:12cqw; border-radius:50%; object-fit:cover; box-shadow:0 0 0 .4cqw rgba(255,255,255,.3);}
+.fut-photo{position:absolute; right:5%; top:7%; width:72%; height:49%; z-index:1;
+  display:flex; align-items:flex-end; justify-content:center;
+  -webkit-mask-image:linear-gradient(#000 78%, transparent); mask-image:linear-gradient(#000 78%, transparent);}
+.fut-photo img{max-width:100%; max-height:100%; object-fit:contain; object-position:bottom center; filter:drop-shadow(0 1cqw 2cqw rgba(0,0,0,.55));}
+.fut-name{position:absolute; left:8%; right:8%; top:56.5%; z-index:2; text-align:center;
+  font-family:'Oswald'; font-weight:500; font-size:8.6cqw; letter-spacing:.03em; text-transform:uppercase; line-height:1.1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 .5cqw 1.5cqw rgba(0,0,0,.8);}
+.fut-name::after{content:''; display:block; height:.35cqw; margin:1.8cqw 6% 0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);}
+.fut-stats{position:absolute; left:15%; right:15%; top:66%; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto);
+  grid-auto-flow:column; row-gap:1.6cqw; column-gap:0;}
+.fut-stats::before{content:''; position:absolute; left:50%; top:0; bottom:0; width:.35cqw;
+  background:linear-gradient(transparent, rgba(255,255,255,.4), transparent);}
+.fut-stat{display:flex; align-items:baseline; justify-content:center; gap:1.8cqw; font-family:'Oswald'; line-height:1.15;}
+.fut-stat .v{font-size:7cqw; font-weight:500; color:#fff;}
+.fut-stat .k{font-size:6cqw; color:#bdbdbd; letter-spacing:.03em;}
+.fut-foot{position:absolute; left:50%; bottom:5.5%; transform:translateX(-50%); width:10cqw; color:#cfcfcf; display:flex;}
+.fut-foot svg{width:100%; height:auto; display:block;}
+.fut-num{font-family:'Oswald'; font-size:5cqw; color:rgba(255,255,255,.6); line-height:1;}
 .vote-legend{border:1px solid var(--border-soft); background:var(--bg-card); margin-bottom:18px;}
 .vote-legend summary{cursor:pointer; padding:10px 14px; font-size:13px; color:var(--text-dim); display:flex; align-items:center; gap:8px; list-style:none;}
 .vote-legend summary svg{width:15px; height:15px;}
@@ -806,20 +861,12 @@ button .lucide{vertical-align:-4px;}
 .vote-bar{position:sticky; bottom:0; z-index:5; display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:18px; padding:12px 16px; background:var(--bg-elev); border:1px solid var(--border);}
 .vote-progress{flex:1; font-size:13.5px; color:var(--text-dim);}
 .vote-progress b{color:var(--accent); font-family:'Oswald'; font-weight:500;}
-.fifa-type{font-family:'Oswald'; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-top:2px;}
 .attr-list{border-top:1px solid var(--border-soft);}
 .attr-row{display:grid; grid-template-columns:1fr 76px; gap:12px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-soft);}
 .attr-name{font-size:13.5px; font-weight:600;}
 .attr-name .abbr{font-family:'Oswald'; font-weight:500; color:var(--accent); margin-right:6px; letter-spacing:.04em;}
 .attr-hint{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
 .attr-row input{text-align:center;}
-.fifa-stats{
-  display:grid; grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,auto); grid-auto-flow:column; column-gap:18px; row-gap:8px;
-  margin-top:18px; padding-top:16px; border-top:1px solid var(--border-soft);
-}
-.fifa-stat{display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Oswald'; font-size:14px;}
-.fifa-stat .v{color:var(--accent); font-size:17px;}
-.fifa-stat .k{color:var(--text-dim); font-size:12px; letter-spacing:.03em;}
 .player-card .actions{display:flex; gap:6px; margin-top:12px;}
 .player-card .actions button{flex:1; padding:6px; font-size:12px;}
 
@@ -1037,6 +1084,15 @@ textarea{width:100%; resize:vertical;}
   .users-table tr{border-bottom:1px solid var(--border-soft); padding:10px 4px;}
   .users-table td{border:none; padding:5px 10px;}
   .td-actions{text-align:left;}
+  /* lista de jogadores no celular: uma linha compacta por jogador */
+  .players-table tr{display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:10px 8px;}
+  .players-table td{width:auto; padding:0;}
+  .players-table td:first-child{flex:1 1 100%;}
+  .players-table td:nth-child(3), .players-table td:nth-child(6), .players-table td:nth-child(7):not(.td-actions){display:none;}
+  .players-table .num-cell{font-size:14px; color:var(--text-dim);}
+  .players-table .num-cell:empty{display:none;}
+  .players-table .num-cell::before{content:'#';}
+  .players-table .td-actions{margin-left:auto;}
 }
 </style>
 </head>
@@ -1286,6 +1342,14 @@ function playerName(p){
   if(!p) return '';
   const d = p.userId && state.directory.find(x=> x.id === p.userId);
   return (d && (d.nickname || '').trim()) || p.name;
+}
+// card da Pelada (sem conta) cujo nome bate com o nome, nome usual ou nome completo da conta
+const looseName = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+function suggestPlayerFor(user, players){
+  if(!user) return null;
+  const names = [user.nickname, user.firstName, `${user.firstName||''} ${user.lastName||''}`].map(looseName).filter(Boolean);
+  const hits = players.filter(p=> !p.userId && names.includes(looseName(p.name)));
+  return hits.length === 1 ? hits[0] : null;   // só sugere quando não há dúvida
 }
 async function syncDirectory(){
   try{
@@ -1642,6 +1706,71 @@ function videoThumb(url){
 const VIDEO_IFRAME_ATTRS = 'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"';
 
 /* ============ image resize helper ============ */
+// ---- foto do jogador vazada (sem fundo) para o card ----
+// A remoção de fundo roda no próprio navegador (@imgly/background-removal): a foto não sai do aparelho.
+// Na primeira vez baixa o modelo (~40 MB, fica em cache).
+let bgRemovalLib = null;
+const loadImg = src => new Promise((res, rej)=>{ const i = new Image(); i.onload = ()=> res(i); i.onerror = rej; i.src = src; });
+const blobToDataURL = b => new Promise((res, rej)=>{ const r = new FileReader(); r.onload = ()=> res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+function canvasOf(img, maxDim){
+  const k = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return c;
+}
+// a imagem já tem fundo transparente? (PNG/WebP tratado antes de subir)
+function hasTransparency(canvas){
+  const d = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  let clear = 0;
+  for(let i = 3; i < d.length; i += 4) if(d[i] < 200) clear++;
+  return clear > d.length / 4 * 0.05;
+}
+// limpa sobras semitransparentes do fundo e enquadra o jogador (do topo da cabeça até mais ou menos a cintura)
+function cropCutout(canvas, maxDim){
+  const ctx = canvas.getContext('2d'), W = canvas.width, H = canvas.height;
+  const im = ctx.getImageData(0, 0, W, H), d = im.data;
+  let x0 = W, y0 = H, x1 = -1, y1 = -1;
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    const i = (y * W + x) * 4 + 3;
+    if(d[i] < 140){ d[i] = 0; continue; }
+    if(d[i] < 220) continue;   // borda/sobra meio transparente: fica, mas não conta para o enquadramento
+    if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y;
+  }
+  if(x1 < 0) return null;   // não achou ninguém na foto
+  ctx.putImageData(im, 0, 0);
+  let w = x1 - x0 + 1, h = y1 - y0 + 1;
+  if(h > w * 1.35) h = Math.round(w * 1.35);   // corpo inteiro: fica com a parte de cima
+  const pad = Math.round(w * 0.03);
+  const sx = Math.max(0, x0 - pad), sw = Math.min(W - sx, w + pad * 2), sh = Math.min(H - y0, h + pad);
+  const k = Math.min(1, maxDim / Math.max(sw, sh));
+  const out = document.createElement('canvas');
+  out.width = Math.round(sw * k); out.height = Math.round(sh * k);
+  out.getContext('2d').drawImage(canvas, sx, y0, sw, sh, 0, 0, out.width, out.height);
+  return out;
+}
+// WebP com transparência quando o navegador sabe gerar (bem menor); senão PNG
+function transparentDataURL(canvas){
+  const webp = canvas.toDataURL('image/webp', 0.86);
+  return webp.startsWith('data:image/webp') ? webp : canvas.toDataURL('image/png');
+}
+async function playerCutout(file, onStatus){
+  const src = await blobToDataURL(file);
+  const base = canvasOf(await loadImg(src), 1024);
+  let cut = base;
+  if(!hasTransparency(base)){
+    onStatus && onStatus(bgRemovalLib ? 'Removendo o fundo...' : 'Removendo o fundo... (na primeira vez demora um pouco)');
+    if(!bgRemovalLib) bgRemovalLib = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.5.5/+esm');
+    const input = await new Promise(res=> base.toBlob(res, 'image/jpeg', 0.92));
+    const blob = await bgRemovalLib.removeBackground(input, {model: 'isnet_quint8', output: {format: 'image/png'}});
+    const url = URL.createObjectURL(blob);
+    try{ cut = canvasOf(await loadImg(url), 1024); } finally { URL.revokeObjectURL(url); }
+  }
+  const framed = cropCutout(cut, 420);
+  if(!framed) throw new Error('Não encontrei ninguém na foto.');
+  return transparentDataURL(framed);
+}
+
 function resizeImage(file, maxDim, quality){
   return new Promise((resolve, reject)=>{
     const reader = new FileReader();
@@ -2581,58 +2710,107 @@ function renderPlayers(){
       <button data-players-view="grid" class="${view==='grid'?'active':''}">Lista</button>
       <button data-players-view="cards" class="${view==='cards'?'active':''}">Cards</button>
     </div>
-    ${state.players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` :
-      view === 'cards' ? renderPlayerCardsFifa() : renderPlayerGrid()}
+    ${state.players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` : `
+    <div class="toolbar">
+      <input type="search" id="playersSearch" placeholder="Buscar jogador..." value="${esc(state.playersSearch || '')}" style="max-width:240px;">
+      <div class="chip-filter">
+        ${[['all','Todos'], ...PLAYER_TYPES.map(t=> [t, t + 's'])].map(([k,l])=>{
+          const n = k === 'all' ? state.players.length : state.players.filter(p=> p.type === k).length;
+          return `<button data-players-type="${k}" class="${(state.playersType||'all')===k?'active':''}">${l} (${n})</button>`;}).join('')}
+      </div>
+    </div>
+    ${!playersFiltered().length ? `<div class="empty">Nenhum jogador encontrado.</div>` :
+      view === 'cards' ? renderPlayerCardsFifa() : renderPlayerList()}`}
   `;
 }
-function renderPlayerGrid(){
+// busca e filtro por tipo valem para a lista e para os cards
+function playersFiltered(){
+  const q = looseName(state.playersSearch), t = state.playersType || 'all';
+  return state.players.filter(p=> (t === 'all' || p.type === t) && (!q || looseName(playerName(p)).includes(q) || looseName(p.name).includes(q)));
+}
+function renderPlayerList(){
+  const canEdit = can('players.edit'), canDel = can('players.delete');
+  const list = [...playersFiltered()].sort((a,b)=> playerName(a).localeCompare(playerName(b)));
   return `
-    <div class="grid">
-      ${state.players.map(p=>`
-        <div class="player-card">
-          <div class="num-badge">${p.number ? '#'+p.number : ''}</div>
-          ${p.photo ? `<img src="${p.photo}" class="player-photo">` : `<div class="player-photo placeholder">${esc(playerName(p).charAt(0).toUpperCase())}</div>`}
-          <h3>${esc(playerName(p))}</h3>
-          <div class="pos">${esc(p.position)}${p.type ? ' · '+esc(p.type) : ''}</div>
-          <div class="freq">Frequência: ${playerFrequency(p.id)} pelada${playerFrequency(p.id)===1?'':'s'}</div>
-          ${starsHtml(playerStars(p), 'stars')}
-          ${can('players.edit') || can('players.delete') ? `<div class="actions">
-            ${can('players.edit') ? `<button data-edit-player="${p.id}">Editar</button>` : ''}
-            ${can('players.delete') ? `<button class="danger" data-del-player="${p.id}">Excluir</button>` : ''}
-          </div>` : ''}
-        </div>
-      `).join('')}
-    </div>`;
+    <table class="users-table players-table">
+      <thead><tr><th>Jogador</th><th>Nº</th><th>Posição</th><th>Tipo</th><th>Overall</th><th>Frequência</th>${isAdmin() ? '<th>Conta</th>' : ''}${canEdit || canDel ? '<th></th>' : ''}</tr></thead>
+      <tbody>
+        ${list.map(p=>{
+          const d = p.userId && state.directory.find(x=> x.id === p.userId);
+          const freq = playerFrequency(p.id);
+          return `
+        <tr ${canEdit ? `data-player-row="${p.id}" class="clickable"` : ''}>
+          <td><div class="pl-who">${playerPhotoTag(p, 'pl-photo')}<div><div class="pl-name">${esc(playerName(p))}</div>${playerName(p) !== p.name ? `<div class="hint" style="margin:0">${esc(p.name)}</div>` : ''}</div></div></td>
+          <td class="num-cell">${p.number ? esc(p.number) : ''}</td>
+          <td>${esc(p.position || '')}</td>
+          <td><span class="chip">${esc(p.type || '—')}</span></td>
+          <td><div class="pl-ovr"><b>${computeOVR(p)}</b>${starsHtml(playerStars(p), 'stars')}</div></td>
+          <td>${freq} pelada${freq===1?'':'s'}</td>
+          ${isAdmin() ? `<td>${d ? `<span class="badge ok">${icon('link')}@${esc(d.username)}</span>` : '<span class="hint" style="margin:0">sem conta</span>'}</td>` : ''}
+          ${canEdit || canDel ? `<td class="td-actions">
+            ${canEdit ? `<button class="icon-btn" data-edit-player="${p.id}" title="Editar jogador" aria-label="Editar jogador">${icon('pencil')}</button>` : ''}
+            ${canDel ? `<button class="icon-btn danger-hover" data-del-player="${p.id}" title="Excluir jogador" aria-label="Excluir jogador">${icon('trash-2')}</button>` : ''}
+          </td>` : ''}
+        </tr>`;}).join('')}
+      </tbody>
+    </table>
+    <div class="hint" style="margin-top:10px;">Mostrando ${list.length} de ${state.players.length} jogador${state.players.length===1?'':'es'}.${canEdit ? ' Clique na linha para editar.' : ''}</div>`;
 }
 function posAbbr(pos){
   const map = {Goleiro:'GOL', Fixo:'FIX', Ala:'ALA', 'Pivô':'PIV', Zagueiro:'ZAG', Lateral:'LAT', Volante:'VOL', Meia:'MEI', Atacante:'ATA'};
   return map[pos] || pos.slice(0,3).toUpperCase();
 }
+const BR_FLAG = `<svg class="fut-flag" viewBox="0 0 20 14" aria-label="Brasil"><rect width="20" height="14" fill="#009c3b"/><path d="M10 1.6 18.3 7 10 12.4 1.7 7z" fill="#ffdf00"/><circle cx="10" cy="7" r="3.3" fill="#002776"/><path d="M6.8 6.3c2.2-.5 4.6-.1 6.4 1.2" stroke="#fff" stroke-width=".55" fill="none"/></svg>`;
+// escudo dos Cavernosos em traço, monocromático: formato do escudo, entrada da caverna com a bola e a faixa com o nome
+const CAVE_MARK = `<svg viewBox="0 0 100 112" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+  <path d="M8 15 29 8.5 50 3.5 71 8.5 92 15 89.5 58C87.5 80 71.5 96.5 50 108.5 28.5 96.5 12.5 80 10.5 58Z" stroke-width="2.6"/>
+  <path d="M15.5 20 31 15.2 50 11 69 15.2 84.5 20 82.5 57.5C80.8 75.5 68 89.5 50 99.8 32 89.5 19.2 75.5 17.5 57.5Z" stroke-width="1"/>
+  <path d="M29 68V50C29 36.5 38.5 27 50 27S71 36.5 71 50V68" stroke-width="3"/>
+  <path d="M35.5 68V51.5C35.5 41.5 42 34 50 34S64.5 41.5 64.5 51.5V68" stroke-width="1"/>
+  <circle cx="50" cy="57" r="9" stroke-width="1.8"/>
+  <path d="M50 52.5 54.3 55.6 52.7 60.6H47.3L45.7 55.6Z M50 52.5V48 M54.3 55.6 58.6 54.2 M52.7 60.6 55.3 64.3 M47.3 60.6 44.7 64.3 M45.7 55.6 41.4 54.2" stroke-width="1.1"/>
+  <path d="M6 71H94L89 77.5 94 84H6L11 77.5Z" stroke-width="2"/>
+  <text x="50" y="81.2" text-anchor="middle" fill="currentColor" stroke="none" font-family="Oswald, sans-serif" font-weight="600" font-size="9.2" letter-spacing=".5">CAVERNOSOS</text>
+  <text x="50" y="92.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="Oswald, sans-serif" font-size="5.5" letter-spacing="1.2">2001</text>
+</svg>`;
+// rodapé do card: chuteira para jogador de linha, luva para goleiro
+const FUT_BOOT = `<svg viewBox="0 0 64 30" fill="currentColor" aria-label="Chuteira"><path d="M3 9.5C3 6 6.5 4.2 10 5.6l9.5 4c3.6 1.5 7.6.6 10.3-2.1L35 2.6c2.3-2.2 6-1.2 6.9 1.8l.5 1.7c.4 1.4 1.5 2.4 2.9 2.8l7.5 2c5.3 1.4 9.2 5.2 9.2 9.4 0 2.6-2 4.2-4.6 4.2H7.6C5 24.5 3 22.6 3 20z"/><path d="M8 25h5v4H8zm10 0h5v4h-5zm19 0h5v4h-5zm10 0h5v4h-5z"/></svg>`;
+const FUT_GLOVE = `<svg viewBox="0 0 32 34" fill="currentColor" aria-label="Luva"><rect x="7.5" y="2.5" width="4.2" height="14" rx="2.1"/><rect x="12.3" y=".5" width="4.2" height="16" rx="2.1"/><rect x="17.1" y="1.5" width="4.2" height="15" rx="2.1"/><rect x="21.9" y="4.5" width="4" height="12" rx="2"/><rect x="1.5" y="11" width="4.2" height="11" rx="2.1" transform="rotate(-32 3.6 16.5)"/><rect x="6.5" y="12" width="19.5" height="13" rx="4"/><rect x="8" y="26" width="16.5" height="7" rx="1.5" opacity=".7"/></svg>`;
+// cards empilhados numa fila horizontal (do maior overall para o menor); o card sob o mouse cresce e afasta os seguintes
 function renderPlayerCardsFifa(){
+  const canEdit = can('players.edit');
+  const list = [...playersFiltered()].sort((a,b)=> computeOVR(b) - computeOVR(a) || playerName(a).localeCompare(playerName(b)));
   return `
-    <div class="fifa-grid">
-      ${state.players.map(p=>{
+    <div class="fut-deck" id="futDeck">
+      ${list.map(p=>{
         const a = playerAttrValues(p);
-        const ovr = computeOVR(p);
+        const name = playerName(p);
         return `
-        <div class="fifa-card">
-          <div class="fifa-top">
-            <div class="fifa-ovr">${ovr}</div>
-            <div class="fifa-pos">${posAbbr(p.position)}</div>
-            <div class="fifa-num">${p.number ? '#'+p.number : ''}</div>
+        <div class="fut-slot" tabindex="0">
+        <div class="fut${p.photo ? '' : ' no-photo'}" title="${esc(name)}${p.type ? ' · '+esc(p.type) : ''}">
+          <div class="fut-in">
+            <div class="fut-band"></div>
+            <div class="fut-mark">${CAVE_MARK}</div>
+            <div class="fut-side">
+              <div class="fut-ovr">${computeOVR(p)}</div>
+              <div class="fut-pos">${posAbbr(p.position)}</div>
+              ${BR_FLAG}
+              <img class="fut-crest" src="${LOGO_DATA_URI}" alt="Cavernosos">
+              ${p.number ? `<div class="fut-num">#${esc(p.number)}</div>` : ''}
+            </div>
+            ${p.photo ? `<div class="fut-photo"><img src="${p.photo}" alt=""></div>` : ''}
+            <div class="fut-name">${esc(name)}</div>
+            <div class="fut-stats">
+              ${playerAttrDefs(p).map(d=>`<div class="fut-stat" title="${d.name}${d.hint ? ': '+d.hint : ''}"><span class="v">${a[d.k]}</span><span class="k">${d.abbr}</span></div>`).join('')}
+            </div>
+            <div class="fut-foot">${isGK(p) ? FUT_GLOVE : FUT_BOOT}</div>
           </div>
-          <div class="fifa-photo">
-            ${p.photo ? `<img src="${p.photo}">` : `<div class="fifa-photo-ph">${esc(playerName(p).charAt(0).toUpperCase())}</div>`}
-          </div>
-          <div class="fifa-name">${esc(playerName(p))}</div>
-          ${p.type ? `<div class="fifa-type">${esc(p.type)}</div>` : ''}
-          ${starsHtml(playerStars(p), 'stars fifa-stars')}
-          <div class="fifa-stats">
-            ${playerAttrDefs(p).map(d=>`<div class="fifa-stat" title="${d.name}${d.hint ? ': '+d.hint : ''}"><span class="k">${d.abbr}</span><span class="v">${a[d.k]}</span></div>`).join('')}
-          </div>
+        </div>
+        ${canEdit ? `<button class="fut-edit btn-icon" data-edit-player="${p.id}">${icon('pencil')}Editar</button>` : ''}
         </div>`;
       }).join('')}
-    </div>`;
+    </div>
+    <div class="hint" style="text-align:center;">${list.length} card${list.length===1?'':'s'} · passe o mouse (ou deslize no celular) para navegar</div>`;
 }
 
 /* ============ VOTAÇÃO ============ */
@@ -4769,6 +4947,42 @@ function bindViewEvents(){
   document.querySelectorAll('[data-edit-player]').forEach(b=>{
     b.onclick = ()=>{ const p = state.players.find(x=>x.id===b.dataset.editPlayer); state.modal = {type:'player', data:p}; render(); };
   });
+  document.querySelectorAll('[data-player-row]').forEach(tr=>{
+    tr.onclick = e=>{
+      if(e.target.closest('button')) return;
+      state.modal = {type:'player', data: state.players.find(x=> x.id === tr.dataset.playerRow)}; render();
+    };
+  });
+  const playersSearch = document.getElementById('playersSearch');
+  if(playersSearch) playersSearch.oninput = ()=>{
+    state.playersSearch = playersSearch.value;
+    const pos = playersSearch.selectionStart;
+    render();
+    const el = document.getElementById('playersSearch');
+    if(el){ el.focus(); el.setSelectionRange(pos, pos); }
+  };
+  document.querySelectorAll('[data-players-type]').forEach(b=>{
+    b.onclick = ()=>{ state.playersType = b.dataset.playersType; render(); };
+  });
+  // fila de cards: a posição do mouse na faixa rola a fila (esquerda → começo, direita → fim)
+  const deck = document.getElementById('futDeck');
+  if(deck && matchMedia('(hover:hover)').matches){
+    let target = 0, raf = 0;
+    const step = ()=>{
+      const diff = target - deck.scrollLeft;
+      if(Math.abs(diff) < 1){ raf = 0; return; }
+      deck.scrollLeft += diff * 0.12;
+      raf = requestAnimationFrame(step);
+    };
+    deck.onmousemove = e=>{
+      const max = deck.scrollWidth - deck.clientWidth;
+      if(max <= 0) return;
+      const r = deck.getBoundingClientRect();
+      const x = Math.min(1, Math.max(0, (e.clientX - r.left - 60) / (r.width - 120)));
+      target = x * max;
+      if(!raf) raf = requestAnimationFrame(step);
+    };
+  }
   document.querySelectorAll('[data-del-player]').forEach(b=>{
     b.onclick = async ()=>{
       if(!confirm('Excluir este jogador?')) return;
@@ -4902,6 +5116,8 @@ function renderPlayerModal(player){
             ${player && player.photo ? `<img src="${player.photo}" id="photoPreview">` : `<div id="photoPreview" style="font-size:12.5px;">Toque para escolher uma foto</div>`}
           </div>
           <input type="file" accept="image/*" id="photoInput" style="display:none;">
+          <label class="switch-row" style="justify-content:center; margin:8px 0 2px; font-size:12.5px;"><input type="checkbox" id="photoCutout" checked> Remover o fundo (foto vazada no card)</label>
+          <div class="hint" id="photoStatus">Use uma foto do peito para cima, de frente. PNG já vazado também serve.</div>
         </div>
         <div class="field"><label>Usuário do site</label>
           <select name="userId" id="playerUserSelect">
@@ -5132,10 +5348,29 @@ function bindModalEvents(){
     photoPick.onclick = ()=> photoInput.click();
     photoInput.onchange = async ()=>{
       const file = photoInput.files[0];
+      photoInput.value = '';
       if(!file) return;
-      const dataUrl = await resizeImage(file, 400, 0.75);
+      const status = document.getElementById('photoStatus');
+      const submit = document.querySelector('#playerForm [type=submit]');
+      const setStatus = t=>{ status.textContent = t; };
+      let dataUrl;
+      submit.disabled = true;
+      try{
+        if(document.getElementById('photoCutout').checked){
+          setStatus('Preparando a foto...');
+          dataUrl = await playerCutout(file, setStatus);
+          setStatus('Fundo removido. Confira no card depois de salvar.');
+        } else {
+          dataUrl = await resizeImage(file, 400, 0.75);
+          setStatus('Foto com fundo original.');
+        }
+      }catch(err){
+        console.error(err);
+        dataUrl = await resizeImage(file, 400, 0.75);
+        setStatus(`Não deu para remover o fundo (${err.message || 'erro'}). A foto foi mantida com o fundo.`);
+      }finally{ submit.disabled = false; }
       pendingPhoto = dataUrl;
-      document.getElementById('photoPreview').outerHTML = `<img src="${dataUrl}" id="photoPreview">`;
+      document.getElementById('photoPreview').outerHTML = `<img src="${dataUrl}" id="photoPreview" style="border-radius:0; object-fit:contain; background:#1c1c1c;">`;
     };
   }
   const playerForm = document.getElementById('playerForm');
@@ -5639,6 +5874,13 @@ function renderUserModal(user, approving){
   // "Aprovar" abre o cadastro já com o status Ativo, para o admin escolher os ambientes
   const status = approving ? 'active' : user ? userStatus(user) : 'active';
   const envs = user ? userEnvIds(user) : [];
+  // jogador da Pelada ligado à conta: o já ligado ou, ao aprovar, um card sem conta com o mesmo nome
+  const linked = user && state.players.find(p=> p.userId === user.id);
+  const freePlayers = state.players.filter(p=> !p.userId || (user && p.userId === user.id) || !state.users.some(u=> u.id === p.userId))
+    .sort((a,b)=> a.name.localeCompare(b.name));
+  const suggested = !linked && approving ? suggestPlayerFor(user, freePlayers) : null;
+  const playerSel = linked || suggested;
+  const nickValue = user ? (user.nickname || (approving ? (suggested ? suggested.name : (user.firstName || '')) : '')) : '';
   return `
   <div class="overlay" id="modalOverlay">
     <div class="modal wide">
@@ -5653,7 +5895,7 @@ function renderUserModal(user, approving){
         </div>
         <div class="field">
           <label>Nome usual</label>
-          <input name="nickname" maxlength="24" value="${esc(user ? (user.nickname || (approving ? (user.firstName || '') : '')) : '')}" placeholder="ex: Joãozinho">
+          <input name="nickname" maxlength="24" value="${esc(nickValue)}" placeholder="ex: Joãozinho">
           <div class="hint">É o nome que o grupo vê: cards da Pelada, partidas, votação, rankings e BoardGame. Só o admin define. Em branco, aparece o primeiro nome.</div>
         </div>
         <div class="form-section">Dados de acesso</div>
@@ -5695,6 +5937,15 @@ function renderUserModal(user, approving){
         <div class="notice" id="adminNotice" style="${role==='admin' ? '' : 'display:none'}">${icon('shield-check')}<div>Administradores têm acesso total, incluindo excluir, cadastrar jogadores e gerenciar usuários.</div></div>
         <div id="envPickWrap">${renderEnvPick(envs, role === 'admin')}</div>
         <div class="hint" id="envHint" ${role==='admin' ? 'hidden' : ''}>Todo usuário tem o mesmo poder dentro dos ambientes liberados: ver, registrar e editar. Excluir fica só com o Admin.</div>
+
+        <div class="form-section">Jogador da Pelada</div>
+        <div class="field">
+          <select name="playerId" id="userPlayerSelect">
+            <option value="">Nenhum</option>
+            ${freePlayers.map(p=>`<option value="${p.id}" ${playerSel && playerSel.id === p.id ? 'selected' : ''}>${esc(p.name)}${p.number ? ` · #${esc(p.number)}` : ''} (${esc(p.position || p.type || '')})</option>`).join('')}
+          </select>
+          <div class="hint">${suggested ? `<b>Sugestão:</b> o card “${esc(suggested.name)}” tem o mesmo nome. Confira antes de aprovar. ` : ''}Liga a conta a um card já criado: a pessoa passa a se ver como “você” na votação, e o card usa o nome usual da conta. Só aparecem cards que ainda não têm conta.</div>
+        </div>
 
         <div class="form-error" id="formError"></div>
         <div class="modal-actions">
@@ -5940,6 +6191,28 @@ function bindUserForm(form, existing){
     lucide.createIcons();
   };
 
+  // escolher o card troca o nome usual pelo nome do card, se o admin ainda não tiver mexido nele
+  const playerSelect = document.getElementById('userPlayerSelect');
+  const nickInput = form.elements.nickname;
+  let autoNick = nickInput.value;
+  playerSelect.onchange = ()=>{
+    const p = state.players.find(x=> x.id === playerSelect.value);
+    if(p && (!nickInput.value.trim() || nickInput.value === autoNick || nickInput.value === (existing && existing.firstName))){
+      nickInput.value = autoNick = p.name.slice(0, 24);
+    }
+  };
+
+  // grava o vínculo conta ↔ card (no máximo um card por conta)
+  async function linkPlayer(oldId, newId, playerId){
+    let changed = false;
+    state.players.forEach(p=>{
+      const mine = p.userId && (p.userId === oldId || p.userId === newId);
+      if(p.id === playerId){ if(p.userId !== newId){ p.userId = newId; changed = true; } }
+      else if(mine){ p.userId = ''; changed = true; }
+    });
+    if(changed) await savePlayers();
+  }
+
   const del = document.getElementById('deleteUserBtn');
   if(del) del.onclick = async ()=>{
     if(!confirm(`Excluir o usuário "${existing.username}"? Ele perderá o acesso imediatamente.`)) return;
@@ -5969,6 +6242,7 @@ function bindUserForm(form, existing){
     const email = normEmail(fd.get('email'));
     const firstName = cleanName(fd.get('firstName')), lastName = cleanName(fd.get('lastName'));
     const nickname = cleanName(fd.get('nickname')).slice(0, 24);
+    const playerId = fd.get('playerId') || '';
 
     if(!firstName || !lastName) return formError('Informe o nome e o sobrenome.');
     if(nickname && state.users.some(u=> u.id !== (existing && existing.id) && (u.nickname||'').toLowerCase() === nickname.toLowerCase()))
@@ -5995,6 +6269,7 @@ function bindUserForm(form, existing){
         batch.set(db.collection('users').doc(acc.uid), user);
         batch.set(db.collection('logins').doc(username), {uid: acc.uid, email: acc.email});
         await batch.commit();
+        await linkPlayer(null, acc.uid, playerId);
         toast(`Usuário ${username} criado.`);
       } else {
         const loginSnap = await db.collection('logins').doc(existing.username).get();
@@ -6019,6 +6294,8 @@ function bindUserForm(form, existing){
         if(username !== existing.username) batch.delete(db.collection('logins').doc(existing.username));
         batch.set(db.collection('logins').doc(username), {...login, uid: updated.id});   // mantém a marca "google"
         await batch.commit();
+        // se a conta mudou de id (nova senha), o card acompanha
+        await linkPlayer(existing.id, updated.id, playerId);
         if(self) state.currentUser = updated;
         if(approving){
           const sent = await sendApprovalEmail(updated.id);

@@ -751,22 +751,24 @@ button .lucide{vertical-align:-4px;}
 
 /* cards no formato FUT: preto e cinza, bandeira do Brasil, escudo dos Cavernosos.
    Tudo em cqw (largura do card), para o card escalar inteiro com a coluna. */
-/* fila de cards empilhados: cada um cobre parte do anterior; o do mouse cresce e empurra os seguintes */
-.fut-deck{--fut-w:210px; --fut-overlap:128px; display:flex; overflow-x:auto; overflow-y:hidden; padding:46px 40px 60px;
-  scrollbar-width:thin; -webkit-overflow-scrolling:touch;}
+/* fila de cards bem agrupada (cada um mostra só a faixa da esquerda). A posição do mouse na fila escolhe o card ativo
+   (estilo dock): ele cresce, os anteriores recuam e os seguintes abrem espaço. Só transform anima, para ficar leve. */
+.fut-deck{--w:120px; --step:30px; --s:1.75; position:relative; display:flex; overflow-x:auto; overflow-y:hidden; padding:78px 70px 108px;
+  scrollbar-width:thin; -webkit-overflow-scrolling:touch; cursor:default; user-select:none;}
 .fut-deck::before, .fut-deck::after{content:''; flex:1 0 0;}   /* centraliza quando sobra espaço, sem cortar quando falta */
-.fut-slot{position:relative; flex:0 0 var(--fut-w); width:var(--fut-w); outline:none;
-  transition:transform .28s cubic-bezier(.2,.8,.2,1);}
-.fut-slot + .fut-slot{margin-left:calc(var(--fut-overlap) * -1);}
-.fut-slot .fut{transition:transform .28s cubic-bezier(.2,.8,.2,1), filter .28s; transform-origin:50% 60%;}
-.fut-slot:hover, .fut-slot:focus-within{z-index:20;}
-.fut-slot:hover .fut, .fut-slot:focus-within .fut{transform:translateY(-14px) scale(1.16); filter:drop-shadow(0 18px 26px rgba(0,0,0,.7));}
-.fut-slot:hover ~ .fut-slot, .fut-slot:focus-within ~ .fut-slot{transform:translateX(calc(var(--fut-overlap) + 18px));}
-.fut-slot:has(~ .fut-slot:hover), .fut-slot:has(~ .fut-slot:focus-within){transform:translateX(-18px);}
-.fut-edit{position:absolute; left:50%; bottom:-46px; transform:translateX(-50%); padding:5px 12px; font-size:12px;
-  opacity:0; pointer-events:none; transition:opacity .2s; white-space:nowrap;}
-.fut-slot:hover .fut-edit, .fut-slot:focus-within .fut-edit{opacity:1; pointer-events:auto;}
-@media (max-width:640px){ .fut-deck{--fut-w:180px; --fut-overlap:96px; padding:40px 24px 56px;} }
+.fut-slot{position:relative; flex:0 0 var(--w); width:var(--w); pointer-events:none;
+  transition:transform .32s cubic-bezier(.22,.9,.3,1); will-change:transform;}
+.fut-slot + .fut-slot{margin-left:calc(var(--step) - var(--w));}
+.fut-slot .fut{filter:drop-shadow(-3px 4px 6px rgba(0,0,0,.55)); transition:transform .32s cubic-bezier(.22,.9,.3,1); will-change:transform;}
+.fut-slot.is-active{z-index:20;}
+.fut-slot.is-active .fut{transform:scale(var(--s));}
+.fut-slot.is-before{transform:translateX(calc(var(--w) * (var(--s) - 1) / -2 - 10px));}
+.fut-slot.is-after{transform:translateX(calc(var(--w) * (var(--s) + 1) / 2 - var(--step) + 10px));}
+.fut-deck.has-active{cursor:pointer;}
+.fut-edit{position:absolute; left:50%; top:calc(100% + var(--w) * 1.39 * (var(--s) - 1) / 2 + 10px); transform:translateX(-50%);
+  padding:4px 12px; font-size:12px; white-space:nowrap; opacity:0; transition:opacity .2s;}
+.fut-slot.is-active .fut-edit{opacity:1;}
+@media (max-width:640px){ .fut-deck{--w:104px; --step:26px; --s:1.7; padding:70px 50px 98px;} }
 /* lista de jogadores */
 .players-table tr.clickable{cursor:pointer;}
 .players-table tr.clickable:hover td{background:var(--bg-elev);}
@@ -2786,7 +2788,7 @@ function renderPlayerCardsFifa(){
         const a = playerAttrValues(p);
         const name = playerName(p);
         return `
-        <div class="fut-slot" tabindex="0">
+        <div class="fut-slot" data-player-id="${p.id}">
         <div class="fut${p.photo ? '' : ' no-photo'}" title="${esc(name)}${p.type ? ' · '+esc(p.type) : ''}">
           <div class="fut-in">
             <div class="fut-band"></div>
@@ -2806,11 +2808,11 @@ function renderPlayerCardsFifa(){
             <div class="fut-foot">${isGK(p) ? FUT_GLOVE : FUT_BOOT}</div>
           </div>
         </div>
-        ${canEdit ? `<button class="fut-edit btn-icon" data-edit-player="${p.id}">${icon('pencil')}Editar</button>` : ''}
+        ${canEdit ? `<span class="fut-edit chip">Clique para editar</span>` : ''}
         </div>`;
       }).join('')}
     </div>
-    <div class="hint" style="text-align:center;">${list.length} card${list.length===1?'':'s'} · passe o mouse (ou deslize no celular) para navegar</div>`;
+    <div class="hint" style="text-align:center;">${list.length} card${list.length===1?'':'s'} · passe o mouse pela fila (no celular, toque) para ver cada card</div>`;
 }
 
 /* ============ VOTAÇÃO ============ */
@@ -4964,23 +4966,59 @@ function bindViewEvents(){
   document.querySelectorAll('[data-players-type]').forEach(b=>{
     b.onclick = ()=>{ state.playersType = b.dataset.playersType; render(); };
   });
-  // fila de cards: a posição do mouse na faixa rola a fila (esquerda → começo, direita → fim)
+  // fila de cards: o card ativo sai da posição do mouse sobre a fila parada (sem contar o deslocamento da animação),
+  // então passar o mouse percorre os cards um a um, sem pulos
   const deck = document.getElementById('futDeck');
-  if(deck && matchMedia('(hover:hover)').matches){
-    let target = 0, raf = 0;
-    const step = ()=>{
-      const diff = target - deck.scrollLeft;
-      if(Math.abs(diff) < 1){ raf = 0; return; }
-      deck.scrollLeft += diff * 0.12;
-      raf = requestAnimationFrame(step);
+  if(deck){
+    const slots = [...deck.querySelectorAll('.fut-slot')];
+    let active = -1, frame = 0, lastX = 0;
+    const indexAt = clientX=>{
+      if(!slots.length) return -1;
+      const r = deck.getBoundingClientRect();
+      const step = slots.length > 1 ? slots[1].offsetLeft - slots[0].offsetLeft : 1;
+      const width = step * (slots.length - 1) + slots[0].offsetWidth;
+      // fila maior que a tela: a largura visível inteira percorre todos os cards (a rolagem acompanha)
+      if(width + 140 > deck.clientWidth){
+        const ratio = (clientX - r.left - 40) / (r.width - 80);
+        return Math.max(0, Math.min(slots.length - 1, Math.floor(ratio * slots.length)));
+      }
+      const x = clientX - r.left + deck.scrollLeft - slots[0].offsetLeft;
+      if(x < -20 || x > slots[slots.length-1].offsetLeft - slots[0].offsetLeft + slots[0].offsetWidth + 20) return -1;
+      return Math.max(0, Math.min(slots.length - 1, Math.floor(x / step)));
+    };
+    const setActive = i=>{
+      if(i === active) return;
+      active = i;
+      slots.forEach((s, k)=>{
+        s.classList.toggle('is-active', k === i);
+        s.classList.toggle('is-before', i >= 0 && k < i);
+        s.classList.toggle('is-after', i >= 0 && k > i);
+      });
+      deck.classList.toggle('has-active', i >= 0);
+      // fila maior que a tela: rola para manter o card ativo à vista
+      if(i >= 0 && deck.scrollWidth > deck.clientWidth){
+        const s = slots[i];
+        deck.scrollTo({left: s.offsetLeft + s.offsetWidth / 2 - deck.clientWidth / 2, behavior: 'smooth'});
+      }
     };
     deck.onmousemove = e=>{
-      const max = deck.scrollWidth - deck.clientWidth;
-      if(max <= 0) return;
-      const r = deck.getBoundingClientRect();
-      const x = Math.min(1, Math.max(0, (e.clientX - r.left - 60) / (r.width - 120)));
-      target = x * max;
-      if(!raf) raf = requestAnimationFrame(step);
+      lastX = e.clientX;
+      if(!frame) frame = requestAnimationFrame(()=>{ frame = 0; setActive(indexAt(lastX)); });
+    };
+    deck.onmouseleave = ()=> setActive(-1);
+    // card desenhado sob o ponto (já com a animação): o ativo fica por cima, depois os da direita
+    const hitAt = (x, y)=>{
+      const inside = k=>{ const b = slots[k].querySelector('.fut').getBoundingClientRect(); return x >= b.left && x <= b.right && y >= b.top && y <= b.bottom; };
+      if(active >= 0 && inside(active)) return active;
+      for(let k = slots.length - 1; k >= 0; k--) if(inside(k)) return k;
+      return -1;
+    };
+    // clique no card ativo edita (admin); no celular, o primeiro toque só destaca o card
+    deck.onclick = e=>{
+      const i = hitAt(e.clientX, e.clientY);
+      if(i < 0) return setActive(-1);
+      if(i !== active){ setActive(i); return; }
+      if(can('players.edit')){ state.modal = {type:'player', data: state.players.find(p=> p.id === slots[i].dataset.playerId)}; render(); }
     };
   }
   document.querySelectorAll('[data-del-player]').forEach(b=>{

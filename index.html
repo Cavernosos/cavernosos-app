@@ -1401,6 +1401,10 @@ async function resolveCurrentUser(fbUser){
   try{
     const doc = await db.collection('users').doc(fbUser.uid).get();
     let u = doc.exists ? doc.data() : null;
+    // Google sem cadastro (ou só com o "aguardando aprovação" que o próprio Google criou): se já existe
+    // um cadastro com esse e-mail, o servidor liga o Google a ele e a pessoa entra de novo, já nele
+    const googleOnly = !u || (userStatus(u) === 'pending' && u.selfRegistered && u.authProvider === 'google');
+    if(googleOnly && isGoogleUser(fbUser) && !hasPassword(fbUser) && state.appInitialized && await linkGoogleToExisting(fbUser)) return;
     // primeiro acesso com Google: cria o cadastro "aguardando aprovação" com os dados da conta
     if(!u && isGoogleUser(fbUser) && state.appInitialized){
       try{ u = await registerGoogleUser(fbUser); }
@@ -1441,12 +1445,46 @@ function googleProvider(){
   p.setCustomParameters({prompt: 'select_account'});
   return p;
 }
+// credencial do último login com Google: permite entrar de novo sozinho depois de vincular a conta
+let lastGoogleCred = null;
+auth.getRedirectResult().then(r=>{ if(r && r.credential) lastGoogleCred = r.credential; }).catch(()=>{});
+async function waitGoogleCred(ms){
+  for(let t = 0; !lastGoogleCred && t < ms; t += 200) await new Promise(r=> setTimeout(r, 200));
+  return lastGoogleCred;
+}
+// Pede ao servidor para ligar este login do Google a um cadastro existente com o mesmo e-mail.
+// true = vinculou (a entrada continua sozinha ou a tela pede para entrar de novo); false = segue o fluxo normal.
+async function linkGoogleToExisting(fbUser){
+  let data;
+  try{
+    const r = await fetch('/api/link-google', {method:'POST', headers:{Authorization: 'Bearer ' + await fbUser.getIdToken()}});
+    data = await r.json().catch(()=> ({}));
+    if(!r.ok || !data.linked) return false;
+  }catch(e){ console.error('link google failed', e); return false; }
+  // a conta temporária do Google foi apagada: sai dela e entra de novo, agora no cadastro antigo
+  await auth.signOut().catch(()=>{});
+  state.justLoggedIn = false;
+  state.loginNotice = 'Encontramos seu cadastro pelo e-mail e ligamos sua conta Google a ele. Entrando...';
+  waitGoogleCred(4000).then(cred=>{
+    if(!cred) throw new Error('sem credencial');
+    state.justLoggedIn = true;
+    return auth.signInWithCredential(cred);
+  }).catch(err=>{
+    console.error(err);
+    state.justLoggedIn = false;
+    state.loginNotice = 'Sua conta Google foi ligada ao seu cadastro. Toque em “Entrar com Google” de novo para entrar.';
+    render();
+  });
+  return true;
+}
 async function signInWithGoogle(keep){
   lsSet('cavernosos:keep', keep ? '1' : '0');
   await auth.setPersistence(keep ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
   state.justLoggedIn = true;
+  lastGoogleCred = null;
   try{
-    await auth.signInWithPopup(googleProvider());
+    const res = await auth.signInWithPopup(googleProvider());
+    if(res && res.credential) lastGoogleCred = res.credential;
   }catch(err){
     // navegador bloqueou o popup (comum no celular): vai pela página do Google e volta
     if(err.code === 'auth/popup-blocked' || err.code === 'auth/operation-not-supported-in-this-environment'){

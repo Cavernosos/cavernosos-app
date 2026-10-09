@@ -691,7 +691,7 @@ button .lucide{vertical-align:-4px;}
 .toast{background:var(--bg-elev); border:1px solid var(--border); border-left:3px solid var(--grass); padding:11px 14px; font-size:13.5px; box-shadow:0 8px 24px rgba(0,0,0,.35); animation:toastIn .18s ease;}
 .toast.error{border-left-color:var(--danger);}
 /* tela de carregamento: logo respirando, anel girando em volta e um brilho passando */
-.boot{min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;}
+.boot{flex:1; width:100%; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;}
 .boot-logo{position:relative; width:136px; height:136px; animation:bootBreathe 2s ease-in-out infinite;}
 .boot-logo img{position:relative; width:100%; height:100%; border-radius:50%; object-fit:cover; display:block; background:var(--bg-elev); border:1px solid var(--border);}
 .boot-logo img:not([src]){visibility:hidden;}
@@ -788,9 +788,18 @@ button .lucide{vertical-align:-4px;}
 .fut-slot.is-after{transform:translateX(calc(var(--w) * (var(--s) + 1) / 2 - var(--step) + 10px));}
 .fut-deck.has-active{cursor:pointer;}
 .fut-edit{position:absolute; left:50%; top:calc(100% + var(--w) * 1.39 * (var(--s) - 1) / 2 + 10px); transform:translateX(-50%);
-  padding:4px 12px; font-size:12px; white-space:nowrap; opacity:0; transition:opacity .2s;}
+  padding:4px 12px; font-size:12px; white-space:nowrap; opacity:0; transition:opacity .2s; display:inline-flex; align-items:center; gap:5px;}
+.fut-edit .lucide{width:12px; height:12px;}
 .fut-slot.is-active .fut-edit{opacity:1;}
 @media (max-width:640px){ .fut-deck{--w:104px; --step:26px; --s:1.7; padding:70px 50px 98px;} }
+/* toque (celular/tablet): carrossel com o dedo. Cards lado a lado, o do centro encaixa e cresce; sem empilhar */
+.fut-deck.is-touch{--w:150px; --s:1.14; scroll-snap-type:x mandatory; overscroll-behavior-x:contain;
+  padding:22px calc(50% - var(--w) / 2) 64px; scroll-padding-inline:calc(50% - var(--w) / 2);}
+.fut-deck.is-touch::before, .fut-deck.is-touch::after{display:none;}
+.fut-deck.is-touch .fut-slot{scroll-snap-align:center; pointer-events:auto; transform:none; will-change:auto;}
+.fut-deck.is-touch .fut-slot + .fut-slot{margin-left:6px;}
+.fut-deck.is-touch .fut{transform:scale(.88); opacity:.6; transition:transform .25s ease, opacity .25s ease;}
+.fut-deck.is-touch .fut-slot.is-active .fut{transform:scale(var(--s)); opacity:1;}
 /* lista de jogadores */
 .players-table tr.clickable{cursor:pointer;}
 .players-table tr.clickable:hover td{background:var(--bg-elev);}
@@ -2858,11 +2867,11 @@ function renderPlayerCardsFifa(){
             <div class="fut-foot">${isGK(p) ? FUT_GLOVE : FUT_BOOT}</div>
           </div>
         </div>
-        ${canEdit ? `<span class="fut-edit chip">Clique para editar</span>` : ''}
+        ${canEdit ? `<span class="fut-edit chip">${icon('pencil')} Editar</span>` : ''}
         </div>`;
       }).join('')}
     </div>
-    <div class="hint" style="text-align:center;">${list.length} card${list.length===1?'':'s'} · passe o mouse pela fila (no celular, toque) para ver cada card</div>`;
+    <div class="hint" style="text-align:center;">${list.length} card${list.length===1?'':'s'} · passe o mouse pela fila (no celular, deslize) para ver cada card</div>`;
 }
 
 /* ============ VOTAÇÃO ============ */
@@ -5019,7 +5028,36 @@ function bindViewEvents(){
   // fila de cards: o card ativo sai da posição do mouse sobre a fila parada (sem contar o deslocamento da animação),
   // então passar o mouse percorre os cards um a um, sem pulos
   const deck = document.getElementById('futDeck');
-  if(deck){
+  const editCard = slot=>{ if(can('players.edit')){ state.modal = {type:'player', data: state.players.find(p=> p.id === slot.dataset.playerId)}; render(); } };
+  // celular/tablet: carrossel com o dedo. O card ativo é o que está no centro da rolagem;
+  // tocar nele edita, tocar em outro leva até ele. Nada de "mouse", que no toque é falso e briga com a rolagem.
+  if(deck && !matchMedia('(hover:hover) and (pointer:fine)').matches){
+    deck.classList.add('is-touch');
+    const slots = [...deck.querySelectorAll('.fut-slot')];
+    let active = -1, frame = 0;
+    const centerIndex = ()=>{
+      const c = deck.scrollLeft + deck.clientWidth / 2;
+      let best = 0, dist = Infinity;
+      slots.forEach((s, k)=>{ const d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - c); if(d < dist){ dist = d; best = k; } });
+      return best;
+    };
+    const update = ()=>{
+      frame = 0;
+      const i = centerIndex();
+      if(i === active) return;
+      if(active >= 0) slots[active].classList.remove('is-active');
+      slots[i].classList.add('is-active');
+      active = i;
+    };
+    deck.addEventListener('scroll', ()=>{ if(!frame) frame = requestAnimationFrame(update); }, {passive: true});
+    slots.forEach((s, k)=>{
+      s.onclick = ()=>{
+        if(k === active) editCard(s);
+        else deck.scrollTo({left: s.offsetLeft + s.offsetWidth / 2 - deck.clientWidth / 2, behavior: 'smooth'});
+      };
+    });
+    update();
+  } else if(deck){
     const slots = [...deck.querySelectorAll('.fut-slot')];
     let active = -1, frame = 0, lastX = 0;
     const indexAt = clientX=>{
@@ -5068,7 +5106,7 @@ function bindViewEvents(){
       const i = hitAt(e.clientX, e.clientY);
       if(i < 0) return setActive(-1);
       if(i !== active){ setActive(i); return; }
-      if(can('players.edit')){ state.modal = {type:'player', data: state.players.find(p=> p.id === slots[i].dataset.playerId)}; render(); }
+      editCard(slots[i]);
     };
   }
   document.querySelectorAll('[data-del-player]').forEach(b=>{

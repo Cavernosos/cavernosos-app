@@ -374,6 +374,14 @@ a.chip.bg-link{border-bottom:1px solid var(--border-soft); display:inline-flex; 
 .ludo-item{display:flex; align-items:center; gap:10px; text-align:left; padding:6px 8px; font-size:13px;}
 .ludo-item img, .ludo-item .lucide{width:34px; height:34px; object-fit:cover; flex-shrink:0;}
 .ludo-item em{color:var(--text-faint); font-style:normal;}
+.imp-rows{display:flex; flex-direction:column; gap:1px; background:var(--border-soft); border:1px solid var(--border-soft); margin-top:14px; max-height:46vh; overflow-y:auto;}
+.imp-row{display:grid; grid-template-columns:44px 1fr; gap:4px 10px; align-items:center; padding:8px 10px; background:var(--bg-card);}
+.imp-row img, .imp-row .imp-ph{grid-row:span 2; width:44px; height:44px; object-fit:cover; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--text-faint);}
+.imp-row .imp-q{font-size:12px; color:var(--text-dim); display:flex; justify-content:space-between; gap:8px;}
+.imp-row .imp-st{font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-family:'Oswald'; white-space:nowrap;}
+.imp-row .imp-st.new{color:var(--accent);} .imp-row .imp-st.ok{color:var(--ok);} .imp-row .imp-st.bad{color:var(--danger);}
+.imp-row select{padding:6px 8px; font-size:13px;}
+.imp-row.off{opacity:.5;}
 .bg-random-out{display:flex; align-items:center; gap:12px; min-height:74px; margin-top:14px; padding:12px; border:1px dashed var(--border); background:var(--bg);}
 .bg-random-out > div{flex:1; min-width:0;}
 .bg-random-out b{font-size:16px;}
@@ -3840,7 +3848,8 @@ function renderBgLibrary(){
     ${pageHead('BoardGame', 'Jogos', `${bases} jogo${bases===1?'':'s'}${exps ? ` e ${exps} ${exps===1?'expansão':'expansões'}` : ''} na coleção do grupo.`,
       `<div style="display:flex; gap:8px; flex-wrap:wrap;">
         ${state.bg_games.length ? `<button class="btn-icon" id="bgRandomBtn">${icon('shuffle')}O que jogar hoje?</button>` : ''}
-        ${can('bg.games.create') ? `<button class="primary btn-icon" id="addBgGameBtn">${icon('plus')}Cadastrar jogo</button>` : ''}
+        ${can('bg.games.create') ? `<button class="btn-icon" id="bgImportBtn">${icon('list-plus')}Importar lista</button>
+        <button class="primary btn-icon" id="addBgGameBtn">${icon('plus')}Cadastrar jogo</button>` : ''}
       </div>`)}
     ${state.bg_games.length ? `
     <div class="toolbar">
@@ -4625,6 +4634,8 @@ function bindOtherEnvEvents(){
   // jogos
   const addGame = document.getElementById('addBgGameBtn');
   if(addGame) addGame.onclick = ()=>{ state.modal = {type:'bgGame', data:null}; render(); };
+  const importBtn = document.getElementById('bgImportBtn');
+  if(importBtn) importBtn.onclick = ()=>{ state.modal = {type:'bgImport', data:null}; render(); };
   const randomBtn = document.getElementById('bgRandomBtn');
   if(randomBtn) randomBtn.onclick = ()=>{ state.modal = {type:'bgRandom', data:{owned: state.bg_games.some(g=> (g.owners||[]).length)}}; render(); };
   document.querySelectorAll('[data-edit-bg-game]').forEach(b=>{
@@ -4699,6 +4710,7 @@ function bindOtherEnvEvents(){
   });
 
   bindBgGameForm();
+  bindBgImport();
   bindBgMatchForm();
   bindBgGuestForm();
   bindBgRandomForm();
@@ -4806,6 +4818,161 @@ function bindBgGameForm(){
     state.modal = null;
     if(await sSet('bg_games', state.bg_games)){ render(); toast(existing ? 'Jogo atualizado.' : `${name} cadastrado.`); }
   };
+}
+
+/* ---------- importar lista de jogos (busca cada nome na Ludopedia) ---------- */
+function renderBgImportModal(){
+  const me = bgMyUid();
+  const people = bgPlayers();
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal wide">
+      <h3>Importar jogos da Ludopedia</h3>
+      <p class="hint" style="margin-bottom:14px;">Cole um jogo por linha. O site procura cada nome na Ludopedia e mostra o que achou: confira (dá para trocar a edição ou desmarcar) e cadastre tudo de uma vez, com capa e ficha completa.</p>
+      <div id="bgImpStep1">
+        <div class="field"><label for="bgImpNames">Jogos</label><textarea id="bgImpNames" rows="8" placeholder="Catan&#10;Ticket to Ride&#10;Dune: Imperium"></textarea></div>
+        <div class="field">
+          <label>Quem tem estes jogos</label>
+          ${people.length ? `<div class="check-pills">${people.map(p=> `<label class="check-pill"><input type="checkbox" name="impOwners" value="${esc(p.key)}" ${p.key===me?'checked':''}>${esc(p.name)}</label>`).join('')}</div>` : '<div class="hint">Nenhum jogador ainda.</div>'}
+          <div class="hint">Jogos que já estão no site não são duplicados: só ganham esses donos.</div>
+        </div>
+      </div>
+      <div id="bgImpRows"></div>
+      <div class="form-error" id="formError"></div>
+      <div class="modal-actions">
+        <span class="hint" id="bgImpInfo" style="margin:0 auto 0 0; align-self:center;"></span>
+        <button type="button" class="ghost" id="cancelModal">Fechar</button>
+        <button type="button" class="primary btn-icon" id="bgImpGo">${icon('search')}Buscar na Ludopedia</button>
+      </div>
+    </div>
+  </div>`;
+}
+function bindBgImport(){
+  const go = document.getElementById('bgImpGo');
+  if(!go) return;
+  const rowsEl = document.getElementById('bgImpRows'), info = document.getElementById('bgImpInfo');
+  let rows = null, owners = [], busy = false;
+  const findExisting = (id, name)=> state.bg_games.find(g=> (id && String(g.ludopediaId) === String(id)) || g.name.toLowerCase() === String(name||'').toLowerCase());
+  const pickOf = r=> r.results.find(j=> String(j.id) === r.pick);
+  const statusOf = r=>{
+    if(r.state === 'searching') return ['', 'Buscando...'];
+    if(r.state === 'error') return ['bad', 'Erro na busca'];
+    if(r.state === 'saved') return ['ok', 'Cadastrado'];
+    if(r.state === 'merged') return ['ok', 'Dono adicionado'];
+    if(r.state === 'failed') return ['bad', 'Não salvou'];
+    if(!r.results.length) return ['bad', 'Não encontrado'];
+    if(!r.pick) return ['', 'Não importar'];
+    const j = pickOf(r);
+    return findExisting(j.id, j.name) ? ['ok', 'Já cadastrado'] : ['new', 'Novo'];
+  };
+  const drawRow = (r, i)=>{
+    const j = pickOf(r);
+    const [cls, label] = statusOf(r);
+    const locked = busy || r.state === 'saved' || r.state === 'merged';
+    return `<div class="imp-row ${r.pick ? '' : 'off'}" data-imp-row="${i}">
+      ${j && j.thumb ? `<img src="${esc(j.thumb)}" alt="" referrerpolicy="no-referrer">` : `<div class="imp-ph">${icon('dices')}</div>`}
+      <div class="imp-q"><span>${esc(r.q)}</span><span class="imp-st ${cls}">${label}</span></div>
+      ${r.results.length ? `<select data-imp-pick="${i}" ${locked ? 'disabled' : ''}>
+        ${r.results.map(x=> `<option value="${x.id}" ${String(x.id)===r.pick?'selected':''}>${esc(x.name)}${x.year ? ` (${x.year})` : ''}</option>`).join('')}
+        <option value="" ${!r.pick?'selected':''}>— não importar —</option></select>` : '<div></div>'}
+    </div>`;
+  };
+  const draw = ()=>{
+    rowsEl.innerHTML = rows ? `<div class="imp-rows">${rows.map(drawRow).join('')}</div>` : '';
+    lucide.createIcons();
+    rowsEl.querySelectorAll('[data-imp-pick]').forEach(sel=> sel.onchange = ()=>{ rows[sel.dataset.impPick].pick = sel.value; draw(); });
+    if(rows && !busy){
+      const sel = rows.filter(r=> r.pick && r.state === 'found');
+      const news = sel.filter(r=>{ const j = pickOf(r); return !findExisting(j.id, j.name); }).length;
+      info.textContent = `${news} novo${news===1?'':'s'} · ${sel.length - news} já no site`;
+      go.innerHTML = `${icon('download')}Cadastrar ${sel.length} jogo${sel.length===1?'':'s'}`;
+      go.disabled = !sel.length;
+      lucide.createIcons();
+    }
+  };
+  // roda tarefas com poucas requisições ao mesmo tempo, para não sobrecarregar a Ludopedia
+  const pool = async (items, n, fn)=>{
+    let next = 0;
+    await Promise.all(Array.from({length: Math.min(n, items.length)}, async ()=>{ while(next < items.length) await fn(items[next++]); }));
+  };
+
+  const search = async ()=>{
+    const names = [...new Set(document.getElementById('bgImpNames').value.split('\n').map(s=> s.trim().replace(/\s+/g, ' ')).filter(Boolean))].slice(0, 200);
+    if(!names.length) return formError('Cole pelo menos um nome de jogo.');
+    owners = [...document.querySelectorAll('input[name=impOwners]:checked')].map(c=> c.value);
+    formError('');
+    document.getElementById('bgImpStep1').hidden = true;
+    rows = names.map(q=> ({q, results: [], pick: '', state: 'searching'}));
+    busy = true; go.disabled = true; draw();
+    let done = 0;
+    await pool(rows, 3, async r=>{
+      try{
+        const data = await ludopediaApi({search: r.q});
+        r.results = (data.jogos || []).slice(0, 8);
+        // prefere o resultado com o nome igual ao digitado; senão, o primeiro da Ludopedia
+        const exact = r.results.find(j=> j.name.toLowerCase() === r.q.toLowerCase());
+        r.pick = r.results.length ? String((exact || r.results[0]).id) : '';
+        r.state = 'found';
+      }catch(e){ r.state = 'error'; r.err = e.message; }
+      info.textContent = `Buscando ${++done} de ${rows.length}...`;
+      draw();
+    });
+    busy = false;
+    const errs = rows.filter(r=> r.state === 'error');
+    if(errs.length) formError(errs[0].err);
+    go.onclick = save;
+    draw();
+  };
+
+  const save = async ()=>{
+    const sel = rows.filter(r=> r.pick && r.state === 'found');
+    if(!sel.length) return;
+    busy = true; go.disabled = true; formError(''); draw();
+    const now = new Date().toISOString(), by = state.currentUser.username;
+    let done = 0, saved = 0, merged = 0, pending = 0;
+    const flush = async ()=>{ if(pending && await sSet('bg_games', state.bg_games)) pending = 0; };
+    // sequencial: cada ficha traz a capa, e o mesmo jogo pode aparecer em duas linhas
+    for(const r of sel){
+      info.textContent = `Cadastrando ${++done} de ${sel.length}...`;
+      const pick = pickOf(r);
+      try{
+        const ex = findExisting(pick.id, pick.name);
+        if(ex){
+          ex.owners = [...new Set([...(ex.owners || []), ...owners])];
+          if(!ex.ludopediaId) ex.ludopediaId = String(pick.id);
+          r.state = 'merged'; merged++;
+        }else{
+          const {jogo: j} = await ludopediaApi({id: pick.id});
+          let photo = null;
+          if(j.image){
+            try{
+              const blob = await (await fetch(j.image)).blob();
+              photo = await resizeImage(new File([blob], 'capa.jpg', {type: blob.type}), 600, 0.75);
+            }catch(e){ /* sem capa */ }
+          }
+          const players = [];
+          if(j.minPlayers) for(let n = j.minPlayers; n <= Math.min(j.maxPlayers || j.minPlayers, MAX_BG_PLAYERS); n++) players.push(n);
+          // expansões entram como jogo: o vínculo com o jogo base é feito depois, editando
+          state.bg_games.push({id: uid(), name: j.name || pick.name, type: 'base', baseId: '', publisher: j.publisher || '', players, photo,
+            year: j.year ?? null, minAge: j.minAge ?? null, time: j.time ?? null, weight: null,
+            designers: (j.designers || []).join(', '), mechanics: j.mechanics || [], categories: j.categories || [],
+            description: '', owners: [...owners], ludopediaUrl: j.url || '', ludopediaId: String(j.id || pick.id),
+            createdAt: now, createdBy: by});
+          r.state = 'saved'; saved++;
+        }
+        pending++;
+      }catch(e){ r.state = 'failed'; formError(e.message); }
+      if(pending >= 10) await flush();
+      draw();
+    }
+    await flush();
+    busy = false;
+    go.hidden = true;
+    draw();
+    info.textContent = `${saved} cadastrado${saved===1?'':'s'}${merged ? ` · ${merged} já existia${merged===1?'':'m'} (donos atualizados)` : ''}.`;
+    toast('Importação concluída.');
+  };
+  go.onclick = search;
 }
 
 function bindBgMatchForm(){
@@ -5293,6 +5460,7 @@ function renderModal(){
   if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
   if(m.type === 'bgGuest') return renderBgGuestModal(m.data);
   if(m.type === 'bgRandom') return renderBgRandomModal();
+  if(m.type === 'bgImport') return renderBgImportModal();
   return '';
 }
 // valores do cadastro já na escala 5-10 (cadastros antigos eram 0-10 ou 0-99)

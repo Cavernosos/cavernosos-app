@@ -102,8 +102,9 @@ service cloud.firestore {
     // Pedidos de colete: qualquer pessoa com o link cria (sem login), mas só como
     // "pendente" e com os campos validados. Ver, alterar e excluir exige permissão.
     match /coletes/{id} {
-      allow create: if request.resource.data.keys().hasOnly(['id', 'name', 'shirtName', 'number', 'size', 'notes', 'status', 'createdAt'])
+      allow create: if request.resource.data.keys().hasOnly(['id', 'name', 'shirtName', 'number', 'size', 'notes', 'status', 'createdAt', 'item'])
                     && request.resource.data.id == id
+                    && request.resource.data.get('item', 'colete') in ['colete', 'goleiro']
                     && request.resource.data.name is string
                     && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 60
                     && request.resource.data.shirtName is string
@@ -118,8 +119,10 @@ service cloud.firestore {
                     && request.resource.data.createdAt is string
                     && request.resource.data.createdAt.size() <= 30;
       allow read: if can('coletes.view');
-      allow update: if can('coletes.edit') && onlyChanged(['status'])
-                    && request.resource.data.status in ['pending', 'paid', 'delivered'];
+      // status e isenção (goleiros que não pagam)
+      allow update: if can('coletes.edit') && onlyChanged(['status', 'exempt'])
+                    && request.resource.data.status in ['pending', 'paid', 'delivered']
+                    && request.resource.data.get('exempt', false) is bool;
       allow delete: if can('coletes.delete');
     }
 

@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cavernosos</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Cavernosos">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -490,6 +498,11 @@ button .lucide{vertical-align:-4px;}
 .coletes-table select{padding:6px 8px; font-size:13px; width:auto;}
 .coletes-table .obs{white-space:normal; max-width:260px; color:var(--text-dim); font-size:12.5px;}
 .badge.dup{color:var(--danger); border-color:var(--danger);}
+.badge.gk{color:var(--accent); border-color:var(--accent);}
+.item-seg{grid-template-columns:repeat(2, 1fr);}
+.coletes-table .price-cell{white-space:nowrap;}
+.exempt-toggle{display:flex; align-items:center; gap:5px; margin-top:4px; font-size:11.5px; color:var(--text-dim); cursor:pointer; text-transform:none; letter-spacing:0;}
+.exempt-toggle input{width:auto; margin:0;}
 .size-count{display:flex; gap:6px; flex-wrap:wrap; margin:-18px 0 24px;}
 .chips{display:flex; gap:5px; flex-wrap:wrap;}
 .chip{font-size:11.5px; padding:2px 8px; background:var(--bg-elev); border:1px solid var(--border-soft); color:var(--text-dim);}
@@ -643,8 +656,10 @@ button .lucide{vertical-align:-4px;}
   position:relative; flex:0 0 calc((100% - 24px) / 3); aspect-ratio:16/10; scroll-snap-align:start; overflow:hidden; cursor:pointer;
   border:1px solid var(--border-soft); background:var(--bg-card); padding:0; text-align:left; border-radius:var(--radius);
 }
-.news-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .6s ease;}
-.news-card:hover img{transform:scale(1.04);}
+/* a foto aparece inteira (contain); a sobra é preenchida pela mesma foto desfocada */
+.news-card img{position:absolute; inset:0; width:100%; height:100%; object-fit:contain; transition:transform .6s ease;}
+.news-card img.news-blur{object-fit:cover; filter:blur(18px) brightness(.55); transform:scale(1.2);}
+.news-card:hover img:not(.news-blur){transform:scale(1.03);}
 .news-card .shade{position:absolute; inset:0; background:linear-gradient(180deg, transparent 35%, rgba(0,0,0,.88));}
 .news-card .txt{position:absolute; left:0; right:0; bottom:0; padding:14px 16px;}
 .news-card .date{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-family:'Oswald';}
@@ -664,7 +679,7 @@ button .lucide{vertical-align:-4px;}
 .news-card:hover .news-play{background:var(--accent); color:var(--on-accent); border-color:var(--accent); transform:translate(-50%,-62%) scale(1.06);}
 .news-video{position:relative; aspect-ratio:16/9; margin:-4px 0 16px; background:#000;}
 .news-video iframe{position:absolute; inset:0; width:100%; height:100%; border:0;}
-.news-view img{width:100%; max-height:52vh; object-fit:cover; display:block; margin:-4px 0 16px;}
+.news-view img{width:100%; height:auto; max-height:65vh; object-fit:contain; background:#000; display:block; margin:-4px 0 16px;}
 .news-view .date{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-family:'Oswald';}
 .news-view h3{font-size:22px; margin:4px 0 12px;}
 .news-view .body{font-size:14px; color:var(--text-dim); line-height:1.6; white-space:pre-wrap;}
@@ -1206,6 +1221,26 @@ async function sSet(key, val){
 /* ============ UI helpers ============ */
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function icon(name, extra){ return `<i data-lucide="${name}"${extra ? ' '+extra : ''}></i>`; }
+// ---------- instalar como app (PWA) ----------
+let installPromptEvt = null;
+const isStandalone = ()=> window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = ()=> /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function canOfferInstall(){ return !isStandalone() && (!!installPromptEvt || isIOS()); }
+async function installApp(){
+  if(installPromptEvt){
+    installPromptEvt.prompt();
+    const { outcome } = await installPromptEvt.userChoice;
+    installPromptEvt = null;
+    if(outcome === 'accepted') toast('App instalado!');
+    render();
+  } else if(isIOS()){
+    toast('No Safari: toque em Compartilhar e depois em "Adicionar à Tela de Início".');
+  }
+}
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installPromptEvt = e; if(typeof render === 'function' && document.getElementById('myAccountBtn')) render(); });
+window.addEventListener('appinstalled', ()=>{ installPromptEvt = null; });
+if('serviceWorker' in navigator) window.addEventListener('load', ()=> navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+
 function toast(msg, type){
   let wrap = document.querySelector('.toast-wrap');
   if(!wrap){ wrap = document.createElement('div'); wrap.className = 'toast-wrap'; document.body.appendChild(wrap); }
@@ -1664,6 +1699,7 @@ const normVote = (v, scale)=> scale === 10 ? clampVote(v) : from99(v);
 function playerVotes(player){
   const defs = playerAttrDefs(player);
   return (state.votes || [])
+    .filter(v=> !player.userId || v.id !== player.userId)   // voto em si mesmo não conta (nem os antigos)
     .map(v=>{
       const r = v.ratings && v.ratings[player.id];
       if(!r || !defs.every(d=> typeof r[d.k] === 'number')) return null;
@@ -2150,6 +2186,7 @@ function renderShell(){
           <div class="uname">${esc(u.username)}</div>
           <div class="urole">${ROLES[u.role] || u.role}</div>
         </div>
+        ${canOfferInstall() ? `<button class="icon-btn" id="installAppBtn" title="Instalar app" aria-label="Instalar app">${icon('download')}</button>` : ''}
         <button class="icon-btn" id="myAccountBtn" title="Minha conta" aria-label="Minha conta">${icon('key-round')}</button>
         <button class="icon-btn danger-hover" id="logoutBtn" title="Sair" aria-label="Sair">${icon('log-out')}</button>
       </div>
@@ -2246,6 +2283,8 @@ function bindShell(){
   };
   const logoutBtn = document.getElementById('logoutBtn');
   if(logoutBtn) logoutBtn.onclick = async ()=>{ await auth.signOut(); toast('Você saiu.'); };
+  const installAppBtn = document.getElementById('installAppBtn');
+  if(installAppBtn) installAppBtn.onclick = installApp;
   const myAccountBtn = document.getElementById('myAccountBtn');
   if(myAccountBtn) myAccountBtn.onclick = ()=>{ state.modal = {type:'account', data:null}; render(); };
   bindViewEvents();
@@ -2282,8 +2321,16 @@ const COLETE_STATUS = {pending:'Pendente', paid:'Pago', delivered:'Entregue'};
 const COLETE_NAME_MAX = 15;
 const IS_COLETE_PAGE = /^\/colete\/?$/i.test(location.pathname) || new URLSearchParams(location.search).has('colete');
 const coleteLink = ()=> location.origin + '/colete';
-// XG e EXG custam mais; "Outros" fica a combinar.
-function coletePrice(size){ return size === 'Outros' ? null : (size === 'XG' || size === 'EXG') ? 65 : 55; }
+// Peças do pedido: colete de linha ou camisa de goleiro (pedidos antigos não têm "item" = colete).
+const COLETE_ITEMS = {colete:'Colete', goleiro:'Camisa de goleiro'};
+const coleteItem = c => COLETE_ITEMS[c.item] ? c.item : 'colete';
+// Goleiro: preço único. Colete: XG e EXG custam mais; "Outros" fica a combinar.
+function coletePrice(size, item){
+  if(item === 'goleiro') return 55;
+  return size === 'Outros' ? null : (size === 'XG' || size === 'EXG') ? 65 : 55;
+}
+// valor do pedido: isento (goleiros liberados pela organização) não paga
+const orderPrice = c => c.exempt ? 0 : coletePrice(c.size, coleteItem(c));
 const fmtBRL = v => v == null ? 'A combinar' : v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 // Nome no colete: letras maiúsculas e espaços; dos acentos, só agudo, circunflexo e til.
 const SHIRT_ACCENTS = 'ÁÉÍÓÚÂÊÔÃÕ';
@@ -2314,21 +2361,29 @@ function renderColetePublic(){
         <p>Recebemos a sua solicitação. A organização da pelada vai confirmar com você.</p>
         <div class="colete-summary">
           <div><span>Nome</span><b>${esc(done.name)}</b></div>
-          <div><span>Nome no colete</span><b>${esc(done.shirtName)}</b></div>
+          <div><span>Peça</span><b>${COLETE_ITEMS[coleteItem(done)]}</b></div>
+          <div><span>Nome ${done.item === 'goleiro' ? 'na camisa' : 'no colete'}</span><b>${esc(done.shirtName)}</b></div>
           <div><span>Número</span><b>${esc(done.number)}</b></div>
           <div><span>Tamanho</span><b>${esc(done.size)}</b></div>
-          <div><span>Valor</span><b>${fmtBRL(coletePrice(done.size))}</b></div>
+          <div><span>Valor</span><b>${fmtBRL(coletePrice(done.size, done.item))}</b></div>
         </div>
         <button class="login-submit btn-icon" style="margin-top:18px;" id="coleteAgain">${icon('plus')}Fazer outro pedido</button>
       </div>` : `
       <div class="colete-prices">
         <div><div class="lbl">Colete</div><div class="val">R$ 55,00</div></div>
         <div><div class="lbl">XG e EXG</div><div class="val">R$ 65,00</div></div>
+        <div><div class="lbl">Goleiro</div><div class="val">R$ 55,00</div></div>
       </div>
       <form id="coleteForm" autocomplete="off" novalidate>
+        <div class="field">
+          <label>O que você quer?</label>
+          <div class="seg size-seg item-seg" role="radiogroup" aria-label="Peça">
+            ${Object.entries(COLETE_ITEMS).map(([k,l])=>`<label><input type="radio" name="item" value="${k}" ${k==='colete'?'checked':''}><span>${l}</span></label>`).join('')}
+          </div>
+        </div>
         <div class="field"><label for="cName">Seu nome</label><input id="cName" name="name" required maxlength="60" autocomplete="name" placeholder="ex: João Silva"></div>
         <div class="form-row" style="grid-template-columns:1fr auto;">
-          <div class="field"><label for="cShirt">Nome no colete</label><input id="cShirt" name="shirtName" class="colete-name-input" required maxlength="${COLETE_NAME_MAX}" autocapitalize="characters" spellcheck="false" placeholder="ex: JOAO"><div class="hint">Só letras maiúsculas. Acentos: só agudo, circunflexo e til (Á Ê Ã).</div></div>
+          <div class="field"><label for="cShirt" id="cShirtLabel">Nome no colete</label><input id="cShirt" name="shirtName" class="colete-name-input" required maxlength="${COLETE_NAME_MAX}" autocapitalize="characters" spellcheck="false" placeholder="ex: JOAO"><div class="hint">Só letras maiúsculas. Acentos: só agudo, circunflexo e til (Á Ê Ã).</div></div>
           <div class="field"><label for="cNumber">Número</label><input id="cNumber" name="number" class="colete-number-input" required maxlength="2" autocapitalize="characters" spellcheck="false" placeholder="00"><div class="hint">2 letras ou números (ex.: 07, Z9)</div></div>
         </div>
         <div class="field">
@@ -2364,12 +2419,14 @@ function bindColetePublic(){
     const v = number.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 2);
     if(v !== number.value) number.value = v;
   });
+  const checked = n => (form.querySelector(`input[name=${n}]:checked`) || {}).value || '';
   form.addEventListener('change', e=>{
-    if(e.target.name !== 'size') return;
-    const size = e.target.value;
-    document.getElementById('coleteTotal').textContent = fmtBRL(coletePrice(size));
+    if(e.target.name !== 'size' && e.target.name !== 'item') return;
+    const size = checked('size'), item = checked('item');
+    document.getElementById('coleteTotal').textContent = size ? fmtBRL(coletePrice(size, item)) : '—';
+    document.getElementById('cShirtLabel').textContent = item === 'goleiro' ? 'Nome na camisa' : 'Nome no colete';
     notes.placeholder = size === 'Outros' ? 'Informe aqui o tamanho desejado' : 'Opcional';
-    if(size === 'Outros') notes.focus();
+    if(e.target.name === 'size' && size === 'Outros') notes.focus();
   });
   form.onsubmit = async e=>{
     e.preventDefault();
@@ -2378,12 +2435,13 @@ function bindColetePublic(){
       name: cleanName(form.name.value).slice(0, 60),
       shirtName: cleanShirtName(shirt.value).trim(),
       number: number.value,
-      size: (form.querySelector('input[name=size]:checked') || {}).value || '',
+      size: checked('size'),
       notes: notes.value.trim().slice(0, 500),
+      item: checked('item') === 'goleiro' ? 'goleiro' : 'colete',
     };
     const problem =
       data.name.length < 2 ? ['name', 'Informe o seu nome.'] :
-      !data.shirtName ? ['shirtName', 'Informe o nome que vai no colete.'] :
+      !data.shirtName ? ['shirtName', data.item === 'goleiro' ? 'Informe o nome que vai na camisa.' : 'Informe o nome que vai no colete.'] :
       !/^[A-Z0-9]{2}$/.test(data.number) ? ['number', 'O número precisa ter 2 caracteres, letras ou números (ex.: 07 ou Z9).'] :
       !data.size ? [null, 'Escolha o tamanho.'] :
       data.size === 'Outros' && !data.notes ? ['notes', 'Com o tamanho "Outros", diga nas observações qual tamanho você quer.'] : null;
@@ -2418,14 +2476,17 @@ function renderColetes(){
   const f = state.coletesFilter;
   const list = coletesSorted().filter(c=> f === 'all' || (c.status||'pending') === f);
   const canEdit = can('coletes.edit'), canDel = can('coletes.delete');
-  const total = all.reduce((s,c)=> s + (coletePrice(c.size) || 0), 0);
+  const total = all.reduce((s,c)=> s + (orderPrice(c) || 0), 0);
   const paid = all.filter(c=> c.status === 'paid' || c.status === 'delivered');
-  const paidTotal = paid.reduce((s,c)=> s + (coletePrice(c.size) || 0), 0);
-  const aCombinar = all.filter(c=> coletePrice(c.size) == null).length;
+  const paidTotal = paid.reduce((s,c)=> s + (orderPrice(c) || 0), 0);
+  const aCombinar = all.filter(c=> orderPrice(c) == null).length;
+  const exemptCount = all.filter(c=> c.exempt).length;
   // números repetidos ficam marcados
   const numCount = {};
   all.forEach(c=> numCount[c.number] = (numCount[c.number]||0) + 1);
-  const bySize = COLETE_SIZES.map(s=> [s, all.filter(c=> c.size === s).length]).filter(x=> x[1]);
+  // contagem por tamanho, separando as camisas de goleiro
+  const bySize = Object.keys(COLETE_ITEMS).flatMap(it=> COLETE_SIZES.map(s=>
+    [(it === 'goleiro' ? 'Goleiro ' : '') + s, all.filter(c=> coleteItem(c) === it && c.size === s).length])).filter(x=> x[1]);
   const statusCount = k => all.filter(c=> (c.status||'pending') === k).length;
   return `
     ${pageHead('Uniforme', 'Coletes', 'Pedidos feitos pelo link do formulário. Mande o link no grupo: quem abrir não precisa de login.', `
@@ -2436,7 +2497,7 @@ function renderColetes(){
       </div>`)}
     <div class="stat-row">
       <div class="stat"><div class="label">Pedidos</div><div class="value num">${all.length}</div><div class="sub">${statusCount('pending')} pendente${statusCount('pending')===1?'':'s'}</div></div>
-      <div class="stat"><div class="label">Valor total</div><div class="value num" style="font-size:30px;">${fmtBRL(total)}</div>${aCombinar ? `<div class="sub">+ ${aCombinar} a combinar</div>` : ''}</div>
+      <div class="stat"><div class="label">Valor total</div><div class="value num" style="font-size:30px;">${fmtBRL(total)}</div>${aCombinar || exemptCount ? `<div class="sub">${[aCombinar ? `+ ${aCombinar} a combinar` : '', exemptCount ? `${exemptCount} isento${exemptCount===1?'':'s'}` : ''].filter(Boolean).join(' · ')}</div>` : ''}</div>
       <div class="stat"><div class="label">Recebido</div><div class="value num" style="font-size:30px;">${fmtBRL(paidTotal)}</div><div class="sub">${paid.length} pago${paid.length===1?'':'s'}</div></div>
     </div>
     ${bySize.length ? `<div class="size-count">${bySize.map(([s,n])=>`<span class="chip"><b>${s}</b> × ${n}</span>`).join('')}</div>` : ''}
@@ -2449,7 +2510,7 @@ function renderColetes(){
     ${all.length === 0 ? `<div class="empty">Nenhum pedido ainda. Copie o link e mande para a galera.</div>` :
       list.length === 0 ? `<div class="empty">Nenhum pedido com esse status.</div>` : `
     <table class="users-table coletes-table">
-      <thead><tr><th>Pedido em</th><th>Nome</th><th>Nome no colete</th><th>Nº</th><th>Tamanho</th><th>Valor</th><th>Observações</th><th>Status</th>${canDel ? '<th></th>' : ''}</tr></thead>
+      <thead><tr><th>Pedido em</th><th>Nome</th><th>Peça</th><th>Nome na peça</th><th>Nº</th><th>Tamanho</th><th>Valor</th><th>Observações</th><th>Status</th>${canDel ? '<th></th>' : ''}</tr></thead>
       <tbody>
         ${list.map(c=>{
           const st = c.status || 'pending';
@@ -2457,10 +2518,12 @@ function renderColetes(){
         <tr class="${st === 'pending' ? 'pending-row' : ''}">
           <td style="color:var(--text-dim); font-size:12.5px;">${fmtDay(c.createdAt)}</td>
           <td>${esc(c.name)}</td>
+          <td>${coleteItem(c) === 'goleiro' ? `<span class="badge gk">Goleiro</span>` : 'Colete'}</td>
           <td class="shirt">${esc(c.shirtName)}</td>
           <td class="num-cell">${esc(c.number)}${numCount[c.number] > 1 ? ` <span class="badge dup" title="Mais de um pedido com esse número">repetido</span>` : ''}</td>
           <td><span class="chip">${esc(c.size)}</span></td>
-          <td>${fmtBRL(coletePrice(c.size))}</td>
+          <td class="price-cell">${c.exempt ? `<span class="badge ok">Isento</span>` : fmtBRL(orderPrice(c))}
+            ${canEdit ? `<label class="exempt-toggle" title="Isentar do pagamento"><input type="checkbox" data-colete-exempt="${c.id}" ${c.exempt?'checked':''}>Isentar</label>` : ''}</td>
           <td class="obs">${c.notes ? esc(c.notes) : '<span class="hint" style="margin:0">—</span>'}</td>
           <td>${canEdit ? `<select data-colete-status="${c.id}" aria-label="Status">${Object.entries(COLETE_STATUS).map(([k,l])=>`<option value="${k}" ${k===st?'selected':''}>${l}</option>`).join('')}</select>`
             : `<span class="badge ${st === 'pending' ? 'pending' : 'ok'}">${COLETE_STATUS[st] || st}</span>`}</td>
@@ -2472,9 +2535,9 @@ function renderColetes(){
   `;
 }
 function coletesCsv(){
-  const rows = [['Pedido em','Nome','Nome no colete','Número','Tamanho','Valor','Observações','Status']];
-  coletesSorted().forEach(c=> rows.push([fmtDay(c.createdAt), c.name, c.shirtName, c.number, c.size,
-    coletePrice(c.size) == null ? 'A combinar' : String(coletePrice(c.size)).replace('.', ','), c.notes || '', COLETE_STATUS[c.status||'pending'] || c.status]));
+  const rows = [['Pedido em','Nome','Peça','Nome na peça','Número','Tamanho','Valor','Observações','Status']];
+  coletesSorted().forEach(c=> rows.push([fmtDay(c.createdAt), c.name, COLETE_ITEMS[coleteItem(c)], c.shirtName, c.number, c.size,
+    c.exempt ? 'Isento' : orderPrice(c) == null ? 'A combinar' : String(orderPrice(c)).replace('.', ','), c.notes || '', COLETE_STATUS[c.status||'pending'] || c.status]));
   // ";" e BOM para abrir certo no Excel em português
   const csv = '﻿' + rows.map(r=> r.map(v=> `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
   const a = document.createElement('a');
@@ -2505,6 +2568,17 @@ function bindColetesEvents(){
       c.status = sel.value;
       try{ await db.collection('coletes').doc(c.id).update({status: c.status}); toast(`${c.shirtName} ${c.number}: ${COLETE_STATUS[c.status]}.`); }
       catch(e){ console.error('colete status failed', e); c.status = prev; toast(e.code === 'permission-denied' ? 'Você não tem permissão para essa ação.' : 'Não foi possível salvar. Tente de novo.', 'error'); }
+      render();
+    };
+  });
+  document.querySelectorAll('[data-colete-exempt]').forEach(chk=>{
+    chk.onchange = async ()=>{
+      const c = state.coletes.find(x=> x.id === chk.dataset.coleteExempt);
+      if(!c) return;
+      const prev = !!c.exempt;
+      c.exempt = chk.checked;
+      try{ await db.collection('coletes').doc(c.id).update({exempt: c.exempt}); toast(`${c.shirtName} ${c.number}: ${c.exempt ? 'isento do pagamento' : 'volta a pagar'}.`); }
+      catch(e){ console.error('colete exempt failed', e); c.exempt = prev; toast(e.code === 'permission-denied' ? 'Você não tem permissão para essa ação.' : 'Não foi possível salvar. Tente de novo.', 'error'); }
       render();
     };
   });
@@ -2608,7 +2682,7 @@ function renderNews(){
       <div class="news-track" data-news-track>
         ${list.map(n=> `
           <button type="button" class="news-card" data-news-open="${n.id}" aria-label="${esc(n.title)}">
-            ${newsThumb(n) ? `<img src="${newsThumb(n)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
+            ${newsThumb(n) ? `<img class="news-blur" src="${newsThumb(n)}" alt="" loading="lazy" referrerpolicy="no-referrer" aria-hidden="true"><img src="${newsThumb(n)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
             ${n.video ? `<span class="news-play">${icon('play')}</span>` : ''}
             <span class="shade"></span>
             <span class="txt">
@@ -2697,7 +2771,7 @@ function renderNewsEditModal(){
         <div class="field">
           <label>Foto</label>
           <div class="photo-pick" id="newsPhotoPick" style="aspect-ratio:16/10; display:flex; align-items:center; justify-content:center; overflow:hidden; padding:0;">
-            ${n.photo ? `<img src="${n.photo}" style="width:100%; height:100%; max-height:none; object-fit:cover; border-radius:0; margin:0;">` : `<div>Toque para escolher uma foto</div>`}
+            ${n.photo ? `<img src="${n.photo}" style="width:100%; height:100%; max-height:none; object-fit:contain; background:#000; border-radius:0; margin:0;">` : `<div>Toque para escolher uma foto</div>`}
           </div>
           <input type="file" accept="image/*" id="newsPhotoInput" style="display:none;">
         </div>
@@ -2736,7 +2810,7 @@ function bindNewsModals(){
     const file = input.files[0];
     if(!file) return;
     photo = await resizeImage(file, 1280, 0.72);
-    pick.innerHTML = `<img src="${photo}" style="width:100%; height:100%; max-height:none; object-fit:cover; border-radius:0; margin:0;">`;
+    pick.innerHTML = `<img src="${photo}" style="width:100%; height:100%; max-height:none; object-fit:contain; background:#000; border-radius:0; margin:0;">`;
   };
   form.onsubmit = async e=>{
     e.preventDefault();
@@ -2887,18 +2961,25 @@ function myVotesScale(){
   const v = uid && state.votes.find(x=> x.id === uid);
   return v && v.scale;
 }
+// card da Pelada ligado à conta de quem está logado (o uid do login; o cadastro pode ter mudado de id)
+function myPlayerCard(){
+  const ids = [state.currentUser && state.currentUser.id, auth.currentUser && auth.currentUser.uid].filter(Boolean);
+  return state.players.find(p=> p.userId && ids.includes(p.userId)) || null;
+}
 function renderVotes(){
   const mine = myVotes();
   const mineScale = myVotesScale();
-  const players = [...state.players].sort((a,b)=> playerName(a).localeCompare(playerName(b)));
+  // ninguém vota no próprio card: ele fica fora da lista
+  const myCard = myPlayerCard();
+  const players = state.players.filter(p=> p !== myCard).sort((a,b)=> playerName(a).localeCompare(playerName(b)));
   const done = players.filter(p=> playerAttrDefs(p).every(d=> mine[p.id] && typeof mine[p.id][d.k] === 'number')).length;
-  const meId = state.currentUser && state.currentUser.id;
   const legend = (title, defs)=> `<div><div class="vote-legend-title">${title}</div>${defs.map(d=>`<div class="vote-legend-row"><b>${d.abbr}</b> ${d.name}${d.hint ? ` <span>— ${d.hint}</span>` : ''}</div>`).join('')}</div>`;
   return `
     <div class="page-head">
       <div class="kicker">Elenco</div>
       <h2>Votação</h2>
       <p>Dê uma nota de 5 a 10 em cada habilidade de quem você já viu jogar. No card, a média de todos vira 50 a 99, como no FIFA. Se não conhece o jogo de alguém, toque em “Não sei avaliar”.</p>
+      ${myCard ? `<p class="hint" style="display:flex; align-items:center; gap:6px;">${icon('user-x')}Seu card (${esc(playerName(myCard))}) não aparece aqui: ninguém vota em si mesmo.</p>` : ''}
     </div>
     ${players.length === 0 ? `<div class="empty">Nenhum jogador cadastrado ainda.</div>` : `
     ${voteRuler()}
@@ -2916,7 +2997,7 @@ function renderVotes(){
             <div class="vote-head">
               ${playerPhotoTag(p, 'vote-photo')}
               <div style="flex:1; min-width:0;">
-                <div class="vote-name">${esc(playerName(p))}${p.userId && p.userId === meId ? '<span class="you">você</span>' : ''}</div>
+                <div class="vote-name">${esc(playerName(p))}</div>
                 <div class="vote-meta">${esc(p.position)}${p.type ? ' · '+esc(p.type) : ''}</div>
               </div>
               <div class="vote-score">
@@ -2967,7 +3048,9 @@ function bindVotesEvents(){
     const me = state.currentUser;
     const ratings = {};
     const incomplete = [];
+    const myCard = myPlayerCard();
     state.players.forEach(p=>{
+      if(p === myCard || !form.elements[`${p.id}.${playerAttrDefs(p)[0].k}`]) return;   // o próprio card não recebe voto
       const defs = playerAttrDefs(p);
       const vals = defs.map(d=> form.elements[`${p.id}.${d.k}`].value.trim());
       if(vals.every(v=> v === '')) return;               // não votou nesse jogador

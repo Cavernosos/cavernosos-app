@@ -3641,9 +3641,14 @@ function bgAggregate(matches){
   return P;
 }
 // recordes de pontos e "reis" (maior vencedor) de cada jogo
+// "Vale para conquistas?": jogo sem a marca vale (SIM); só NÃO (badges:false) fica de fora
+const bgCountsForBadges = gameId => { const g = bgGame(gameId); return !g || g.badges !== false; };
+const bgBadgeMatches = ()=> state.bg_matches.filter(m=> bgCountsForBadges(m.gameId));
+// recordes, reis de cada jogo e reis do ano: base das conquistas, então só com os jogos que valem
 function bgRecords(){
   const records = {}, kings = {};
-  state.bg_games.forEach(g=>{
+  const allMatches = bgBadgeMatches();
+  state.bg_games.filter(g=> bgCountsForBadges(g.id)).forEach(g=>{
     const ms = bgMatchesOf(g.id);
     let best = null;
     ms.forEach(m=> (m.results||[]).forEach(r=>{
@@ -3661,8 +3666,8 @@ function bgRecords(){
   const yearKings = {};
   const thisYear = String(new Date().getFullYear());
   const medalOrder = (a,b)=> b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.winRate - a.winRate;
-  [...new Set(state.bg_matches.map(m=> (m.date||'').slice(0,4)))].filter(y=> /^\d{4}$/.test(y) && y < thisYear).forEach(y=>{
-    const rows = Object.values(bgAggregate(state.bg_matches.filter(m=> (m.date||'').startsWith(y)))).sort(medalOrder);
+  [...new Set(allMatches.map(m=> (m.date||'').slice(0,4)))].filter(y=> /^\d{4}$/.test(y) && y < thisYear).forEach(y=>{
+    const rows = Object.values(bgAggregate(allMatches.filter(m=> (m.date||'').startsWith(y)))).sort(medalOrder);
     if(rows.length && rows[0].gold) yearKings[y] = rows.filter(r=> !medalOrder(r, rows[0])).map(r=> r.key);
   });
   return {records, kings, yearKings};
@@ -4115,6 +4120,7 @@ function renderBgPlayers(){
   const agg = bgAggregate(state.bg_matches);
   const elo = bgElo();
   const ctx = bgRecords();
+  const badgeAgg = bgAggregate(bgBadgeMatches());   // conquistas: só jogos que valem
   const everyone = new Map();
   bgPlayers().forEach(p=> everyone.set(p.key, p));
   Object.values(agg).forEach(p=> everyone.set(p.key, {key: p.key, name: p.name, guest: p.guest}));
@@ -4132,7 +4138,7 @@ function renderBgPlayers(){
       ${list.map(p=>{
         const s = p.s;
         const fav = s && Object.entries(s.games).sort((a,b)=> b[1].played - a[1].played)[0];
-        const badges = s ? bgBadgesOf(s, ctx).length : 0;
+        const badges = badgeAgg[p.key] ? bgBadgesOf(badgeAgg[p.key], ctx).length : 0;
         return `
         <div class="bg-player" data-bg-open="player:${esc(p.key)}" role="button" tabindex="0">
           <div class="bg-player-head">${bgAvatar(p.key, 'bg-av lg')}<div style="min-width:0; flex:1;"><div class="bg-player-name">${esc(p.name)}</div>${p.guest ? '<span class="chip">Convidado</span>' : ''}</div>
@@ -4177,7 +4183,8 @@ function renderBgPlayerPage(key){
   });
   const recent = s ? bgChrono(state.bg_matches.filter(m=> (m.results||[]).some(r=> bgCanon(r.userId) === key))).reverse().slice(0, 6) : [];
   const badge = (b, on)=> `<div class="bg-badge ${on ? 'on' : ''}" title="${esc(b.desc)}">${icon(b.icon)}<b>${b.name}</b><span>${b.desc}</span></div>`;
-  const earned = s ? new Set(bgBadgesOf(s, ctx).map(b=> b.id)) : new Set();
+  const bs = bgAggregate(bgBadgeMatches())[key];   // conquistas: só jogos que valem
+  const earned = bs ? new Set(bgBadgesOf(bs, ctx).map(b=> b.id)) : new Set();
   return `
     <div class="page-head">
       ${bgBackBtn()}
@@ -4449,6 +4456,9 @@ function renderBgGameModal(game){
         <div class="field"><label>Dono(s)</label>
           ${people.length ? `<div class="check-pills">${people.map(p=> `<label class="check-pill"><input type="checkbox" name="owners" value="${esc(p.key)}" ${owners.has(p.key)?'checked':''}>${esc(p.name)}</label>`).join('')}</div>` : '<div class="hint">Nenhum jogador ainda.</div>'}
         </div>
+        <div class="field"><label>Vale para conquistas?</label>
+          <select name="badges" style="width:auto;"><option value="sim">SIM</option><option value="nao" ${g.badges === false ? 'selected' : ''}>NÃO</option></select>
+          <div class="hint">Com NÃO, as partidas deste jogo não contam para as conquistas dos jogadores (ranking e ELO continuam contando).</div></div>
         <div class="field"><label>Link da Ludopedia</label><input name="ludopediaUrl" type="url" maxlength="300" value="${esc(g.ludopediaUrl || '')}" placeholder="https://ludopedia.com.br/jogo/..."></div>
         <input type="hidden" name="ludopediaId" value="${esc(g.ludopediaId || '')}">
         <div class="form-error" id="formError"></div>
@@ -4872,7 +4882,7 @@ function bindBgGameForm(){
       year: num(fd.get('year')), minAge: num(fd.get('minAge')), time: num(fd.get('time')), weight: num(fd.get('weight')),
       designers: fd.get('designers').trim(), mechanics: list(fd.get('mechanics')), categories: list(fd.get('categories')),
       description: fd.get('description').trim(), owners: fd.getAll('owners'),
-      ludopediaUrl: fd.get('ludopediaUrl').trim(), ludopediaId: fd.get('ludopediaId') || ''};
+      ludopediaUrl: fd.get('ludopediaUrl').trim(), ludopediaId: fd.get('ludopediaId') || '', badges: fd.get('badges') !== 'nao'};
     if(existing) Object.assign(bgGame(existing.id), data, {updatedAt: now, updatedBy: state.currentUser.username});
     else state.bg_games.push({id: uid(), ...data, createdAt: now, createdBy: state.currentUser.username});
     state.modal = null;

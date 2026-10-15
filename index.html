@@ -3653,7 +3653,15 @@ function bgRecords(){
       if(top.length && (!top[1] || top[1][1] < top[0][1])) kings[g.id] = {key: top[0][0], wins: top[0][1]};
     }
   });
-  return {records, kings};
+  // "Rei do ano": topo do quadro de medalhas de cada ano já encerrado (empate total: todos levam)
+  const yearKings = {};
+  const thisYear = String(new Date().getFullYear());
+  const medalOrder = (a,b)=> b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.winRate - a.winRate;
+  [...new Set(state.bg_matches.map(m=> (m.date||'').slice(0,4)))].filter(y=> /^\d{4}$/.test(y) && y < thisYear).forEach(y=>{
+    const rows = Object.values(bgAggregate(state.bg_matches.filter(m=> (m.date||'').startsWith(y)))).sort(medalOrder);
+    if(rows.length && rows[0].gold) yearKings[y] = rows.filter(r=> !medalOrder(r, rows[0])).map(r=> r.key);
+  });
+  return {records, kings, yearKings};
 }
 const BG_BADGES = [
   {id:'first',    icon:'dice-1',      name:'Primeira jogatina',    desc:'Jogou a primeira partida',                 test:p=> p.played >= 1},
@@ -3673,7 +3681,12 @@ const BG_BADGES = [
   {id:'record',   icon:'target',      name:'Recordista',           desc:'Dono do recorde de pontos de algum jogo',  test:(p,c)=> Object.values(c.records).some(r=> r.key === p.key)},
   {id:'king',     icon:'castle',      name:'Rei da mesa',          desc:'Maior vencedor de um jogo (mín. 5 partidas)', test:(p,c)=> Object.values(c.kings).some(k=> k.key === p.key)},
 ];
-function bgBadgesOf(p, ctx){ return BG_BADGES.filter(b=> b.test(p, ctx)); }
+// conquistas fixas + uma "Rei do ano" para cada ano encerrado com partidas
+function bgAllBadges(ctx){
+  return [...BG_BADGES, ...Object.keys(ctx.yearKings || {}).sort().map(y=> ({id:'year' + y, icon:'crown', name:`Rei do ano ${y}`,
+    desc:`Melhor do quadro de medalhas de ${y}: ${ctx.yearKings[y].map(k=> bgName(k)).join(' e ')}`, test:(p,c)=> c.yearKings[y].includes(p.key)}))];
+}
+function bgBadgesOf(p, ctx){ return bgAllBadges(ctx).filter(b=> b.test(p, ctx)); }
 
 /* ---------- minha coleção (Tenho / Quero jogar / Quero ter / nota) ---------- */
 const bgMyUid = ()=> auth.currentUser ? auth.currentUser.uid : (state.currentUser && state.currentUser.id);
@@ -4148,6 +4161,7 @@ function renderBgPlayerPage(key){
   const games = s ? Object.entries(s.games).map(([id, g])=> ({id, ...g, name: (bgGame(id)||{}).name || 'Jogo removido'})).sort((a,b)=> b.played - a.played) : [];
   const bestGame = games.filter(g=> g.played >= 3).sort((a,b)=> b.wins/b.played - a.wins/a.played)[0];
   const kingOf = Object.entries(ctx.kings).filter(([,k])=> k.key === key).map(([gid])=> bgGame(gid)).filter(Boolean);
+  const yearsKing = Object.keys(ctx.yearKings).filter(y=> ctx.yearKings[y].includes(key)).sort();
   const recordOf = Object.entries(ctx.records).filter(([,r])=> r.key === key).map(([gid, r])=> ({g: bgGame(gid), score: r.score})).filter(x=> x.g);
   // últimos 12 meses
   const now = new Date();
@@ -4171,7 +4185,7 @@ function renderBgPlayerPage(key){
             ${elo.rating[key] != null ? `<span>${icon('trending-up')}ELO ${Math.round(elo.rating[key])} · ${ratingRank + 1}º do grupo</span>` : ''}
             ${s ? `<span>${icon('calendar-days')}Última partida em ${formatDate(s.last)}</span>` : ''}
           </div>
-          ${kingOf.length ? `<div class="bg-tags" style="margin-top:8px;">${kingOf.map(g=> `<span class="chip king">${icon('crown')}Rei de ${esc(g.name)}</span>`).join('')}</div>` : ''}
+          ${kingOf.length || yearsKing.length ? `<div class="bg-tags" style="margin-top:8px;">${yearsKing.map(y=> `<span class="chip king">${icon('crown')}Rei do ano ${y}</span>`).join('')}${kingOf.map(g=> `<span class="chip king">${icon('crown')}Rei de ${esc(g.name)}</span>`).join('')}</div>` : ''}
         </div>
       </div>
       ${bgCanEditPlayer(key) ? `<div style="margin-top:14px;"><button class="btn-icon" data-bg-edit-player="${esc(key)}">${icon('pencil')}Editar jogador</button></div>` : ''}
@@ -4203,8 +4217,8 @@ function renderBgPlayerPage(key){
 
     ${recordOf.length ? `<div class="section-title">Recordes</div><div class="bg-tags">${recordOf.map(r=> `<a class="chip bg-link" data-bg-open="game:${r.g.id}">${icon('target')}${esc(r.g.name)}: ${fmtNum(r.score)} pts</a>`).join('')}</div>` : ''}
 
-    <div class="section-title">Conquistas (${earned.size} de ${BG_BADGES.length})</div>
-    <div class="bg-badges">${BG_BADGES.map(b=> badge(b, earned.has(b.id))).join('')}</div>`}
+    <div class="section-title">Conquistas (${earned.size} de ${bgAllBadges(ctx).length})</div>
+    <div class="bg-badges">${bgAllBadges(ctx).map(b=> badge(b, earned.has(b.id))).join('')}</div>`}
 
     ${!info.guest ? `
     <div class="section-title">Coleção</div>

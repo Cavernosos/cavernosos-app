@@ -4117,7 +4117,8 @@ function renderBgPlayers(){
         const badges = s ? bgBadgesOf(s, ctx).length : 0;
         return `
         <div class="bg-player" data-bg-open="player:${esc(p.key)}" role="button" tabindex="0">
-          <div class="bg-player-head">${bgAvatar(p.key, 'bg-av lg')}<div style="min-width:0;"><div class="bg-player-name">${esc(p.name)}</div>${p.guest ? '<span class="chip">Convidado</span>' : ''}</div></div>
+          <div class="bg-player-head">${bgAvatar(p.key, 'bg-av lg')}<div style="min-width:0; flex:1;"><div class="bg-player-name">${esc(p.name)}</div>${p.guest ? '<span class="chip">Convidado</span>' : ''}</div>
+            ${bgCanEditPlayer(p.key) ? `<button type="button" class="icon-btn" data-bg-edit-player="${esc(p.key)}" title="Editar jogador" aria-label="Editar ${esc(p.name)}">${icon('pencil')}</button>` : ''}</div>
           ${s ? `
           <div class="bg-player-stats">
             <div><b>${s.played}</b><span>partidas</span></div>
@@ -4173,7 +4174,7 @@ function renderBgPlayerPage(key){
           ${kingOf.length ? `<div class="bg-tags" style="margin-top:8px;">${kingOf.map(g=> `<span class="chip king">${icon('crown')}Rei de ${esc(g.name)}</span>`).join('')}</div>` : ''}
         </div>
       </div>
-      ${guest && can('bg.matches.edit') ? `<div style="margin-top:14px;"><button class="btn-icon" data-edit-bg-guest="${guest.id}">${icon('pencil')}Editar convidado</button></div>` : ''}
+      ${bgCanEditPlayer(key) ? `<div style="margin-top:14px;"><button class="btn-icon" data-bg-edit-player="${esc(key)}">${icon('pencil')}Editar jogador</button></div>` : ''}
     </div>
     ${!s ? `<div class="empty">Ainda não jogou nenhuma partida.</div>` : `
     <div class="stat-row">
@@ -4518,7 +4519,10 @@ function renderBgGuestModal(guest){
         <div class="field"><label>Nome</label><input name="name" required maxlength="40" value="${guest ? esc(guest.name) : ''}" placeholder="ex: Primo do Victor"></div>
         ${guest ? `<div class="field"><label>Ligar a uma conta do site</label>
           <select name="linkedUserId"><option value="">Não ligar</option>${users.map(u=> `<option value="${u.id}" ${guest.linkedUserId===u.id?'selected':''}>${esc(fullName(u))}</option>`).join('')}</select>
-          <div class="hint">Quando o convidado cria conta, ligue aqui: as ${n} partida${n===1?'':'s'} dele passam a contar para a conta.</div></div>` : ''}
+          <div class="hint">Quando o convidado cria conta, ligue aqui: as ${n} partida${n===1?'':'s'} dele passam a contar para a conta.</div></div>
+        <label class="switch-row" id="bgGuestMergeRow" style="margin:-4px 0 16px; font-size:13px;" ${guest.linkedUserId ? '' : 'hidden'}>
+          <input type="checkbox" name="merge"> Transferir tudo para a conta (partidas e jogos) e apagar o convidado
+        </label>` : ''}
         <div class="form-error" id="formError"></div>
         <div class="modal-actions">
           ${guest && !n && can('bg.matches.delete') ? `<button type="button" class="danger" id="bgGuestDelete">Excluir</button><span class="spacer"></span>` : ''}
@@ -4773,6 +4777,16 @@ function bindOtherEnvEvents(){
   // convidados
   const addGuest = document.getElementById('addBgGuestBtn');
   if(addGuest) addGuest.onclick = ()=>{ state.modal = {type:'bgGuest', data:null}; render(); };
+  // editar jogador: convidado (nome, conta, transferir) ou conta do site (nome usual)
+  document.querySelectorAll('[data-bg-edit-player]').forEach(b=>{
+    b.onkeydown = e=> e.stopPropagation();
+    b.onclick = e=>{
+      e.stopPropagation();
+      const key = b.dataset.bgEditPlayer;
+      state.modal = isGuestKey(key) ? {type:'bgGuest', data: bgGuest(key)} : {type:'bgAccount', data: {id: key}};
+      render();
+    };
+  });
   document.querySelectorAll('[data-edit-bg-guest]').forEach(b=>{
     b.onclick = ()=>{ state.modal = {type:'bgGuest', data: state.bg_guests.find(g=> g.id === b.dataset.editBgGuest)}; render(); };
   });
@@ -4780,6 +4794,7 @@ function bindOtherEnvEvents(){
   bindBgGameForm();
   bindBgMatchForm();
   bindBgGuestForm();
+  bindBgAccountForm();
   bindBgRandomForm();
 }
 
@@ -5065,12 +5080,26 @@ function bindBgGuestForm(){
   const form = document.getElementById('bgGuestForm');
   if(!form) return;
   const existing = state.modal.data;
+  const linkSel = form.elements.linkedUserId, mergeRow = document.getElementById('bgGuestMergeRow');
+  if(linkSel && mergeRow) linkSel.onchange = ()=>{ mergeRow.hidden = !linkSel.value; if(!linkSel.value) form.elements.merge.checked = false; };
   form.onsubmit = async e=>{
     e.preventDefault();
     const fd = new FormData(form);
     const name = cleanName(fd.get('name'));
     if(!name) return formError('Informe o nome.');
     if(state.bg_guests.some(g=> g.name.toLowerCase() === name.toLowerCase() && (!existing || g.id !== existing.id))) return formError('Já existe um convidado com esse nome.');
+    const linked = fd.get('linkedUserId') || '';
+    if(existing && linked && fd.get('merge')){
+      const acc = state.directory.find(d=> d.id === linked);
+      if(!confirm(`Transferir tudo de ${existing.name} para ${displayName(acc)} e apagar o convidado? Não dá para desfazer.`)) return;
+      formBusy(true);
+      if(await bgMergeGuest(existing.id, linked)){
+        state.modal = null;
+        if(state.bgOpen && state.bgOpen.kind === 'player' && state.bgOpen.id === GUEST + existing.id) state.bgOpen = {kind:'player', id: linked};
+        render(); toast(`${existing.name} transferido para ${displayName(acc)}.`);
+      } else formBusy(false);
+      return;
+    }
     formBusy(true);
     if(existing) Object.assign(state.bg_guests.find(g=> g.id === existing.id), {name, linkedUserId: fd.get('linkedUserId') || ''});
     else state.bg_guests.push({id: uid(), name, linkedUserId: '', createdAt: new Date().toISOString(), createdBy: state.currentUser.username});
@@ -5083,6 +5112,59 @@ function bindBgGuestForm(){
     state.bg_guests = state.bg_guests.filter(g=> g.id !== existing.id);
     state.modal = null; state.bgOpen = state.bgStack.pop() || null;
     if(await sSet('bg_guests', state.bg_guests)){ render(); toast('Convidado excluído.'); }
+  };
+}
+
+// quem pode editar: convidado, quem edita partidas; conta do site (nome usual), só o admin
+function bgCanEditPlayer(key){ return isGuestKey(key) ? !!bgGuest(key) && can('bg.matches.edit') : isAdmin() && state.directory.some(d=> d.id === key); }
+// passa as partidas e os jogos do convidado para a conta e apaga o convidado
+async function bgMergeGuest(guestId, userId){
+  const gk = GUEST + guestId;
+  const acc = state.directory.find(d=> d.id === userId);
+  const name = displayName(acc);
+  state.bg_matches.forEach(m=> (m.results||[]).forEach(r=>{ if(r.userId === gk){ r.userId = userId; r.username = name; } }));
+  state.bg_games.forEach(g=>{ if((g.owners||[]).includes(gk)) g.owners = [...new Set(g.owners.map(o=> o === gk ? userId : o))]; });
+  state.bg_guests = state.bg_guests.filter(g=> g.id !== guestId);
+  return await sSet('bg_matches', state.bg_matches) && await sSet('bg_games', state.bg_games) && await sSet('bg_guests', state.bg_guests);
+}
+function renderBgAccountModal(id){
+  const u = state.users.find(x=> x.id === id) || state.directory.find(x=> x.id === id) || {};
+  return `
+  <div class="overlay" id="modalOverlay">
+    <div class="modal">
+      <h3>Editar jogador</h3>
+      <form id="bgAccountForm" autocomplete="off">
+        <div class="field"><label>Nome usual</label><input name="nickname" maxlength="24" value="${esc(u.nickname || '')}" placeholder="${esc(u.firstName || u.username || '')}">
+          <div class="hint">Conta <b>${esc(u.username || '')}</b> (${esc(fullName(u))}). O nome usual aparece no site todo: Pelada, BoardGame, Games e Outros.</div></div>
+        <div class="form-error" id="formError"></div>
+        <div class="modal-actions">
+          <button type="button" class="ghost" id="cancelModal">Cancelar</button>
+          <button type="submit" class="primary" id="formSubmit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+function bindBgAccountForm(){
+  const form = document.getElementById('bgAccountForm');
+  if(!form) return;
+  const id = state.modal.data.id;
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const nickname = cleanName(form.elements.nickname.value).slice(0, 24);
+    if(nickname && state.users.some(u=> u.id !== id && (u.nickname||'').toLowerCase() === nickname.toLowerCase()))
+      return formError(`O nome usual "${nickname}" já é de outra pessoa.`);
+    formBusy(true);
+    try{
+      await db.collection('users').doc(id).update({nickname, updatedAt: new Date().toISOString(), updatedBy: state.currentUser.username});
+      await loadUsers();   // o admin também atualiza o diretório que o grupo vê
+      if(state.currentUser.id === id) state.currentUser = {...state.currentUser, nickname};
+      state.modal = null; render(); toast('Jogador atualizado.');
+    }catch(err){
+      console.error('nickname save failed', err);
+      formBusy(false);
+      formError(err.code === 'permission-denied' ? 'Você não tem permissão para essa ação.' : 'Não foi possível salvar. Tente de novo.');
+    }
   };
 }
 
@@ -5330,6 +5412,7 @@ function renderModal(){
   if(m.type === 'bgGame') return renderBgGameModal(m.data);
   if(m.type === 'bgMatch') return renderBgMatchModal(m.data);
   if(m.type === 'bgGuest') return renderBgGuestModal(m.data);
+  if(m.type === 'bgAccount') return renderBgAccountModal(m.data.id);
   if(m.type === 'bgRandom') return renderBgRandomModal();
   return '';
 }

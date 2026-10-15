@@ -3607,6 +3607,9 @@ function bgAggregate(matches){
     const rs = m.results || [];
     const winners = new Set(bgWinnerKeys(m));
     const keys = rs.map(r=> bgCanon(r.userId));
+    // último lugar: maior colocação da partida (cooperativo e empate geral não contam)
+    const posList = m.mode === 'coop' ? [] : rs.map(r=> Number(r.position)).filter(Boolean);
+    const lastPos = posList.length >= 2 && Math.max(...posList) > Math.min(...posList) ? Math.max(...posList) : null;
     rs.forEach((r,i)=>{
       const k = keys[i], p = get(k, r), won = winners.has(k);
       p.played++; p.last = m.date || p.last;
@@ -3615,8 +3618,9 @@ function bgAggregate(matches){
       else { if(r.position === 1) p.gold++; if(r.position === 2) p.silver++; if(r.position === 3) p.bronze++; }
       const dur = Number(m.duration) || 0;
       p.minutes += dur; p.maxMinutes = Math.max(p.maxMinutes, dur);
-      const g = p.games[m.gameId] || (p.games[m.gameId] = {played:0, wins:0});
+      const g = p.games[m.gameId] || (p.games[m.gameId] = {played:0, wins:0, lasts:0});
       g.played++; if(won) g.wins++;
+      if(r.position && r.position === lastPos) g.lasts++;
       if(r.firstTime && won) p.firstTimeWins++;
       const mo = (m.date||'').slice(0,7); p.months[mo] = (p.months[mo]||0) + 1;
       keys.forEach((k2,j)=>{
@@ -3680,6 +3684,7 @@ const BG_BADGES = [
   {id:'h5',       icon:'chart-column',name:'Índice H 5',           desc:'5 jogos jogados 5 vezes ou mais',          test:p=> p.hIndex >= 5},
   {id:'record',   icon:'target',      name:'Recordista',           desc:'Dono do recorde de pontos de algum jogo',  test:(p,c)=> Object.values(c.records).some(r=> r.key === p.key)},
   {id:'king',     icon:'castle',      name:'Rei da mesa',          desc:'Maior vencedor de um jogo (mín. 5 partidas)', test:(p,c)=> Object.values(c.kings).some(k=> k.key === p.key)},
+  {id:'kurapika', icon:'link',        name:'Kurapika',             desc:'Ficou em último 3 vezes no mesmo jogo',   test:p=> Object.values(p.games).some(g=> g.lasts >= 3)},
 ];
 // conquistas fixas + uma "Rei do ano" para cada ano encerrado com partidas
 function bgAllBadges(ctx){

@@ -311,7 +311,7 @@ a.chip.bg-link{border-bottom:1px solid var(--border-soft); display:inline-flex; 
 .bg-player:hover, .bg-player:focus-visible{border-color:var(--accent-dim); outline:none;}
 .bg-player-head{display:flex; align-items:center; gap:12px;}
 .bg-player-name{font-weight:600; font-size:15px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.bg-player-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; text-align:center;}
+.bg-player-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; text-align:center;}
 .bg-player-stats b{display:block; font-family:'Oswald'; font-size:19px; color:var(--accent);}
 .bg-player-stats span{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em;}
 .bg-player .bg-meta{display:flex; align-items:center; gap:4px; flex-wrap:wrap;}
@@ -369,6 +369,16 @@ a.chip.bg-link{border-bottom:1px solid var(--border-soft); display:inline-flex; 
 .result-rows.mode-comp .result-row, .result-rows.mode-teams .result-row{grid-template-columns:minmax(120px,1.3fr) 110px 80px 1fr 44px;}
 .result-rows.mode-coop .result-row{grid-template-columns:minmax(120px,1.3fr) 80px 1fr 44px;}
 .result-row .checkbox{justify-self:center;}
+.result-sheet{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:8px 10px; padding:8px 0 4px; border-top:1px dashed var(--border-soft);}
+.rs-field{display:flex; flex-direction:column; gap:3px; width:118px; margin:0;}
+.rs-field.wide{width:210px;}
+.rs-field span{font-size:10.5px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; line-height:1.2; min-height:2.4em; display:flex; align-items:flex-end;}
+.rs-field.rs-extra span::after{content:' · extra'; text-transform:none; letter-spacing:0; margin-left:3px; opacity:.8;}
+.rs-sum{flex-basis:100%; font-size:12.5px; color:var(--text-dim);}
+.rs-sum button{padding:2px 6px; font-size:12px;}
+.bg-sheet-table td:first-child{color:var(--text-dim); white-space:nowrap;}
+.bg-sheet-table tr.stats td:first-child::after{content:' (extra)'; color:var(--text-faint); font-size:11px;}
+.bg-sheet-table tr.total td{font-weight:700; border-top:2px solid var(--border-soft);}
 .bg-team-pos{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:10px; font-size:13px; color:var(--text-dim);}
 .bg-team-pos label{display:inline-flex; align-items:center; gap:6px; margin:0;}
 .bg-team-pos select{width:auto; padding:5px 8px;}
@@ -3479,7 +3489,7 @@ function renderOutrosVideos(){
 
 /* ============ BOARDGAME ============ */
 // Inspirado na Ludopedia (ficha do jogo, coleção, resumo de estatísticas, índice H)
-// e no Ludohall (registro de partidas, perfil do jogador, ELO, conquistas, retrospectiva).
+// e no Ludohall (registro de partidas, perfil do jogador, conquistas, retrospectiva).
 const MAX_BG_PLAYERS = 12;
 const BG_MODES = {comp:'Competitivo', coop:'Cooperativo', teams:'Times'};
 const BG_WEIGHTS = ['', 'Leve', 'Médio-leve', 'Médio', 'Médio-pesado', 'Pesado'];
@@ -3564,37 +3574,73 @@ function bgWinnerKeys(m){
 const bgMatchPhotos = m => state.bg_photos.filter(p=> p.matchId === m.id);
 function bgInPeriod(m, period){ return !period || (m.date||'').startsWith(period); }
 
-/* ---------- ELO: sobe ou desce conforme contra quem você ganha ---------- */
-const ELO_START = 1000, ELO_K = 32;
-let eloCache = {key:null, val:null};
-function bgElo(gameId){
-  const ck = state.bg_matches.length + ':' + (state.bg_matches.map(m=> m.updatedAt || m.createdAt || '').join('|')) + ':' + (gameId||'');
-  if(eloCache.key === ck) return eloCache.val;
-  const rating = {}, games = {}, deltas = {};
-  bgChrono(state.bg_matches.filter(m=> !gameId || m.gameId === gameId)).forEach(m=>{
-    if(m.mode === 'coop') return;
-    const rs = (m.results||[]).filter(r=> r.position);
-    if(rs.length < 2) return;
-    const keys = rs.map(r=> bgCanon(r.userId));
-    const R = keys.map(k=> rating[k] ?? ELO_START);
-    const mates = (i,j)=> m.mode === 'teams' && rs[i].team && rs[i].team === rs[j].team;
-    deltas[m.id] = {};
-    keys.forEach((k,i)=>{
-      let sum = 0, opp = 0;
-      keys.forEach((k2,j)=>{
-        if(i === j || k === k2 || mates(i,j)) return;
-        const exp = 1 / (1 + Math.pow(10, (R[j] - R[i]) / 400));
-        const act = rs[i].position < rs[j].position ? 1 : rs[i].position === rs[j].position ? 0.5 : 0;
-        sum += act - exp; opp++;
-      });
-      if(!opp) return;
-      const delta = Math.round(ELO_K * sum / opp);
-      deltas[m.id][k] = delta;
-    });
-    Object.entries(deltas[m.id]).forEach(([k,d])=>{ rating[k] = (rating[k] ?? ELO_START) + d; games[k] = (games[k]||0) + 1; });
-  });
-  eloCache = {key: ck, val: {rating, games, deltas}};
-  return eloCache.val;
+/* ---------- ficha de pontuação de cada jogo ---------- */
+// choices: o que cada jogador escolhe (facção, líder...) · score: categorias do placar final · stats: números extras.
+// São só sugestões: o total de pontos continua sendo lançado à mão e o admin edita a ficha no cadastro do jogo.
+const BG_SHEET_PRESETS = [
+  {match: /scythe/, sheet: {
+    choices: [
+      {label:'Facção', options:['Reinos Nórdicos','União Rusviet','República da Polânia','Canato da Crimeia','Império da Saxônia','Albion','Xogunato Togawa']},
+      {label:'Tabuleiro do jogador', options:['Industrial','Engenharia','Patriótico','Mecânico','Agrícola','Inovador','Militante']}],
+    score: ['Moedas em mãos','Estrelas','Territórios','Recursos','Bônus de estruturas'],
+    stats: ['Popularidade','Estrelas colocadas','Territórios controlados']}},
+  {match: /harmonies/, sheet: {
+    choices: [{label:'Lado do tabuleiro', options:['Lado A','Lado B']}],
+    score: ['Árvores','Montanhas','Campos','Construções','Água','Cartas de animais','Espíritos da natureza'],
+    stats: ['Cartas de animais completas']}},
+  {match: /dun[ae]\W*imperium/, sheet: {
+    choices: [{label:'Líder', options:['Paul Atreides','Duque Leto Atreides','Barão Vladimir Harkonnen','Glossu "Besta" Rabban','Condessa Ariana Thorvald','Conde Memnon Thorvald','Arquiduque Armand Ecaz','Ilban Richese','Príncipe Rhombur Vernius','Tessia Vernius','Visconde Hundro Moritani','Princesa Yuna Moritani']}],
+    score: ['Influência nas facções','Alianças','Conflitos','Cartas e intrigas','Outros'],
+    stats: ['Especiaria','Solaris','Água','Tropas na guarnição']}},
+  {match: /\bseti\b/, sheet: {
+    choices: [],
+    score: ['Pontos durante a partida','Peças douradas de fim de jogo','Cartas de fim de jogo'],
+    stats: ['Traços de vida marcados','Sondas lançadas']}},
+  {match: /game of thrones|guerra dos tronos/, sheet: {
+    choices: [{label:'Casa', options:['Stark','Lannister','Baratheon','Greyjoy','Tyrell','Martell','Arryn','Targaryen']}],
+    score: ['Fortalezas','Castelos'],
+    stats: ['Abastecimento','Fichas de poder','Trono de Ferro (posição)','Feudos (posição)','Corte do Rei (posição)']}},
+  {match: /terraforming mars/, sheet: {
+    choices: [{label:'Corporação', options:['CrediCor','EcoLine','Helion','Interplanetary Cinematics','Inventrix','Mining Guild','PhoboLog','Saturn Systems','Teractor','Tharsis Republic','Thorgate','UNMI']}],
+    score: ['Classificação de Terraformação (TR)','Marcos','Premiações','Florestas','Cidades','Cartas'],
+    stats: ['Cartas jogadas']}},
+  {match: /white castle|castelo branco/, sheet: {
+    choices: [],
+    score: ['Pontos durante a partida','Pontuação de fim de jogo'],
+    stats: ['Cortesãs','Samurais','Jardineiros']}},
+];
+const bgNorm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function bgSheetPreset(name){ const p = BG_SHEET_PRESETS.find(x=> x.match.test(bgNorm(name))); return p ? JSON.parse(JSON.stringify(p.sheet)) : null; }
+const bgSheetEmpty = s => !s || !((s.choices||[]).length || (s.score||[]).length || (s.stats||[]).length);
+// ficha salva no jogo; sem ficha salva, usa a sugestão pelo nome
+function bgSheetOf(g){
+  if(!g) return null;
+  const s = g.sheet !== undefined ? g.sheet : bgSheetPreset(g.name);
+  return bgSheetEmpty(s) ? null : {choices: s.choices||[], score: s.score||[], stats: s.stats||[]};
+}
+// ficha usada para exibir partidas: a do jogo + qualquer campo antigo que só exista nos resultados
+function bgSheetForMatches(g, matches){
+  const s = bgSheetOf(g) || {choices:[], score:[], stats:[]};
+  const out = {choices: s.choices.map(c=> c.label), score: [...s.score], stats: [...s.stats]};
+  matches.forEach(m=> (m.results||[]).forEach(r=>{
+    const d = r.sheet || {};
+    Object.keys(d.choices||{}).forEach(k=>{ if(!out.choices.includes(k)) out.choices.push(k); });
+    ['score','stats'].forEach(t=> Object.keys(d[t]||{}).forEach(k=>{ if(!out[t].includes(k)) out[t].push(k); }));
+  }));
+  return out;
+}
+const bgSheetVal = (r, t, k)=> r.sheet && r.sheet[t] ? r.sheet[t][k] : undefined;
+// texto do editor ↔ ficha
+const bgSheetChoicesText = s => (s ? s.choices : []).map(c=> c.label + (c.options.length ? ': ' + c.options.join(', ') : '')).join('\n');
+const bgSheetLines = v => [...new Set(String(v||'').split('\n').map(x=> x.trim().replace(/\./g, '')).filter(Boolean))].slice(0, 20);
+const bgSheetCopy = d => ({choices: {...((d||{}).choices||{})}, score: {...((d||{}).score||{})}, stats: {...((d||{}).stats||{})}});
+function bgSheetParse(choices, score, stats){
+  return {
+    choices: bgSheetLines(choices).map(l=>{
+      const i = l.indexOf(':');
+      return i < 0 ? {label: l, options: []} : {label: l.slice(0, i).trim(), options: [...new Set(l.slice(i+1).split(',').map(x=> x.trim()).filter(Boolean))]};
+    }).filter(c=> c.label),
+    score: bgSheetLines(score), stats: bgSheetLines(stats)};
 }
 
 /* ---------- estatísticas agregadas por jogador ---------- */
@@ -3851,9 +3897,13 @@ function bgMatchRow(m){
 function renderBgMatchPage(m){
   const g = bgGame(m.gameId);
   const rs = [...(m.results||[])].sort((a,b)=> (a.position||99) - (b.position||99) || (Number(b.score)||0) - (Number(a.score)||0));
-  const elo = bgElo().deltas[m.id] || {};
   const photos = bgMatchPhotos(m);
   const exps = (m.expansions||[]).map(bgGame).filter(Boolean);
+  // ficha: escolhas viram colunas do resultado; categorias e extras só aparecem se alguém preencheu
+  const sheet = bgSheetForMatches(g, [m]);
+  const filled = (t, k)=> rs.some(r=> bgSheetVal(r, t, k) != null && bgSheetVal(r, t, k) !== '');
+  const sheetCols = sheet.choices.filter(c=> filled('choices', c));
+  const sheetRows = [...sheet.score.filter(k=> filled('score', k)).map(k=> ['score', k]), ...sheet.stats.filter(k=> filled('stats', k)).map(k=> ['stats', k])];
   const facts = [
     m.time ? `${icon('clock')}${m.time}` : '',
     m.duration ? `${icon('timer')}${fmtMinutes(m.duration)}` : '',
@@ -3905,20 +3955,31 @@ function renderBgMatchPage(m){
     <div class="section-title">Resultado</div>
     <div class="table-wrap">
     <table class="rank-table">
-      <thead><tr>${m.mode === 'coop' ? '' : '<th>#</th>'}<th>Jogador</th>${m.mode === 'teams' ? '<th>Time</th>' : ''}<th>Pontos</th><th>Facção / personagem</th>${m.mode === 'coop' ? '' : '<th title="Variação no rating ELO">ELO</th>'}</tr></thead>
+      <thead><tr>${m.mode === 'coop' ? '' : '<th>#</th>'}<th>Jogador</th>${m.mode === 'teams' ? '<th>Time</th>' : ''}<th>Pontos</th>${sheetCols.length ? sheetCols.map(c=> `<th>${esc(c)}</th>`).join('') : '<th>Facção / personagem</th>'}</tr></thead>
       <tbody>${rs.map(r=>{
-        const k = bgCanon(r.userId), d = elo[k];
+        const k = bgCanon(r.userId);
         return `<tr>
           ${m.mode === 'coop' ? '' : `<td class="rank-pos-cell">${r.position ? trophy(r.position) : ''}</td>`}
           <td><div class="user-cell">${bgAvatar(k)}<span>${bgPlayerLink(k, r.username)}</span>${r.firstTime ? '<span class="chip" title="Primeira vez jogando este jogo">1ª vez</span>' : ''}</div></td>
           ${m.mode === 'teams' ? `<td>${r.team ? 'Time ' + r.team : '—'}</td>` : ''}
           <td>${bgHasScore(r) ? fmtNum(Number(r.score)) : '—'}</td>
-          <td>${r.faction ? esc(r.faction) : '—'}</td>
-          ${m.mode === 'coop' ? '' : `<td class="${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d == null ? '—' : (d > 0 ? '+' : '') + d}</td>`}
+          ${sheetCols.length ? sheetCols.map(c=> `<td>${esc(bgSheetVal(r, 'choices', c) || '—')}</td>`).join('') : `<td>${r.faction ? esc(r.faction) : '—'}</td>`}
         </tr>`;
       }).join('')}</tbody>
     </table>
     </div>
+
+    ${sheetRows.length ? `
+    <div class="section-title">Ficha de pontuação</div>
+    <div class="table-wrap">
+    <table class="rank-table bg-sheet-table">
+      <thead><tr><th></th>${rs.map(r=> `<th>${esc(bgName(bgCanon(r.userId), r.username))}</th>`).join('')}</tr></thead>
+      <tbody>
+        ${sheetRows.map(([t, label])=> `<tr class="${t}"><td>${esc(label)}</td>${rs.map(r=>{ const v = bgSheetVal(r, t, label); return `<td>${v == null ? '—' : fmtNum(Number(v))}</td>`; }).join('')}</tr>`).join('')}
+        ${sheetRows.some(x=> x[0] === 'score') ? `<tr class="total"><td>Pontos</td>${rs.map(r=> `<td>${bgHasScore(r) ? fmtNum(Number(r.score)) : '—'}</td>`).join('')}</tr>` : ''}
+      </tbody>
+    </table>
+    </div>` : ''}
 
     ${m.notes ? `<div class="section-title">Observações</div><div class="pm-notes-full">${esc(m.notes)}</div>` : ''}
     <div class="section-title">Fotos (${photos.length})</div>
@@ -4027,14 +4088,13 @@ function renderBgGamePage(g){
   const rating = bgGameRating(g.id);
   const myNote = my.ratings[g.id];
   const agg = Object.values(bgAggregate(ms));
-  const elo = bgElo(g.id);
   const scores = ms.flatMap(m=> (m.results||[]).filter(bgHasScore).map(r=> ({score: Number(r.score), key: bgCanon(r.userId), name: r.username})));
   const best = scores.length ? scores.reduce((a,b)=> b.score > a.score ? b : a) : null;
   const worst = scores.length ? scores.reduce((a,b)=> b.score < a.score ? b : a) : null;
   const minutes = ms.reduce((s,m)=> s + (Number(m.duration)||0), 0);
   const timed = ms.filter(m=> Number(m.duration));
   const coop = ms.filter(m=> m.mode === 'coop');
-  const ranking = agg.map(p=> ({...p, elo: elo.rating[p.key]})).sort((a,b)=> b.wins - a.wins || b.winRate - a.winRate || (b.elo||0) - (a.elo||0));
+  const ranking = agg.sort((a,b)=> b.wins - a.wins || b.winRate - a.winRate);
   const mine = (g.owners||[]).includes(bgMyUid());
   const facts = [
     (g.players||[]).length ? [icon('users'), fmtPlayerCounts(g.players)] : null,
@@ -4102,23 +4162,70 @@ function renderBgGamePage(g){
     ${ranking.length ? `
     <div class="section-title">Quem manda neste jogo</div>
     <div class="table-wrap"><table class="rank-table">
-      <thead><tr><th>#</th><th>Jogador</th><th>Partidas</th><th>Vitórias</th><th>Aproveitamento</th><th>ELO no jogo</th></tr></thead>
+      <thead><tr><th>#</th><th>Jogador</th><th>Partidas</th><th>Vitórias</th><th>Aproveitamento</th></tr></thead>
       <tbody>${ranking.map((p,i)=> `<tr>
         <td class="rank-pos-cell">${p.wins ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
         <td><div class="user-cell">${bgAvatar(p.key)}${bgPlayerLink(p.key, p.name)}</div></td>
-        <td>${p.played}</td><td>${p.wins}</td><td>${pct(p.winRate)}</td><td>${p.elo != null ? Math.round(p.elo) : '—'}</td>
+        <td>${p.played}</td><td>${p.wins}</td><td>${pct(p.winRate)}</td>
       </tr>`).join('')}</tbody>
     </table></div>` : ''}
+
+    ${bgSheetStats(g, ms)}
 
     ${ms.length ? `<div class="section-title">Últimas partidas</div>
       <div class="bgm-list">${bgChrono(ms).reverse().slice(0, 8).map(bgMatchRow).join('')}</div>` : ''}
   `;
 }
 
+// estatísticas da ficha de pontuação: escolhas (vezes e vitórias) e média/recorde de cada categoria
+function bgSheetStats(g, ms){
+  if(!ms.length) return '';
+  const sheet = bgSheetForMatches(g, ms);
+  const choiceBlocks = sheet.choices.map((label, ci)=>{
+    const opts = {};
+    ms.forEach(m=>{
+      const winners = new Set(bgWinnerKeys(m));
+      (m.results||[]).forEach(r=>{
+        // partida antiga, de antes da ficha: a facção em texto livre conta como a primeira escolha
+        const old = ci === 0 && !Object.keys((r.sheet||{}).choices||{}).length ? r.faction : '';
+        const v = bgSheetVal(r, 'choices', label) || old;
+        if(!v) return;
+        const o = opts[v] || (opts[v] = {name: v, n: 0, wins: 0});
+        o.n++;
+        if(winners.has(bgCanon(r.userId))) o.wins++;
+      });
+    });
+    const rows = Object.values(opts).sort((a,b)=> b.n - a.n || b.wins - a.wins || a.name.localeCompare(b.name));
+    return rows.length ? `
+      <div><div class="bg-taxo-lbl" style="margin-bottom:6px;">${esc(label)}</div>
+        <div class="table-wrap"><table class="rank-table">
+          <thead><tr><th>${esc(label)}</th><th>Vezes</th><th>Vitórias</th><th>Aproveitamento</th></tr></thead>
+          <tbody>${rows.map(o=> `<tr><td>${esc(o.name)}</td><td>${o.n}</td><td>${o.wins}</td><td>${pct(o.wins / o.n)}</td></tr>`).join('')}</tbody>
+        </table></div></div>` : '';
+  }).filter(Boolean);
+  const numRows = [...sheet.score.map(k=> ['score', k]), ...sheet.stats.map(k=> ['stats', k])].map(([t, k])=>{
+    const vals = ms.flatMap(m=> (m.results||[]).map(r=> ({v: bgSheetVal(r, t, k), key: bgCanon(r.userId), name: r.username}))).filter(x=> x.v != null && !isNaN(x.v));
+    if(!vals.length) return null;
+    const best = vals.reduce((a,b)=> Number(b.v) > Number(a.v) ? b : a);
+    return {t, k, avg: vals.reduce((s,x)=> s + Number(x.v), 0) / vals.length, best, n: vals.length};
+  }).filter(Boolean);
+  if(!choiceBlocks.length && !numRows.length) return '';
+  return `
+    <div class="section-title">Ficha de pontuação</div>
+    ${choiceBlocks.length ? `<div class="bg-duo" style="grid-template-columns:repeat(auto-fit, minmax(280px,1fr));">${choiceBlocks.join('')}</div>` : ''}
+    ${numRows.length ? `
+    <div class="table-wrap" style="margin-top:${choiceBlocks.length ? 14 : 0}px;"><table class="rank-table">
+      <thead><tr><th>Categoria</th><th>Média</th><th>Recorde</th><th>De quem</th><th>Lançamentos</th></tr></thead>
+      <tbody>${numRows.map(x=> `<tr>
+        <td>${esc(x.k)}${x.t === 'stats' ? ' <span class="chip" title="Não entra na soma dos pontos">extra</span>' : ''}</td>
+        <td>${fmtNum(x.avg)}</td><td class="medal">${fmtNum(Number(x.best.v))}</td>
+        <td><div class="user-cell">${bgAvatar(x.best.key)}${bgPlayerLink(x.best.key, x.best.name)}</div></td><td>${x.n}</td></tr>`).join('')}</tbody>
+    </table></div>` : ''}`;
+}
+
 /* ---------- Jogadores ---------- */
 function renderBgPlayers(){
   const agg = bgAggregate(state.bg_matches);
-  const elo = bgElo();
   const ctx = bgRecords();
   const badgeAgg = bgAggregate(bgBadgeMatches());   // conquistas: só jogos que valem
   const everyone = new Map();
@@ -4126,7 +4233,7 @@ function renderBgPlayers(){
   Object.values(agg).forEach(p=> everyone.set(p.key, {key: p.key, name: p.name, guest: p.guest}));
   const list = [...everyone.values()]
     .filter(p=> state.bgShowGuests || !p.guest)
-    .map(p=> ({...p, s: agg[p.key], elo: elo.rating[p.key]}))
+    .map(p=> ({...p, s: agg[p.key]}))
     .sort((a,b)=> ((b.s && b.s.played) || 0) - ((a.s && a.s.played) || 0) || byName(a,b));
   const guests = state.bg_guests.length;
   return `
@@ -4148,7 +4255,6 @@ function renderBgPlayers(){
             <div><b>${s.played}</b><span>partidas</span></div>
             <div><b>${s.wins}</b><span>vitórias</span></div>
             <div><b>${pct(s.winRate)}</b><span>aproveit.</span></div>
-            <div><b>${p.elo != null ? Math.round(p.elo) : '—'}</b><span>ELO</span></div>
           </div>
           <div class="bg-meta">${fav ? `${icon('heart')} ${esc((bgGame(fav[0])||{}).name || 'Jogo removido')}` : ''}${badges ? ` · ${icon('award')} ${badges} conquista${badges===1?'':'s'}` : ''}</div>`
           : `<div class="bg-meta">Ainda não jogou.</div>`}
@@ -4161,10 +4267,8 @@ function renderBgPlayerPage(key){
   const info = bgPlayerInfo(key);
   const agg = bgAggregate(state.bg_matches);
   const s = agg[key];
-  const elo = bgElo();
   const ctx = bgRecords();
   const guest = isGuestKey(key) ? bgGuest(key) : null;
-  const ratingRank = Object.entries(elo.rating).sort((a,b)=> b[1]-a[1]).findIndex(([k])=> k === key);
   const coll = !info.guest ? state.bg_collection.find(c=> c.id === key) : null;
   const owned = state.bg_games.filter(g=> (g.owners||[]).includes(key)).sort(byName);
   const top = (obj)=> Object.entries(obj||{}).sort((a,b)=> b[1]-a[1])[0];
@@ -4194,7 +4298,6 @@ function renderBgPlayerPage(key){
           <div class="kicker">${info.guest ? 'Convidado' : 'Jogador'}</div>
           <h2>${esc(info.name)}</h2>
           <div class="bg-facts">
-            ${elo.rating[key] != null ? `<span>${icon('trending-up')}ELO ${Math.round(elo.rating[key])} · ${ratingRank + 1}º do grupo</span>` : ''}
             ${s ? `<span>${icon('calendar-days')}Última partida em ${formatDate(s.last)}</span>` : ''}
           </div>
           ${kingOf.length || yearsKing.length ? `<div class="bg-tags" style="margin-top:8px;">${yearsKing.map(y=> `<span class="chip king">${icon('crown')}Rei do ano ${y}</span>`).join('')}${kingOf.map(g=> `<span class="chip king">${icon('crown')}Rei de ${esc(g.name)}</span>`).join('')}</div>` : ''}
@@ -4251,12 +4354,10 @@ function renderBgRankings(){
   const period = state.bgRankPeriod;
   const matches = state.bg_matches.filter(m=> (!gameId || m.gameId === gameId) && bgInPeriod(m, period));
   const agg = Object.values(bgAggregate(matches));
-  const elo = bgElo(gameId || undefined);
   const gamesPlayed = state.bg_games.filter(g=> bgMatchesOf(g.id).length).sort(byName);
   const tabs = `
     <div class="momentos-tabs">
       <button data-bg-rank-tab="medals" class="${tab==='medals'?'active':''}">Medalhas</button>
-      <button data-bg-rank-tab="elo" class="${tab==='elo'?'active':''}">Rating ELO</button>
       <button data-bg-rank-tab="games" class="${tab==='games'?'active':''}">Jogos</button>
     </div>`;
   const filters = tab === 'games' ? '' : `
@@ -4285,18 +4386,6 @@ function renderBgRankings(){
         <td>${r.wins}</td><td>${pct(r.winRate)}</td></tr>`).join('')}</tbody>
     </table></div>
     <div class="hint" style="margin-top:10px;">Ordem: mais 1º lugares, depois 2º, 3º e aproveitamento. Vitórias incluem as dos cooperativos e dos times.</div>`;
-  } else if(tab === 'elo'){
-    const rows = Object.entries(elo.rating).map(([k, r])=> ({key: k, r, n: elo.games[k]})).sort((a,b)=> b.r - a.r);
-    body = !rows.length ? `<div class="empty">Sem partidas competitivas ainda.</div>` : `
-    <div class="table-wrap"><table class="rank-table">
-      <thead><tr><th>#</th><th>Jogador</th><th>Rating</th><th>Partidas</th><th></th></tr></thead>
-      <tbody>${rows.map((x,i)=> `<tr>
-        <td class="rank-pos-cell">${i < 3 ? trophy(i+1) : `<span class="pos-num">${i+1}º</span>`}</td>
-        <td><div class="user-cell">${bgAvatar(x.key)}${bgPlayerLink(x.key)}</div></td>
-        <td class="medal">${Math.round(x.r)}</td><td>${x.n}</td>
-        <td>${x.n < 5 ? '<span class="chip" title="Menos de 5 partidas: o rating ainda está se ajustando">provisório</span>' : ''}</td></tr>`).join('')}</tbody>
-    </table></div>
-    <div class="hint" style="margin-top:10px;">Todo mundo começa com ${ELO_START}. Ganhar de quem tem rating alto vale mais pontos; perder para quem tem rating baixo tira mais. Cooperativos não contam.</div>`;
   } else {
     const rows = state.bg_games.filter(g=> g.type !== 'expansao').map(g=> ({g, n: bgMatchesOf(g.id).length, r: bgGameRating(g.id)}));
     const byPlays = rows.filter(x=> x.n).sort((a,b)=> b.n - a.n).slice(0, 10);
@@ -4309,7 +4398,7 @@ function renderBgRankings(){
           ${byRating.length ? hBars(byRating.map(x=> ({value: x.r.avg, labelHtml: `<a class="bg-link" data-bg-open="game:${x.g.id}">${esc(x.g.name)}</a>`, valueHtml: `${fmtNum(x.r.avg)} <span class="hint">(${x.r.n})</span>`, tip: `${x.g.name}: nota ${fmtNum(x.r.avg)} com ${x.r.n} voto${x.r.n===1?'':'s'}`}))) : '<div class="empty">Ninguém deu nota ainda. Dê a sua na página de cada jogo.</div>'}</div>
       </div>`;
   }
-  return `${pageHead('BoardGame', 'Rankings', 'Quadro de medalhas, rating ELO e os jogos preferidos do grupo.')}${tabs}${filters}${body}`;
+  return `${pageHead('BoardGame', 'Rankings', 'Quadro de medalhas e os jogos preferidos do grupo.')}${tabs}${filters}${body}`;
 }
 
 /* ---------- Retrospectiva (estilo Ludohall) ---------- */
@@ -4406,6 +4495,7 @@ function renderBgGameModal(game){
   const owners = new Set(g.owners || []);
   const people = bgPlayers();
   (g.owners||[]).forEach(k=>{ if(!people.some(p=> p.key === k)) people.push({key: k, name: bgName(k)}); });
+  const sheet = isEdit ? bgSheetOf(g) : null;
   return `
   <div class="overlay" id="modalOverlay">
     <div class="modal wide">
@@ -4458,7 +4548,19 @@ function renderBgGameModal(game){
         </div>
         <div class="field"><label>Vale para conquistas?</label>
           <select name="badges" style="width:auto;"><option value="sim">SIM</option><option value="nao" ${g.badges === false ? 'selected' : ''}>NÃO</option></select>
-          <div class="hint">Com NÃO, as partidas deste jogo não contam para as conquistas dos jogadores (ranking e ELO continuam contando).</div></div>
+          <div class="hint">Com NÃO, as partidas deste jogo não contam para as conquistas dos jogadores (o ranking continua contando).</div></div>
+        <div id="bgSheetFields" ${g.type==='expansao' ? 'hidden' : ''}>
+          <div class="form-section">Ficha de pontuação <span class="links"><button type="button" id="bgSheetPreset">Usar sugestão</button><button type="button" id="bgSheetClear">Limpar</button></span></div>
+          <div class="hint" id="bgSheetHint" style="margin:-4px 0 10px;"></div>
+          <div class="field"><label>Escolhas de cada jogador</label><textarea name="sheetChoices" rows="3" maxlength="2000" placeholder="Uma por linha. ex: Facção: Nórdicos, Rusviet, Polânia">${esc(bgSheetChoicesText(sheet))}</textarea>
+            <div class="hint">Uma por linha, no formato <b>Nome: opção, opção, opção</b>. Sem opções, vira um campo livre.</div></div>
+          <div class="form-row">
+            <div class="field"><label>Categorias de pontuação</label><textarea name="sheetScore" rows="5" maxlength="1000" placeholder="Uma por linha. ex: Estrelas">${esc((sheet ? sheet.score : []).join('\n'))}</textarea>
+              <div class="hint">O que soma no placar final. A soma aparece como sugestão no campo Pontos.</div></div>
+            <div class="field"><label>Estatísticas extras</label><textarea name="sheetStats" rows="5" maxlength="1000" placeholder="Uma por linha. ex: Popularidade">${esc((sheet ? sheet.stats : []).join('\n'))}</textarea>
+              <div class="hint">Números que não entram na soma, mas vale guardar.</div></div>
+          </div>
+        </div>
         <div class="field"><label>Link da Ludopedia</label><input name="ludopediaUrl" type="url" maxlength="300" value="${esc(g.ludopediaUrl || '')}" placeholder="https://ludopedia.com.br/jogo/..."></div>
         <input type="hidden" name="ludopediaId" value="${esc(g.ludopediaId || '')}">
         <div class="form-error" id="formError"></div>
@@ -4862,7 +4964,35 @@ function bindBgGameForm(){
     remove.remove();
   };
   const typeSel = document.getElementById('bgGameType');
-  typeSel.onchange = ()=>{ document.getElementById('bgGameBaseField').hidden = typeSel.value !== 'expansao'; };
+  typeSel.onchange = ()=>{
+    document.getElementById('bgGameBaseField').hidden = typeSel.value !== 'expansao';
+    document.getElementById('bgSheetFields').hidden = typeSel.value === 'expansao';
+  };
+
+  // ficha de pontuação: sugestão pelo nome do jogo
+  let sheetTouched = false;
+  const sheetAreas = ['sheetChoices','sheetScore','sheetStats'].map(n=> form.elements[n]);
+  const fillSheet = s=>{
+    sheetAreas[0].value = bgSheetChoicesText(s);
+    sheetAreas[1].value = (s ? s.score : []).join('\n');
+    sheetAreas[2].value = (s ? s.stats : []).join('\n');
+  };
+  const sheetHint = ()=>{
+    const p = bgSheetPreset(form.elements.name.value);
+    document.getElementById('bgSheetPreset').hidden = !p;
+    document.getElementById('bgSheetHint').innerHTML = p
+      ? 'Tem uma sugestão de ficha para este jogo. Revise antes de salvar: as categorias são sugestões, confira no manual.'
+      : 'Opcional. Com a ficha, o registro da partida pede as escolhas e a pontuação detalhada de cada jogador.';
+  };
+  sheetAreas.forEach(a=> a.oninput = ()=>{ sheetTouched = true; });
+  document.getElementById('bgSheetPreset').onclick = ()=>{ fillSheet(bgSheetPreset(form.elements.name.value)); sheetTouched = true; };
+  document.getElementById('bgSheetClear').onclick = ()=>{ fillSheet(null); sheetTouched = true; };
+  form.elements.name.addEventListener('input', ()=>{
+    sheetHint();
+    // jogo novo: preenche sozinho enquanto ninguém mexeu na ficha
+    if(!existing && !sheetTouched) fillSheet(bgSheetPreset(form.elements.name.value));
+  });
+  sheetHint();
 
   const list = v => String(v||'').split(',').map(s=> s.trim()).filter(Boolean);
   const num = v => v === '' || v == null ? null : Number(v);
@@ -4883,6 +5013,8 @@ function bindBgGameForm(){
       designers: fd.get('designers').trim(), mechanics: list(fd.get('mechanics')), categories: list(fd.get('categories')),
       description: fd.get('description').trim(), owners: fd.getAll('owners'),
       ludopediaUrl: fd.get('ludopediaUrl').trim(), ludopediaId: fd.get('ludopediaId') || '', badges: fd.get('badges') !== 'nao'};
+    // jogo novo sem mexer na ficha: fica sem ficha salva e segue a sugestão pelo nome
+    if(type !== 'expansao' && (existing || sheetTouched)) data.sheet = bgSheetParse(fd.get('sheetChoices'), fd.get('sheetScore'), fd.get('sheetStats'));
     if(existing) Object.assign(bgGame(existing.id), data, {updatedAt: now, updatedBy: state.currentUser.username});
     else state.bg_games.push({id: uid(), ...data, createdAt: now, createdBy: state.currentUser.username});
     state.modal = null;
@@ -4902,7 +5034,7 @@ function bindBgMatchForm(){
   // jogador → {name, position, score, faction, firstTime, team}
   const results = new Map((existing && existing.results || []).map(r=>{
     if(existing.mode === 'teams' && r.team) teamPos[r.team] = r.position;
-    return [r.userId, {name: bgName(r.userId, r.username), position: r.position || '', score: r.score ?? '', faction: r.faction || '', firstTime: !!r.firstTime, team: r.team || ''}];
+    return [r.userId, {name: bgName(r.userId, r.username), position: r.position || '', score: r.score ?? '', faction: r.faction || '', firstTime: !!r.firstTime, team: r.team || '', sheet: bgSheetCopy(r.sheet)}];
   }));
   const mode = ()=> form.querySelector('[name=mode]:checked').value;
 
@@ -4921,7 +5053,7 @@ function bindBgMatchForm(){
       <label class="check-pill"><input type="checkbox" value="${esc(p.key)}" data-name="${esc(p.name)}" ${results.has(p.key) ? 'checked' : ''}>${esc(p.name)}${p.guest ? ' <em class="hint">(conv.)</em>' : ''}</label>`).join('');
     document.querySelectorAll('#bgMatchPlayers input').forEach(cb=>{
       cb.onchange = ()=>{
-        if(cb.checked) results.set(cb.value, {name: cb.dataset.name, position:'', score:'', faction:'', firstTime: isFirstTime(cb.value), team:''});
+        if(cb.checked) results.set(cb.value, {name: cb.dataset.name, position:'', score:'', faction:'', firstTime: isFirstTime(cb.value), team:'', sheet: bgSheetCopy()});
         else results.delete(cb.value);
         results.forEach(r=>{ if(r.position > results.size) r.position = ''; });
         drawRows();
@@ -4949,17 +5081,33 @@ function bindBgMatchForm(){
     if(!n){ rowsEl.innerHTML = `<div class="hint" style="padding:4px 0 8px;">Marque quem jogou para lançar o resultado.</div>`; updateHint(); return; }
     const entries = [...results.entries()].sort((a,b)=> md === 'teams' ? (a[1].team||'Z').localeCompare(b[1].team||'Z') : (a[1].position||99) - (b[1].position||99));
     const teamsUsed = [...new Set(entries.map(([,r])=> r.team).filter(Boolean))].sort();
+    const sheet = bgSheetOf(bgGame(gameSel.value));
+    const hasChoices = sheet && sheet.choices.length;
+    // partida antiga com facção em texto livre: vai para a primeira escolha da ficha
+    if(hasChoices) results.forEach(r=>{ if(r.faction && !Object.keys(r.sheet.choices).length) r.sheet.choices[sheet.choices[0].label] = r.faction; });
+    const sheetBox = (id, r)=> !sheet ? '' : `
+        <div class="result-sheet">
+          ${sheet.choices.map((c,i)=> `<label class="rs-field wide"><span>${esc(c.label)}</span>
+            <input data-sheet="choices" data-k="${esc(c.label)}" data-id="${esc(id)}" value="${esc(r.sheet.choices[c.label] || '')}" maxlength="60" list="bgSheetOpt${i}" placeholder="escolha ou digite"></label>`).join('')}
+          ${sheet.score.map(k=> `<label class="rs-field"><span>${esc(k)}</span>
+            <input type="number" step="any" inputmode="decimal" data-sheet="score" data-k="${esc(k)}" data-id="${esc(id)}" value="${r.sheet.score[k] ?? ''}"></label>`).join('')}
+          ${sheet.stats.map(k=> `<label class="rs-field rs-extra"><span>${esc(k)}</span>
+            <input type="number" step="any" inputmode="decimal" data-sheet="stats" data-k="${esc(k)}" data-id="${esc(id)}" value="${r.sheet.stats[k] ?? ''}"></label>`).join('')}
+          ${sheet.score.length ? `<div class="rs-sum" data-sum="${esc(id)}"></div>` : ''}
+        </div>`;
     rowsEl.innerHTML = `
+      ${sheet ? sheet.choices.map((c,i)=> `<datalist id="bgSheetOpt${i}">${c.options.map(o=> `<option value="${esc(o)}">`).join('')}</datalist>`).join('') : ''}
       <div class="result-rows mode-${md}">
-        <div class="result-row head"><span>Jogador</span>${md === 'comp' ? '<span>Posição</span>' : md === 'teams' ? '<span>Time</span>' : ''}<span>Pontos</span><span>Facção / personagem</span><span title="Primeira vez jogando">1ª vez</span></div>
+        <div class="result-row head"><span>Jogador</span>${md === 'comp' ? '<span>Posição</span>' : md === 'teams' ? '<span>Time</span>' : ''}<span>Pontos</span><span>${hasChoices ? '' : 'Facção / personagem'}</span><span title="Primeira vez jogando">1ª vez</span></div>
         ${entries.map(([id, r])=>`
-        <div class="result-row">
+        <div class="result-row ${sheet ? 'has-sheet' : ''}">
           <span class="name">${md === 'comp' && r.position ? trophy(Number(r.position)) : ''}${esc(r.name)}</span>
           ${md === 'comp' ? `<select data-f="position" data-id="${esc(id)}"><option value="">—</option>${Array.from({length:n}, (_, i)=> i+1).map(p=>`<option value="${p}" ${Number(r.position)===p?'selected':''}>${p}º lugar</option>`).join('')}</select>` : ''}
           ${md === 'teams' ? `<select data-f="team" data-id="${esc(id)}"><option value="">—</option>${BG_TEAMS.map(t=> `<option value="${t}" ${r.team===t?'selected':''}>Time ${t}</option>`).join('')}</select>` : ''}
           <input type="number" data-f="score" data-id="${esc(id)}" value="${r.score}" placeholder="pts" step="any" inputmode="decimal">
-          <input data-f="faction" data-id="${esc(id)}" value="${esc(r.faction)}" maxlength="40" placeholder="opcional">
+          ${hasChoices ? '<span></span>' : `<input data-f="faction" data-id="${esc(id)}" value="${esc(r.faction)}" maxlength="40" placeholder="opcional">`}
           <input type="checkbox" class="checkbox" data-f="firstTime" data-id="${esc(id)}" ${r.firstTime ? 'checked' : ''} aria-label="Primeira vez">
+          ${sheetBox(id, r)}
         </div>`).join('')}
       </div>
       ${md === 'teams' && teamsUsed.length ? `
@@ -4968,9 +5116,34 @@ function bindBgMatchForm(){
       const r = results.get(el.dataset.id), f = el.dataset.f;
       if(f === 'firstTime') el.onchange = ()=>{ r.firstTime = el.checked; };
       else if(f === 'position' || f === 'team') el.onchange = ()=>{ r[f] = f === 'position' ? (el.value ? Number(el.value) : '') : el.value; drawRows(); };
-      else el.oninput = ()=>{ r[f] = el.value; };
+      else el.oninput = ()=>{ r[f] = el.value; if(f === 'score') drawSum(el.dataset.id); };
     });
     rowsEl.querySelectorAll('[data-team-pos]').forEach(s=> s.onchange = ()=>{ teamPos[s.dataset.teamPos] = s.value ? Number(s.value) : ''; });
+    rowsEl.querySelectorAll('[data-sheet]').forEach(el=>{
+      const r = results.get(el.dataset.id), t = el.dataset.sheet, k = el.dataset.k;
+      el.oninput = ()=>{
+        if(el.value === '') delete r.sheet[t][k]; else r.sheet[t][k] = el.value;
+        if(t === 'score') drawSum(el.dataset.id);
+      };
+    });
+    // soma das categorias: só uma sugestão para o campo Pontos
+    function drawSum(id){
+      const box = rowsEl.querySelector(`[data-sum="${CSS.escape(id)}"]`);
+      if(!box || !sheet) return;
+      const r = results.get(id);
+      const vals = sheet.score.map(k=> r.sheet.score[k]).filter(v=> v !== undefined && v !== '' && !isNaN(v));
+      if(!vals.length){ box.innerHTML = ''; return; }
+      const sum = vals.reduce((s,v)=> s + Number(v), 0);
+      const same = r.score !== '' && Number(r.score) === sum;
+      box.innerHTML = `Soma das categorias: <b>${fmtNum(sum)}</b>${same ? ' <span class="hint">(igual aos pontos)</span>' : ` <button type="button" class="ghost" data-use-sum="${esc(id)}">usar como pontos</button>`}`;
+      const btn = box.querySelector('[data-use-sum]');
+      if(btn) btn.onclick = ()=>{
+        r.score = String(sum);
+        rowsEl.querySelector(`[data-f="score"][data-id="${CSS.escape(id)}"]`).value = sum;
+        drawSum(id);
+      };
+    }
+    if(sheet) results.forEach((r, id)=> drawSum(id));
     lucide.createIcons();
     updateHint();
   }
@@ -5011,7 +5184,7 @@ function bindBgMatchForm(){
     const same = [...state.bg_guests, ...newGuests].find(g=> g.name.toLowerCase() === name.toLowerCase());
     const g = same || {id: uid(), name, createdAt: new Date().toISOString(), createdBy: state.currentUser.username};
     if(!same) newGuests.push(g);
-    results.set(GUEST + g.id, {name: g.name, position:'', score:'', faction:'', firstTime: isFirstTime(GUEST + g.id), team:''});
+    results.set(GUEST + g.id, {name: g.name, position:'', score:'', faction:'', firstTime: isFirstTime(GUEST + g.id), team:'', sheet: bgSheetCopy()});
     inp.value = '';
     drawPlayers(); drawRows();
   };
@@ -5074,13 +5247,23 @@ function bindBgMatchForm(){
       if(!await sSet('bg_guests', state.bg_guests)){ formBusy(false); return; }
     }
     const num = v => v === '' || v == null || isNaN(v) ? null : Number(v);
+    // ficha: guarda só os campos da ficha atual do jogo
+    const sheet = bgSheetOf(bgGame(gameId));
+    const sheetOf = r=>{
+      if(!sheet) return null;
+      const out = {choices:{}, score:{}, stats:{}};
+      sheet.choices.forEach(c=>{ const v = String(r.sheet.choices[c.label] || '').trim(); if(v) out.choices[c.label] = v; });
+      ['score','stats'].forEach(t=> sheet[t].forEach(k=>{ const v = num(r.sheet[t][k]); if(v != null) out[t][k] = v; }));
+      return bgSheetEmpty({choices: Object.keys(out.choices), score: Object.keys(out.score), stats: Object.keys(out.stats)}) ? null : out;
+    };
+    const factionOf = (r, sh)=> sheet && sheet.choices.length ? Object.values((sh||{}).choices||{}).join(' · ') : r.faction.trim();
     const payload = {
       date: fd.get('date'), time: fd.get('time') || '', gameId, gameName: bgGame(gameId).name,
       expansions: fd.getAll('expansions'), mode: md, coopWin: md === 'coop' ? coopVal === '1' : null,
       duration: num(fd.get('duration')), location: fd.get('location').trim(), notes: fd.get('notes').trim(),
-      results: rows.map(([userId, r])=> ({userId, username: r.name,
+      results: rows.map(([userId, r])=>{ const sh = sheetOf(r); return {userId, username: r.name,
         position: md === 'comp' ? Number(r.position) : md === 'teams' ? Number(teamPos[r.team]) : null,
-        team: md === 'teams' ? r.team : '', score: num(r.score), faction: r.faction.trim(), firstTime: !!r.firstTime}))
+        team: md === 'teams' ? r.team : '', score: num(r.score), faction: factionOf(r, sh), firstTime: !!r.firstTime, sheet: sh}; })
         .sort((a,b)=> (a.position||99) - (b.position||99)),
     };
     const now = new Date().toISOString();

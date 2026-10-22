@@ -3575,8 +3575,10 @@ const bgMatchPhotos = m => state.bg_photos.filter(p=> p.matchId === m.id);
 function bgInPeriod(m, period){ return !period || (m.date||'').startsWith(period); }
 
 /* ---------- ficha de pontuação de cada jogo ---------- */
-// choices: o que cada jogador escolhe (facção, líder...) · score: categorias do placar final · stats: números extras.
+// choices: o que cada jogador escolhe (facção, líder...) · setup: o que vale para a mesa toda (alienígenas revelados...)
+// score: categorias do placar final · stats: números extras.
 // São só sugestões: o total de pontos continua sendo lançado à mão e o admin edita a ficha no cadastro do jogo.
+// v: versão da sugestão. Ficha salva com versão menor ganha os campos novos da sugestão sem perder o que foi editado.
 const BG_SHEET_PRESETS = [
   {match: /scythe/, sheet: {
     choices: [
@@ -3592,8 +3594,9 @@ const BG_SHEET_PRESETS = [
     choices: [{label:'Líder', options:['Paul Atreides','Duque Leto Atreides','Barão Vladimir Harkonnen','Glossu "Besta" Rabban','Condessa Ariana Thorvald','Conde Memnon Thorvald','Arquiduque Armand Ecaz','Ilban Richese','Príncipe Rhombur Vernius','Tessia Vernius','Visconde Hundro Moritani','Princesa Yuna Moritani']}],
     score: ['Influência nas facções','Alianças','Conflitos','Cartas e intrigas','Outros'],
     stats: ['Especiaria','Solaris','Água','Tropas na guarnição']}},
-  {match: /\bseti\b/, sheet: {
-    choices: [],
+  {match: /\bseti\b/, sheet: {v: 2,
+    choices: [{label:'Agência espacial', options:['Cosmos Strategy Group','Deep Sky Survey','Fenwick Research Center','Futurespan Institute','Helion Assembly','Mission Relay','Orbital Dynamics','Sentinel Probe Network','Stratus Core','Turing Systems','Xenolab']}],
+    setup: [{label:'Alienígenas revelados', options:['Anomalias','Centaurianos','Exertianos','Mascamitas','Oumuamua','Glyphids','Arkhos','Amoeba']}],
     score: ['Pontos durante a partida','Peças douradas de fim de jogo','Cartas de fim de jogo'],
     stats: ['Traços de vida marcados','Sondas lançadas']}},
   {match: /game of thrones|guerra dos tronos/, sheet: {
@@ -3611,17 +3614,26 @@ const BG_SHEET_PRESETS = [
 ];
 const bgNorm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 function bgSheetPreset(name){ const p = BG_SHEET_PRESETS.find(x=> x.match.test(bgNorm(name))); return p ? JSON.parse(JSON.stringify(p.sheet)) : null; }
-const bgSheetEmpty = s => !s || !((s.choices||[]).length || (s.score||[]).length || (s.stats||[]).length);
+const bgSheetEmpty = s => !s || !((s.choices||[]).length || (s.setup||[]).length || (s.score||[]).length || (s.stats||[]).length);
+// junta a ficha salva com o que a sugestão ganhou depois que ela foi salva
+function bgSheetUpgrade(s, p){
+  const byLabel = (a, b)=> [...a, ...b.filter(x=> !a.some(y=> y.label === x.label))];
+  const list = (a, b)=> [...new Set([...a, ...b])];
+  return {v: p.v, choices: byLabel(s.choices||[], p.choices), setup: byLabel(s.setup||[], p.setup||[]), score: list(s.score||[], p.score), stats: list(s.stats||[], p.stats)};
+}
 // ficha salva no jogo; sem ficha salva, usa a sugestão pelo nome
 function bgSheetOf(g){
   if(!g) return null;
-  const s = g.sheet !== undefined ? g.sheet : bgSheetPreset(g.name);
-  return bgSheetEmpty(s) ? null : {choices: s.choices||[], score: s.score||[], stats: s.stats||[]};
+  const p = bgSheetPreset(g.name);
+  let s = g.sheet !== undefined ? g.sheet : p;
+  if(g.sheet && p && (g.sheet.v || 1) < (p.v || 1)) s = bgSheetUpgrade(g.sheet, p);
+  return bgSheetEmpty(s) ? null : {choices: s.choices||[], setup: s.setup||[], score: s.score||[], stats: s.stats||[]};
 }
 // ficha usada para exibir partidas: a do jogo + qualquer campo antigo que só exista nos resultados
 function bgSheetForMatches(g, matches){
-  const s = bgSheetOf(g) || {choices:[], score:[], stats:[]};
-  const out = {choices: s.choices.map(c=> c.label), score: [...s.score], stats: [...s.stats]};
+  const s = bgSheetOf(g) || {choices:[], setup:[], score:[], stats:[]};
+  const out = {choices: s.choices.map(c=> c.label), setup: s.setup.map(c=> c.label), score: [...s.score], stats: [...s.stats]};
+  matches.forEach(m=> Object.keys(m.setup||{}).forEach(k=>{ if(!out.setup.includes(k)) out.setup.push(k); }));
   matches.forEach(m=> (m.results||[]).forEach(r=>{
     const d = r.sheet || {};
     Object.keys(d.choices||{}).forEach(k=>{ if(!out.choices.includes(k)) out.choices.push(k); });
@@ -3631,16 +3643,15 @@ function bgSheetForMatches(g, matches){
 }
 const bgSheetVal = (r, t, k)=> r.sheet && r.sheet[t] ? r.sheet[t][k] : undefined;
 // texto do editor ↔ ficha
-const bgSheetChoicesText = s => (s ? s.choices : []).map(c=> c.label + (c.options.length ? ': ' + c.options.join(', ') : '')).join('\n');
+const bgSheetChoicesText = (s, t = 'choices')=> (s ? s[t] || [] : []).map(c=> c.label + (c.options.length ? ': ' + c.options.join(', ') : '')).join('\n');
 const bgSheetLines = v => [...new Set(String(v||'').split('\n').map(x=> x.trim().replace(/\./g, '')).filter(Boolean))].slice(0, 20);
 const bgSheetCopy = d => ({choices: {...((d||{}).choices||{})}, score: {...((d||{}).score||{})}, stats: {...((d||{}).stats||{})}});
-function bgSheetParse(choices, score, stats){
-  return {
-    choices: bgSheetLines(choices).map(l=>{
-      const i = l.indexOf(':');
-      return i < 0 ? {label: l, options: []} : {label: l.slice(0, i).trim(), options: [...new Set(l.slice(i+1).split(',').map(x=> x.trim()).filter(Boolean))]};
-    }).filter(c=> c.label),
-    score: bgSheetLines(score), stats: bgSheetLines(stats)};
+function bgSheetParse(choices, setup, score, stats){
+  const opts = v => bgSheetLines(v).map(l=>{
+    const i = l.indexOf(':');
+    return i < 0 ? {label: l, options: []} : {label: l.slice(0, i).trim(), options: [...new Set(l.slice(i+1).split(',').map(x=> x.trim()).filter(Boolean))]};
+  }).filter(c=> c.label);
+  return {choices: opts(choices), setup: opts(setup), score: bgSheetLines(score), stats: bgSheetLines(stats)};
 }
 
 /* ---------- estatísticas agregadas por jogador ---------- */
@@ -3922,6 +3933,8 @@ function renderBgMatchPage(m){
           <h2><a class="bg-link" data-bg-open="game:${m.gameId}">${esc(bgGameName(m))}</a></h2>
           <div class="bg-facts">${facts.map(f=> `<span>${f}</span>`).join('')}${bgModeBadge(m)}</div>
           ${exps.length ? `<div class="bg-tags" style="margin-top:8px;">${exps.map(e=> `<a class="chip bg-link" data-bg-open="game:${e.id}">${icon('puzzle')}${esc(e.name)}</a>`).join('')}</div>` : ''}
+          ${Object.entries(m.setup||{}).filter(([,v])=> (v||[]).length).map(([k, v])=> `
+          <div class="bg-tags" style="margin-top:8px; align-items:center;"><span class="hint">${esc(k)}:</span>${v.map(x=> `<span class="chip">${esc(x)}</span>`).join('')}</div>`).join('')}
         </div>
       </div>
       <div style="display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;">
@@ -4203,6 +4216,19 @@ function bgSheetStats(g, ms){
           <tbody>${rows.map(o=> `<tr><td>${esc(o.name)}</td><td>${o.n}</td><td>${o.wins}</td><td>${pct(o.wins / o.n)}</td></tr>`).join('')}</tbody>
         </table></div></div>` : '';
   }).filter(Boolean);
+  // escolhas da mesa: em quantas partidas cada opção apareceu
+  sheet.setup.forEach(label=>{
+    const opts = {};
+    ms.forEach(m=> ((m.setup||{})[label] || []).forEach(v=> opts[v] = (opts[v]||0) + 1));
+    const total = ms.filter(m=> ((m.setup||{})[label] || []).length).length;
+    const rows = Object.entries(opts).sort((a,b)=> b[1] - a[1] || a[0].localeCompare(b[0]));
+    if(rows.length) choiceBlocks.push(`
+      <div><div class="bg-taxo-lbl" style="margin-bottom:6px;">${esc(label)}</div>
+        <div class="table-wrap"><table class="rank-table">
+          <thead><tr><th>${esc(label)}</th><th>Partidas</th><th>Frequência</th></tr></thead>
+          <tbody>${rows.map(([v, n])=> `<tr><td>${esc(v)}</td><td>${n}</td><td>${pct(n / total)}</td></tr>`).join('')}</tbody>
+        </table></div></div>`);
+  });
   const numRows = [...sheet.score.map(k=> ['score', k]), ...sheet.stats.map(k=> ['stats', k])].map(([t, k])=>{
     const vals = ms.flatMap(m=> (m.results||[]).map(r=> ({v: bgSheetVal(r, t, k), key: bgCanon(r.userId), name: r.username}))).filter(x=> x.v != null && !isNaN(x.v));
     if(!vals.length) return null;
@@ -4554,6 +4580,8 @@ function renderBgGameModal(game){
           <div class="hint" id="bgSheetHint" style="margin:-4px 0 10px;"></div>
           <div class="field"><label>Escolhas de cada jogador</label><textarea name="sheetChoices" rows="3" maxlength="2000" placeholder="Uma por linha. ex: Facção: Nórdicos, Rusviet, Polânia">${esc(bgSheetChoicesText(sheet))}</textarea>
             <div class="hint">Uma por linha, no formato <b>Nome: opção, opção, opção</b>. Sem opções, vira um campo livre.</div></div>
+          <div class="field"><label>Escolhas da partida</label><textarea name="sheetSetup" rows="2" maxlength="2000" placeholder="Uma por linha. ex: Alienígenas revelados: Anomalias, Centaurianos">${esc(bgSheetChoicesText(sheet, 'setup'))}</textarea>
+            <div class="hint">O que vale para a mesa toda, marcado uma vez por partida. Mesmo formato, e dá para marcar mais de uma opção.</div></div>
           <div class="form-row">
             <div class="field"><label>Categorias de pontuação</label><textarea name="sheetScore" rows="5" maxlength="1000" placeholder="Uma por linha. ex: Estrelas">${esc((sheet ? sheet.score : []).join('\n'))}</textarea>
               <div class="hint">O que soma no placar final. A soma aparece como sugestão no campo Pontos.</div></div>
@@ -4597,6 +4625,7 @@ function renderBgMatchModal(match){
           <div class="field"><label>Início</label><input name="time" type="time" value="${m.time || ''}"></div>
         </div>
         <div class="field" id="bgExpField" hidden><label>Expansões usadas</label><div class="check-pills" id="bgExpPills"></div></div>
+        <div id="bgSetupFields"></div>
         <div class="form-row">
           <div class="field"><label>Duração (min)</label><input name="duration" type="number" min="1" max="1440" value="${m.duration || ''}" placeholder="ex: 90"></div>
           <div class="field" style="flex:2;"><label>Local</label><input name="location" maxlength="60" list="bgLocations" value="${esc(m.location || '')}" placeholder="ex: Casa do Victor"><datalist id="bgLocations">${locations.map(l=> `<option value="${esc(l)}">`).join('')}</datalist></div>
@@ -4971,11 +5000,12 @@ function bindBgGameForm(){
 
   // ficha de pontuação: sugestão pelo nome do jogo
   let sheetTouched = false;
-  const sheetAreas = ['sheetChoices','sheetScore','sheetStats'].map(n=> form.elements[n]);
+  const sheetAreas = ['sheetChoices','sheetSetup','sheetScore','sheetStats'].map(n=> form.elements[n]);
   const fillSheet = s=>{
     sheetAreas[0].value = bgSheetChoicesText(s);
-    sheetAreas[1].value = (s ? s.score : []).join('\n');
-    sheetAreas[2].value = (s ? s.stats : []).join('\n');
+    sheetAreas[1].value = bgSheetChoicesText(s, 'setup');
+    sheetAreas[2].value = (s ? s.score : []).join('\n');
+    sheetAreas[3].value = (s ? s.stats : []).join('\n');
   };
   const sheetHint = ()=>{
     const p = bgSheetPreset(form.elements.name.value);
@@ -5014,7 +5044,10 @@ function bindBgGameForm(){
       description: fd.get('description').trim(), owners: fd.getAll('owners'),
       ludopediaUrl: fd.get('ludopediaUrl').trim(), ludopediaId: fd.get('ludopediaId') || '', badges: fd.get('badges') !== 'nao'};
     // jogo novo sem mexer na ficha: fica sem ficha salva e segue a sugestão pelo nome
-    if(type !== 'expansao' && (existing || sheetTouched)) data.sheet = bgSheetParse(fd.get('sheetChoices'), fd.get('sheetScore'), fd.get('sheetStats'));
+    if(type !== 'expansao' && (existing || sheetTouched)){
+      const p = bgSheetPreset(name);
+      data.sheet = {v: p && p.v || 1, ...bgSheetParse(fd.get('sheetChoices'), fd.get('sheetSetup'), fd.get('sheetScore'), fd.get('sheetStats'))};
+    }
     if(existing) Object.assign(bgGame(existing.id), data, {updatedAt: now, updatedBy: state.currentUser.username});
     else state.bg_games.push({id: uid(), ...data, createdAt: now, createdBy: state.currentUser.username});
     state.modal = null;
@@ -5072,6 +5105,18 @@ function bindBgMatchForm(){
     const chosen = new Set(existing && existing.gameId === gameSel.value ? existing.expansions || [] : []);
     document.getElementById('bgExpField').hidden = !exps.length;
     document.getElementById('bgExpPills').innerHTML = exps.map(e=> `<label class="check-pill"><input type="checkbox" name="expansions" value="${e.id}" ${chosen.has(e.id)?'checked':''}>${esc(e.name)}</label>`).join('');
+  }
+  // escolhas da mesa toda (ex: alienígenas revelados no SETI)
+  function drawSetup(){
+    const sheet = bgSheetOf(bgGame(gameSel.value));
+    const saved = existing && existing.gameId === gameSel.value ? existing.setup || {} : {};
+    document.getElementById('bgSetupFields').innerHTML = (sheet ? sheet.setup : []).map(c=>{
+      const chosen = saved[c.label] || [];
+      const opts = [...c.options, ...chosen.filter(v=> !c.options.includes(v))];
+      return `<div class="field"><label>${esc(c.label)}</label>
+        ${opts.length ? `<div class="check-pills">${opts.map(o=> `<label class="check-pill"><input type="checkbox" data-setup="${esc(c.label)}" value="${esc(o)}" ${chosen.includes(o)?'checked':''}>${esc(o)}</label>`).join('')}</div>`
+          : `<input data-setup="${esc(c.label)}" maxlength="120" value="${esc(chosen.join(', '))}" placeholder="Separe por vírgula">`}</div>`;
+    }).join('');
   }
   function drawRows(){
     const md = mode();
@@ -5156,7 +5201,7 @@ function bindBgMatchForm(){
     hint.innerHTML = ok ? `Suporta ${fmtPlayerCounts(g.players)}${g.time ? ` · cerca de ${g.time} min` : ''}.` : `<span style="color:var(--danger)">Atenção: ${esc(g.name)} suporta ${fmtPlayerCounts(g.players)} e a partida tem ${n}.</span>`;
   }
   gameSel.onchange = ()=>{
-    drawExpansions();
+    drawExpansions(); drawSetup();
     results.forEach((r,k)=> r.firstTime = isFirstTime(k));
     const g = bgGame(gameSel.value);
     if(g && g.time && !form.elements.duration.value) form.elements.duration.placeholder = `ex: ${g.time}`;
@@ -5217,7 +5262,7 @@ function bindBgMatchForm(){
     drop.ondrop = e=>{ e.preventDefault(); drop.classList.remove('drag-over'); addFiles([...e.dataTransfer.files].filter(f=> f.type.startsWith('image/'))); };
   }
 
-  drawPlayers(); drawExpansions(); drawRows();
+  drawPlayers(); drawExpansions(); drawSetup(); drawRows();
 
   form.onsubmit = async e=>{
     e.preventDefault();
@@ -5257,9 +5302,14 @@ function bindBgMatchForm(){
       return bgSheetEmpty({choices: Object.keys(out.choices), score: Object.keys(out.score), stats: Object.keys(out.stats)}) ? null : out;
     };
     const factionOf = (r, sh)=> sheet && sheet.choices.length ? Object.values((sh||{}).choices||{}).join(' · ') : r.faction.trim();
+    const setup = {};
+    form.querySelectorAll('[data-setup]').forEach(el=>{
+      const vals = el.type === 'checkbox' ? (el.checked ? [el.value] : []) : el.value.split(',').map(x=> x.trim()).filter(Boolean);
+      if(vals.length) setup[el.dataset.setup] = [...(setup[el.dataset.setup] || []), ...vals];
+    });
     const payload = {
       date: fd.get('date'), time: fd.get('time') || '', gameId, gameName: bgGame(gameId).name,
-      expansions: fd.getAll('expansions'), mode: md, coopWin: md === 'coop' ? coopVal === '1' : null,
+      expansions: fd.getAll('expansions'), setup, mode: md, coopWin: md === 'coop' ? coopVal === '1' : null,
       duration: num(fd.get('duration')), location: fd.get('location').trim(), notes: fd.get('notes').trim(),
       results: rows.map(([userId, r])=>{ const sh = sheetOf(r); return {userId, username: r.name,
         position: md === 'comp' ? Number(r.position) : md === 'teams' ? Number(teamPos[r.team]) : null,
